@@ -1,0 +1,347 @@
+/**
+ * API Client Base Configuration
+ * Handles authentication, token refresh, and error handling
+ */
+
+interface ApiResponse<T = any> {
+  data?: T;
+  error?: string;
+  message?: string;
+  user?: any;
+  session?: any;
+  tenant?: any;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+interface ApiError {
+  message: string;
+  status?: number;
+  code?: string;
+}
+
+class ApiClient {
+  private baseURL: string;
+  private accessToken: string | null = null;
+  private refreshTokenValue: string | null = null;
+  private tokenRefreshPromise: Promise<void> | null = null;
+
+  constructor() {
+    // Backend runs on port 3000 with /api prefix
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+
+    // Load tokens from localStorage on client-side
+    if (typeof window !== 'undefined') {
+      this.accessToken = localStorage.getItem('access_token');
+      this.refreshTokenValue = localStorage.getItem('refresh_token');
+    }
+  }
+
+  /**
+   * Set authentication tokens
+   */
+  setTokens(accessToken: string, refreshToken: string) {
+    this.accessToken = accessToken;
+    this.refreshTokenValue = refreshToken;
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
+    }
+  }
+
+  /**
+   * Clear authentication tokens
+   */
+  clearTokens() {
+    this.accessToken = null;
+    this.refreshTokenValue = null;
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant');
+    }
+  }
+
+  /**
+   * Get current access token
+   */
+  getAccessToken(): string | null {
+    return this.accessToken;
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    return !!this.accessToken;
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  public async refreshTokens(): Promise<void> {
+    // Prevent multiple simultaneous refresh attempts
+    if (this.tokenRefreshPromise) {
+      return this.tokenRefreshPromise;
+    }
+
+    this.tokenRefreshPromise = (async () => {
+      try {
+        if (!this.refreshTokenValue) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await fetch(`${this.baseURL}/auth/refresh-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Token refresh failed');
+        }
+
+        const data: ApiResponse = await response.json();
+
+        if (data.session) {
+          this.setTokens(
+            data.session.access_token,
+            data.session.refresh_token
+          );
+        }
+      } catch (error) {
+        // If refresh fails, clear tokens and redirect to signin
+        this.clearTokens();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/en/auth/signin';
+        }
+        throw error;
+      } finally {
+        this.tokenRefreshPromise = null;
+      }
+    })();
+
+    return this.tokenRefreshPromise;
+  }
+
+  /**
+   * Make authenticated API request with automatic token refresh
+   */
+  private async request<T = any>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    let url = `${this.baseURL}${endpoint}`;
+
+    // Add authorization header if token exists
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
+    let response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    // Handle 401 Unauthorized - try to refresh token
+    if (response.status === 401 && this.refreshTokenValue) {
+      try {
+        await this.refreshTokens();
+
+        // Retry request with new token
+        if (this.accessToken) {
+          headers['Authorization'] = `Bearer ${this.accessToken}`;
+        }
+
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+      } catch (error) {
+        // Refresh failed, tokens cleared in refreshTokens()
+        throw {
+          message: 'Session expired. Please sign in again.',
+          status: 401,
+        } as ApiError;
+      }
+    }
+
+    // Handle other errors
+    if (!response.ok) {
+      let errorMessage = 'An error occurred';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+
+      throw {
+        message: errorMessage,
+        status: response.status,
+      } as ApiError;
+    }
+
+    return response.json();
+  }
+
+  /**
+   * HTTP GET request
+   */
+  async get<T = any>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  /**
+   * HTTP POST request
+   */
+  async post<T = any>(
+    endpoint: string,
+    data?: any
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * HTTP PUT request
+   */
+  async put<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * HTTP PATCH request
+   */
+  async patch<T = any>(
+    endpoint: string,
+    data?: any
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * HTTP DELETE request
+   */
+  async delete<T = any>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  /**
+   * Sign in with email and password
+   */
+  async signIn(email: string, password: string): Promise<ApiResponse> {
+    const response = await this.post('/auth/sign-in', { email, password });
+
+    if (response.session) {
+      this.setTokens(
+        response.session.access_token,
+        response.session.refresh_token
+      );
+
+      // Store user and tenant info
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(response.user));
+        // Extract tenant_id from user metadata
+        const tenantId = response.user?.user_metadata?.tenant_id;
+        if (tenantId) {
+          localStorage.setItem('tenant', JSON.stringify({ id: tenantId }));
+        }
+      }
+    }
+
+    return response;
+  }
+
+  /**
+   * Sign up with email and password (for existing tenant)
+   */
+  async signUp(
+    email: string,
+    password: string,
+    tenantId: string
+  ): Promise<ApiResponse> {
+    return this.post('/auth/sign-up', { email, password, tenantId });
+  }
+
+  /**
+   * Create tenant with admin user (public signup flow)
+   */
+  async createTenantWithAdmin(data: {
+    name: string;
+    nameAr: string;
+    email: string;
+    password: string;
+  }): Promise<ApiResponse> {
+    const response = await this.post('/tenants/create-with-admin', data);
+
+    if (response.session) {
+      this.setTokens(
+        response.session.access_token,
+        response.session.refresh_token
+      );
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(response.user));
+        if (response.tenant) {
+          localStorage.setItem('tenant', JSON.stringify(response.tenant));
+        }
+      }
+    }
+
+    return response;
+  }
+
+  /**
+   * Sign out
+   */
+  async signOut(): Promise<void> {
+    try {
+      await this.post('/auth/sign-out');
+    } catch (error) {
+      // Ignore sign-out errors, just clear tokens
+      console.error('Sign out error:', error);
+    } finally {
+      this.clearTokens();
+    }
+  }
+
+  /**
+   * Reset password
+   */
+  async resetPassword(email: string): Promise<ApiResponse> {
+    return this.post('/auth/reset-password', { email });
+  }
+
+  /**
+   * Verify current session
+   */
+  async verifySession(): Promise<ApiResponse> {
+    return this.get('/auth/verify');
+  }
+}
+
+// Export singleton instance
+export const apiClient = new ApiClient();
+
+// Export class for testing
+export { ApiClient };
+export type { ApiResponse, ApiError };
