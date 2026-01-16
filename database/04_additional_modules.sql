@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.bank_transactions (
     transaction_type VARCHAR(20) CHECK (transaction_type IN ('debit', 'credit')),
     category VARCHAR(100),
     is_reconciled BOOLEAN DEFAULT false,
-    reconciliation_id UUID REFERENCES public.bank_reconciliations(id),
+    reconciliation_id UUID,
     attachment_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -90,6 +90,11 @@ CREATE INDEX idx_bank_reconciliations_tenant_id ON public.bank_reconciliations(t
 CREATE INDEX idx_bank_reconciliations_bank_account_id ON public.bank_reconciliations(bank_account_id);
 CREATE INDEX idx_bank_reconciliations_as_of_date ON public.bank_reconciliations(as_of_date);
 CREATE INDEX idx_bank_reconciliations_status ON public.bank_reconciliations(status);
+
+-- Add foreign key constraint for bank_transactions.reconciliation_id
+ALTER TABLE public.bank_transactions
+ADD CONSTRAINT fk_bank_transactions_reconciliation
+FOREIGN KEY (reconciliation_id) REFERENCES public.bank_reconciliations(id) ON DELETE SET NULL;
 
 -- ============================================
 -- EXPENSES

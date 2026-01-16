@@ -4,7 +4,7 @@ const { Client } = require('pg');
 
 // Using Supabase Transaction pooler for migrations
 const client = new Client({
-  host: 'aws-0-ap-southeast-1.pooler.supabase.com',
+  host: 'aws-1-ap-south-1.pooler.supabase.com',
   port: 6543,
   user: 'postgres.gbbmicjucestjpxtkjyp',
   password: 'Khamees1992#',
@@ -26,6 +26,9 @@ const migrations = [
   '10_coa_vat_seed.sql'
 ];
 
+// Start from this migration (set via command line if needed)
+const START_FROM = process.env.START_FROM || 0;
+
 async function runMigrations() {
   console.log('========================================');
   console.log('Database Migration Runner');
@@ -36,7 +39,15 @@ async function runMigrations() {
     await client.connect();
     console.log('[CONNECTED] Successfully connected to database\n');
 
-    for (const migration of migrations) {
+    for (let i = 0; i < migrations.length; i++) {
+      const migration = migrations[i];
+
+      // Skip migrations before START_FROM
+      if (i < START_FROM) {
+        console.log(`[SKIPPING] ${migration} (already completed)\n`);
+        continue;
+      }
+
       const filePath = path.join(__dirname, migration);
       
       if (!fs.existsSync(filePath)) {
