@@ -22,6 +22,7 @@ import { PdfModule } from './pdf/pdf.module';
 import { EmailModule } from './email/email.module';
 import { AppConfigModule } from './config/config.module';
 import { SecurityModule } from './security/security.module';
+import { HealthModule } from './health/health.module';
 import { SecurityMiddleware, RequestLoggingMiddleware } from './common/middleware';
 
 @Module({
@@ -49,6 +50,7 @@ import { SecurityMiddleware, RequestLoggingMiddleware } from './common/middlewar
     QueuesModule,
     PdfModule,
     EmailModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [
