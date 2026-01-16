@@ -1,0 +1,6 @@
+{
+  "name": "accounting-saas-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Accounting SaaS - Backend is in /backend directory"
+}
