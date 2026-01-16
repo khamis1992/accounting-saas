@@ -3,7 +3,7 @@
   "build": {
     "builder": "NIXPACKS",
     "buildCommand": "cd backend && npm install && npm run build",
-    "watchPatterns": ["backend/**"]
+    "watchPatterns": ["backend/**", "package.json", "nixpacks.toml", "railway.json"]
   },
   "deploy": {
     "startCommand": "cd backend && npm run start:prod",
