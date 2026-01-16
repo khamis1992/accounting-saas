@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مرحباً بك في {{appName}}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .content h2 {
+      color: #667eea;
+      margin-top: 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .features {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .features ul {
+      margin: 0;
+      padding-right: 20px;
+    }
+    .features li {
+      margin-bottom: 10px;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>مرحباً بك في {{appName}}!</h1>
+    </div>
+    <div class="content">
+      <h2>مرحباً {{name}}،</h2>
+      <p>نحن سعداء بانضمامك إلينا! تم إنشاء حسابك بنجاح وأنت جاهز للبدء.</p>
+
+      <div class="features">
+        <h3 style="margin-top: 0; color: #667eea;">ما يمكنك فعله:</h3>
+        <ul>
+          <li>إدارة دليل الحسابات الخاص بك</li>
+          <li>إنشاء وإرسال فواتير احترافية</li>
+          <li>تتبع المدفوعات والإيصالات</li>
+          <li>إنشاء التقارير المالية</li>
+          <li>إدارة العملاء والموردين</li>
+          <li>معالجة ضريبة القيمة المضافة والضرائب بكفاءة</li>
+        </ul>
+      </div>
+
+      <center>
+        <a href="{{loginUrl}}" class="button">تسجيل الدخول إلى حسابك</a>
+      </center>
+
+      <p>إذا كان لديك أي أسئلة، لا تتردد في التواصل مع فريق الدعم الخاص بنا.</p>
+
+      <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #6c757d;">
+        مع أطيب التحيات،<br>
+        فريق {{appName}}
+      </p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{currentYear}} {{appName}}. جميع الحقوق محفوظة.</p>
+      <p>تم إرسال هذا البريد الإلكتروني بواسطة {{appName}}. يرجى عدم الرد على هذا البريد الإلكتروني.</p>
+    </div>
+  </div>
+</body>
+</html>

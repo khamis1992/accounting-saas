@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تذكير بالدفع - فواتير متأخرة</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .content h2 {
+      color: #ffc107;
+      margin-top: 0;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: #f8f9fa;
+    }
+    .invoice-table th {
+      background: #ffc107;
+      color: white;
+      padding: 12px;
+      text-align: right;
+      font-weight: 600;
+    }
+    .invoice-table td {
+      padding: 12px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .invoice-table tr:last-child td {
+      border-bottom: none;
+    }
+    .total-row {
+      background: #ffc107;
+      color: white;
+      font-weight: 600;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    .alert {
+      background-color: #fff3cd;
+      border-right: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>{{appName}}</h1>
+    </div>
+    <div class="content">
+      <h2>تذكير بالدفع</h2>
+      <p>عميلنا العزيز،</p>
+      <p>هذا تذكير ودي بأن لديك فواتير متأخرة. يرجى مراجعة الفواتير المستحقة أدناه وترتيب الدفع في أقرب وقت ممكن.</p>
+
+      <div class="alert">
+        <p style="margin: 0;"><strong>إجمالي المبلغ المستحق: {{totalAmount}}</strong></p>
+      </div>
+
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>رقم الفاتورة</th>
+            <th>تاريخ الاستحقاق</th>
+            <th>المبلغ</th>
+            <th>الإجراء</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each invoices}}
+          <tr>
+            <td>{{invoiceNumber}}</td>
+            <td>{{dueDate}}</td>
+            <td>{{amount}}</td>
+            <td><a href="{{invoiceUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600;">عرض</a></td>
+          </tr>
+          {{/each}}
+          <tr class="total-row">
+            <td colspan="2"><strong>الإجمالي</strong></td>
+            <td colspan="2"><strong>{{totalAmount}}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>لإجراء الدفع، يرجى تسجيل الدخول إلى حسابك أو الاتصال بنا مباشرة.</p>
+
+      <center>
+        <a href="{{loginUrl}}" class="button">تسجيل الدخول للدفع</a>
+      </center>
+
+      <p>إذا كنت قد دفعت بالفعل هذه الفواتير، فيرجى تجاهل هذا الإشعار. إذا كان لديك أي أسئلة أو مخاوف، فلا تتردد في الاتصال بنا.</p>
+
+      <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #6c757d;">
+        شكراً لاهتمامك البالغ بهذا الأمر.<br>
+        فريق {{appName}}
+      </p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{currentYear}} {{appName}}. جميع الحقوق محفوظة.</p>
+      <p>تم إرسال هذا البريد الإلكتروني بواسطة {{appName}}. يرجى عدم الرد على هذا البريد الإلكتروني.</p>
+    </div>
+  </div>
+</body>
+</html>

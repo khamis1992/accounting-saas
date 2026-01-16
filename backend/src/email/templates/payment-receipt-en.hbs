@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt #{{receiptNumber}}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .receipt-details {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .detail-label {
+      font-weight: 600;
+      color: #495057;
+    }
+    .detail-value {
+      color: #28a745;
+      font-weight: 600;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    .success {
+      background-color: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      color: #155724;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>{{appName}}</h1>
+    </div>
+    <div class="content">
+      <div class="success">
+        Payment Received Successfully!
+      </div>
+
+      <h2>Payment Receipt #{{receiptNumber}}</h2>
+      <p>Dear Customer,</p>
+      <p>We're pleased to confirm that we've received your payment. Thank you for your prompt payment!</p>
+
+      <div class="receipt-details">
+        <div class="detail-row">
+          <span class="detail-label">Receipt Number:</span>
+          <span class="detail-value">{{receiptNumber}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Amount Paid:</span>
+          <span class="detail-value">{{amount}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Payment Date:</span>
+          <span class="detail-value">{{paymentDate}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Invoice Number:</span>
+          <span class="detail-value">{{invoiceNumber}}</span>
+        </div>
+      </div>
+
+      <center>
+        <a href="{{receiptUrl}}" class="button">View Receipt Online</a>
+      </center>
+
+      <p>A detailed receipt is attached to this email for your records.</p>
+
+      <p>If you have any questions about this payment, please don't hesitate to contact us.</p>
+
+      <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #6c757d;">
+        We appreciate your business!<br>
+        The {{appName}} Team
+      </p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{currentYear}} {{appName}}. All rights reserved.</p>
+      <p>This email was sent by {{appName}}. Please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>

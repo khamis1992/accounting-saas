@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Reminder - Overdue Invoices</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .content h2 {
+      color: #ffc107;
+      margin-top: 0;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: #f8f9fa;
+    }
+    .invoice-table th {
+      background: #ffc107;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .invoice-table td {
+      padding: 12px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .invoice-table tr:last-child td {
+      border-bottom: none;
+    }
+    .total-row {
+      background: #ffc107;
+      color: white;
+      font-weight: 600;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    .alert {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>{{appName}}</h1>
+    </div>
+    <div class="content">
+      <h2>Payment Reminder</h2>
+      <p>Dear Customer,</p>
+      <p>This is a friendly reminder that you have overdue invoices. Please review the outstanding invoices below and arrange payment at your earliest convenience.</p>
+
+      <div class="alert">
+        <p style="margin: 0;"><strong>Total Outstanding Amount: {{totalAmount}}</strong></p>
+      </div>
+
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Invoice Number</th>
+            <th>Due Date</th>
+            <th>Amount</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each invoices}}
+          <tr>
+            <td>{{invoiceNumber}}</td>
+            <td>{{dueDate}}</td>
+            <td>{{amount}}</td>
+            <td><a href="{{invoiceUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600;">View</a></td>
+          </tr>
+          {{/each}}
+          <tr class="total-row">
+            <td colspan="2"><strong>Total</strong></td>
+            <td colspan="2"><strong>{{totalAmount}}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>To make a payment, please log in to your account or contact us directly.</p>
+
+      <center>
+        <a href="{{loginUrl}}" class="button">Login to Pay</a>
+      </center>
+
+      <p>If you have already paid these invoices, please disregard this notice. If you have any questions or concerns, please don't hesitate to contact us.</p>
+
+      <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+
+      <p style="font-size: 14px; color: #6c757d;">
+        Thank you for your prompt attention to this matter.<br>
+        The {{appName}} Team
+      </p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{currentYear}} {{appName}}. All rights reserved.</p>
+      <p>This email was sent by {{appName}}. Please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>
