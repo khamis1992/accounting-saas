@@ -406,3 +406,4 @@ For issues or questions:
 1. Check Swagger docs: `http://localhost:3000/api/docs`
 2. Review database schema in `database/` folder
 3. Check RLS policies in `05_rls_policies.sql`
+
