@@ -31,8 +31,9 @@ const intlMiddleware = createMiddleware({
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check for authentication token
-  const accessToken = request.cookies.get('access_token')?.value;
+  // Check for authentication token from Supabase cookies
+  const supabaseAuth = request.cookies.get('sb-gbbmicjucestjpxtkjyp-auth-token')?.value;
+  const hasSession = !!supabaseAuth;
 
   // Normalize path for public route check (remove locale prefix)
   const pathSegments = pathname.split('/').filter(Boolean);
@@ -47,14 +48,14 @@ export function middleware(request: NextRequest) {
   );
 
   // If not authenticated and trying to access protected route, redirect to signin
-  if (!accessToken && !isPublicPath) {
+  if (!hasSession && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = '/en/auth/signin';
     return NextResponse.redirect(url);
   }
 
   // If authenticated and trying to access signin/signup, redirect to dashboard
-  if (accessToken && isPublicPath && (pathWithoutLocale.includes('signin') || pathWithoutLocale.includes('signup'))) {
+  if (hasSession && isPublicPath && (pathWithoutLocale.includes('signin') || pathWithoutLocale.includes('signup'))) {
     const url = request.nextUrl.clone();
     url.pathname = '/en/dashboard';
     return NextResponse.redirect(url);
