@@ -17,6 +17,7 @@ const PUBLIC_PATHS = [
   '/signup',
   '/auth/signin',
   '/auth/signup',
+  '/test-auth', // Test page for debugging
   '/api/auth', // Public API endpoints
 ];
 
