@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
+      
       // Call backend API instead of Supabase directly
       const response = await fetch(`${API_URL}/auth/sign-in`, {
         method: 'POST',
@@ -78,21 +80,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       
       // Set the session in Supabase client
-      if (data.session) {
-        const { error } = await supabase.auth.setSession({
+      if (data.session && data.session.access_token && data.session.refresh_token) {
+        const { data: sessionData, error } = await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
 
         if (error) {
+          console.error('Error setting session:', error);
           throw error;
         }
+
+        // Update local state immediately
+        if (sessionData.session) {
+          setSession(sessionData.session);
+          setUser(sessionData.session.user);
+        }
+
+        // Redirect to dashboard after successful login
+        router.push('/en/dashboard');
+        router.refresh(); // Force refresh to update the UI
       } else {
         throw new Error('No session returned from server');
       }
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,31 +128,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createTenantWithAdmin = async (data: CreateTenantWithAdminParams) => {
-    // Call backend API to create tenant with admin
-    const response = await fetch(`${API_URL}/tenants/create-with-admin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create tenant');
-    }
-
-    const result = await response.json();
-
-    // Set the auth tokens from the response
-    if (result.session) {
-      await supabase.auth.setSession({
-        access_token: result.session.access_token,
-        refresh_token: result.session.refresh_token,
+    try {
+      setLoading(true);
+      
+      // Call backend API to create tenant with admin
+      const response = await fetch(`${API_URL}/tenants/create-with-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
-    }
 
-    return result;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create tenant');
+      }
+
+      const result = await response.json();
+
+      // Set the auth tokens from the response
+      if (result.session && result.session.access_token && result.session.refresh_token) {
+        const { data: sessionData, error } = await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token,
+        });
+
+        if (error) {
+          console.error('Error setting session:', error);
+          throw error;
+        }
+
+        // Update local state immediately
+        if (sessionData.session) {
+          setSession(sessionData.session);
+          setUser(sessionData.session.user);
+        }
+
+        // Redirect to dashboard after successful tenant creation
+        router.push('/en/dashboard');
+        router.refresh();
+      }
+
+      return result;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
@@ -145,6 +181,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+    // Redirect to login page after sign out
+    router.push('/en/auth/signin');
   };
 
   return (
