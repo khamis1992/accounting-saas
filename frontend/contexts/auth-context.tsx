@@ -34,6 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const supabase = createClient();
+  
+  // Get backend API URL from environment variable or default to production
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://accounting-saas-production-bd32.up.railway.app/api';
 
   useEffect(() => {
     // Get initial session
@@ -56,12 +59,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Call backend API instead of Supabase directly
+      const response = await fetch(`${API_URL}/auth/sign-in`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include', // Include cookies if needed
+      });
 
-    if (error) {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+        throw new Error(errorData.message || `Login failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Set the session in Supabase client
+      if (data.session) {
+        const { error } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+
+        if (error) {
+          throw error;
+        }
+      } else {
+        throw new Error('No session returned from server');
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
       throw error;
     }
   };
@@ -84,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createTenantWithAdmin = async (data: CreateTenantWithAdminParams) => {
     // Call backend API to create tenant with admin
-    const response = await fetch('/api/tenants/create-with-admin', {
+    const response = await fetch(`${API_URL}/tenants/create-with-admin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
