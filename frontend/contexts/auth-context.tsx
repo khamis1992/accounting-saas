@@ -44,13 +44,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   // Get backend API URL from environment variable - must be set
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (() => {
+  // Use lazy evaluation to avoid throwing during SSR
+  const getApiUrl = () => {
+    const url = process.env.NEXT_PUBLIC_API_URL;
+    if (!url) {
       throw new Error(
-        "NEXT_PUBLIC_API_URL environment variable is not configured. Please check your .env.local file."
+        "NEXT_PUBLIC_API_URL environment variable is not configured. Please check your environment settings."
       );
-    })();
+    }
+    return url;
+  };
 
   // Helper function to get current locale from URL
   const getCurrentLocale = (): string => {
@@ -95,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
 
       // Call backend API instead of Supabase directly
-      const response = await fetch(`${API_URL}/auth/sign-in`, {
+      const response = await fetch(`${getApiUrl()}/auth/sign-in`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -165,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
 
       // Call backend API to create tenant with admin
-      const response = await fetch(`${API_URL}/tenants/create-with-admin`, {
+      const response = await fetch(`${getApiUrl()}/tenants/create-with-admin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
