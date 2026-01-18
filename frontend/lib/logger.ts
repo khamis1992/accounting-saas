@@ -160,7 +160,11 @@ class Logger {
           console.warn(...formatted);
           break;
         case LogLevel.ERROR:
-          console.error(...formatted, error);
+          if (error) {
+            console.error(...formatted, error);
+          } else {
+            console.error(...formatted);
+          }
           break;
       }
     }

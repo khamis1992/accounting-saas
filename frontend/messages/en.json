@@ -159,6 +159,11 @@
       "exporting": "Exporting...",
       "exported": "Export successful",
       "loading": "Loading general ledger...",
+      "summary": {
+        "totalDebit": "Total Debit",
+        "totalCredit": "Total Credit",
+        "netBalance": "Net Balance"
+      },
       "errors": {
         "fetchFailed": "Failed to load general ledger data",
         "exportFailed": "Export failed"
@@ -247,6 +252,9 @@
       "refresh": "Refresh",
       "exporting": "Exporting...",
       "exported": "Export successful",
+      "loading": "Loading trial balance...",
+      "totalDebit": "Total Debit",
+      "totalCredit": "Total Credit",
       "balanced": "Trial Balance is Balanced",
       "notBalanced": "Trial Balance is NOT Balanced",
       "difference": "Difference",
@@ -255,12 +263,17 @@
       },
       "filters": {
         "title": "Filters",
+        "hide": "Hide",
+        "allTypes": "All Types",
+        "search": "Search",
+        "searchPlaceholder": "Search by account name or code...",
         "asOfDate": "As of Date",
         "fiscalPeriod": "Fiscal Period",
         "showZeroBalances": "Show Zero Balances",
         "accountType": "Account Type"
       },
       "table": {
+        "title": "Trial Balance",
         "accountCode": "Code",
         "accountName": "Account",
         "debit": "Debit",
@@ -270,6 +283,9 @@
         "totalCredit": "Total Credit"
       },
       "accountTypes": {
+        "asset": "Asset",
+        "liability": "Liability",
+        "expense": "Expense",
         "assets": "Assets",
         "liabilities": "Liabilities",
         "equity": "Equity",
@@ -332,7 +348,8 @@
         "sent": "Sent",
         "accepted": "Accepted",
         "rejected": "Rejected",
-        "expired": "Expired"
+        "expired": "Expired",
+        "converted": "Converted"
       },
       "actions": {
         "edit": "Edit",
@@ -473,13 +490,20 @@
       "title": "Expenses",
       "description": "Track and manage business expenses",
       "newExpense": "New Expense",
+      "loading": "Loading expenses...",
       "summary": {
         "totalThisMonth": "Total This Month",
         "pendingApproval": "Pending Approval",
         "thisWeek": "This Week",
         "byCategory": "By Category"
       },
+      "filters": {
+        "searchPlaceholder": "Search by description, vendor, or amount...",
+        "allStatuses": "All Statuses",
+        "allCategories": "All Categories"
+      },
       "table": {
+        "expenseNumber": "Expense #",
         "date": "Date",
         "category": "Category",
         "description": "Description",
@@ -488,6 +512,18 @@
         "status": "Status",
         "receipt": "Receipt",
         "actions": "Actions"
+      },
+      "fields": {
+        "vendor": "Vendor",
+        "selectVendor": "Select vendor",
+        "date": "Date",
+        "amount": "Amount",
+        "currency": "Currency",
+        "category": "Category",
+        "referenceNumber": "Reference Number",
+        "descriptionEn": "Description (EN)",
+        "descriptionAr": "Description (AR)",
+        "notes": "Notes"
       },
       "categories": {
         "supplies": "Supplies",
@@ -499,11 +535,23 @@
         "other": "Other"
       },
       "statuses": {
+        "draft": "Draft",
+        "submitted": "Submitted",
         "pending": "Pending",
         "approved": "Approved",
         "rejected": "Rejected",
+        "cancelled": "Cancelled",
         "paid": "Paid"
       },
+      "actions": {
+        "create": "Create",
+        "cancel": "Cancel"
+      },
+      "dialogs": {
+        "createTitle": "New Expense",
+        "createDescription": "Create a new expense record"
+      },
+      "createFirst": "Create Expense",
       "empty": {
         "title": "No expenses found",
         "description": "Record your first expense to get started"

@@ -6,7 +6,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +31,7 @@ import {
   Download,
   Eye,
   FileText,
+  RefreshCw,
 } from "lucide-react";
 import {
   Select,
@@ -46,6 +48,7 @@ import logger from "@/lib/logger";
 
 export default function QuotationsPage() {
   const t = useTranslations("sales.quotations");
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");

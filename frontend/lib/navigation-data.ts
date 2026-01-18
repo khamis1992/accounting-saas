@@ -55,7 +55,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "FileText",
     moduleKey: "modules.accounting",
     keywords: ["ledger", "general", "gl", "account"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "trial-balance",
@@ -64,16 +64,16 @@ export const navigationItems: NavigationItem[] = [
     icon: "Scale",
     moduleKey: "modules.accounting",
     keywords: ["trial", "balance", "debits", "credits"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "financial-statements",
     labelKey: "nav.financialStatements",
-    href: "/accounting/statements",
+    href: "/accounting/financial-statements",
     icon: "BarChart3",
     moduleKey: "modules.accounting",
     keywords: ["statements", "financial", "reports", "p&l", "income"],
-    implemented: false,
+    implemented: true,
   },
 
   // Sales Module
@@ -102,7 +102,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "FileStack",
     moduleKey: "modules.sales",
     keywords: ["quote", "quotation", "estimate", "proposal"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "sales-payments",
@@ -140,7 +140,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Receipt",
     moduleKey: "modules.purchases",
     keywords: ["expense", "spending", "cost", "payment"],
-    implemented: false,
+    implemented: true,
   },
 
   // Banking Module
@@ -151,7 +151,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Landmark",
     moduleKey: "modules.banking",
     keywords: ["bank", "account", "cash", "fund"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "reconciliation",
@@ -160,7 +160,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "CheckCircle",
     moduleKey: "modules.banking",
     keywords: ["reconciliation", "reconcile", "match", "bank-statement"],
-    implemented: false,
+    implemented: true,
   },
 
   // Assets Module
@@ -191,7 +191,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Percent",
     moduleKey: "modules.tax",
     keywords: ["vat", "tax", "gst", "sales-tax"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "vat-returns",
@@ -200,7 +200,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "FileSpreadsheet",
     moduleKey: "modules.tax",
     keywords: ["vat-return", "tax-return", "filing"],
-    implemented: false,
+    implemented: true,
   },
 
   // Reports
@@ -211,7 +211,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "BarChart2",
     moduleKey: "modules.reports",
     keywords: ["report", "analytics", "analysis", "data"],
-    implemented: false,
+    implemented: true,
   },
 
   // Settings Module
@@ -222,7 +222,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Building",
     moduleKey: "modules.settings",
     keywords: ["company", "settings", "organization", "business"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "settings-users",
@@ -240,7 +240,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Shield",
     moduleKey: "modules.settings",
     keywords: ["role", "permission", "access", "security"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "settings-fiscal",
@@ -249,7 +249,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Calendar",
     moduleKey: "modules.settings",
     keywords: ["fiscal", "year", "period", "financial-year"],
-    implemented: false,
+    implemented: true,
   },
   {
     id: "settings-cost-centers",
@@ -258,7 +258,7 @@ export const navigationItems: NavigationItem[] = [
     icon: "Target",
     moduleKey: "modules.settings",
     keywords: ["cost", "center", "department", "division"],
-    implemented: false,
+    implemented: true,
   },
 ];
 
