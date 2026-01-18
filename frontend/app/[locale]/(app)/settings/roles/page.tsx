@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -351,8 +350,7 @@ export default function RolesPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -613,7 +611,6 @@ export default function RolesPage() {
           />
         )}
       </div>
-    </AuthenticatedLayout>
   );
 }
 

@@ -16,7 +16,6 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -165,8 +164,7 @@ export default function TrialBalancePage() {
   ];
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -421,6 +419,5 @@ export default function TrialBalancePage() {
           </Card>
         )}
       </div>
-    </AuthenticatedLayout>
   );
 }

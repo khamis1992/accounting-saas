@@ -656,6 +656,9 @@
     "addAccount": "Add Account",
     "editAccount": "Edit Account",
     "deleteAccount": "Delete Account",
+    "search": "Search accounts...",
+    "actions": "Actions",
+    "save": "Save",
     "accountTypes": {
       "assets": "Assets",
       "liabilities": "Liabilities",

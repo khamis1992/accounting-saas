@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,8 +201,7 @@ export default function VatManagementPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -461,6 +459,5 @@ export default function VatManagementPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthenticatedLayout>
   );
 }

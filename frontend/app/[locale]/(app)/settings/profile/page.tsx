@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -176,17 +175,14 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <AuthenticatedLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-zinc-500">Loading profile...</div>
         </div>
-      </AuthenticatedLayout>
     );
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-zinc-600 dark:text-zinc-400">
@@ -535,6 +531,5 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </AuthenticatedLayout>
   );
 }

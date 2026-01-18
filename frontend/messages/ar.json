@@ -656,6 +656,9 @@
     "addAccount": "إضافة حساب",
     "editAccount": "تعديل الحساب",
     "deleteAccount": "حذف الحساب",
+    "search": "ابحث في الحسابات...",
+    "actions": "الإجراءات",
+    "save": "حفظ",
     "accountTypes": {
       "assets": "الأصول",
       "liabilities": "الخصوم",

@@ -17,7 +17,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,8 +197,7 @@ export default function COAPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">{t("title")}</h1>
@@ -437,7 +435,6 @@ export default function COAPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-    </AuthenticatedLayout>
+    </div>
   );
 }

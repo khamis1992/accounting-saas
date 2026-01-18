@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -247,17 +246,14 @@ export default function ReportsHubPage() {
 
   if (loading) {
     return (
-      <AuthenticatedLayout>
-        <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-20">
           <div className="text-zinc-500">Loading reports...</div>
         </div>
-      </AuthenticatedLayout>
     );
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -396,7 +392,6 @@ export default function ReportsHubPage() {
             </CardContent>
           </Card>
         )}
-      </div>
 
       {/* Generate Dialog */}
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
@@ -462,7 +457,7 @@ export default function ReportsHubPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </AuthenticatedLayout>
+    </div>
   );
 }
 

@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -212,8 +211,7 @@ export default function GeneralLedgerPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -451,6 +449,5 @@ export default function GeneralLedgerPage() {
           </CardContent>
         </Card>
       </div>
-    </AuthenticatedLayout>
   );
 }

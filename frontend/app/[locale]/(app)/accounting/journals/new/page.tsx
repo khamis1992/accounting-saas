@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -222,8 +221,7 @@ export default function NewJournalPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
@@ -464,6 +462,5 @@ export default function NewJournalPage() {
           </div>
         </form>
       </div>
-    </AuthenticatedLayout>
   );
 }

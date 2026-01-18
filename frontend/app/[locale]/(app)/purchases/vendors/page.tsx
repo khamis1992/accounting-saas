@@ -13,7 +13,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,8 +254,7 @@ export default function VendorsPage() {
   const filteredData = filteredVendors();
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -637,6 +635,5 @@ export default function VendorsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthenticatedLayout>
   );
 }

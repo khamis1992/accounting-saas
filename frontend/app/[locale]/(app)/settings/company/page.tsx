@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,17 +150,14 @@ export default function CompanySettingsPage() {
 
   if (loading) {
     return (
-      <AuthenticatedLayout>
-        <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-20">
           <div className="text-zinc-500">Loading settings...</div>
         </div>
-      </AuthenticatedLayout>
     );
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="max-w-4xl space-y-6">
+    <div className="max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -450,6 +446,5 @@ export default function CompanySettingsPage() {
           </div>
         )}
       </div>
-    </AuthenticatedLayout>
   );
 }

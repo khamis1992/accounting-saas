@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -316,8 +315,7 @@ export default function ExpensesPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">{t("title")}</h1>
@@ -734,6 +732,5 @@ export default function ExpensesPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthenticatedLayout>
   );
 }

@@ -17,7 +17,6 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinancialStatementViewer } from "@/components/financial-statement-viewer";
 import { StatementFiltersPanel, StatementFiltersValue } from "@/components/statement-filters-panel";
@@ -59,8 +58,7 @@ export default function FinancialStatementsPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">{t("title")}</h1>
@@ -91,6 +89,5 @@ export default function FinancialStatementsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AuthenticatedLayout>
   );
 }

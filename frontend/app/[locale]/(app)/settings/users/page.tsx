@@ -20,7 +20,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,11 +106,9 @@ export default function UsersPage() {
   // Show loading state while checking permissions
   if (permLoading) {
     return (
-      <AuthenticatedLayout>
-        <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12">
           <div className="text-zinc-500">Checking permissions...</div>
         </div>
-      </AuthenticatedLayout>
     );
   }
 
@@ -244,7 +241,7 @@ export default function UsersPage() {
   };
 
   return (
-    <AuthenticatedLayout>
+    <>
       {/* Secure Password Modal */}
       <SecurePasswordModal
         {...passwordModal.props}
@@ -531,6 +528,6 @@ export default function UsersPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }

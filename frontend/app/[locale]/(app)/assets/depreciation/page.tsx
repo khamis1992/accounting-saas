@@ -16,7 +16,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -173,8 +172,7 @@ export default function DepreciationPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Depreciation</h1>
@@ -484,6 +482,6 @@ export default function DepreciationPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuthenticatedLayout>
+    </div>
   );
 }
