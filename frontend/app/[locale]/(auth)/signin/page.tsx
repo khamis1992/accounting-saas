@@ -21,6 +21,7 @@ import { setPageTitle } from "@/lib/accessibility";
 export default function SignInPage() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
+  const tValidation = useTranslations("validation");
   const { signIn, loading, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,10 +50,10 @@ export default function SignInPage() {
     // Basic validation
     const newFieldErrors: { email?: string; password?: string } = {};
     if (!email) {
-      newFieldErrors.email = t("errors.emailRequired") || "Email is required";
+      newFieldErrors.email = tValidation("emailRequired") || "Email is required";
     }
     if (!password) {
-      newFieldErrors.password = t("errors.passwordRequired") || "Password is required";
+      newFieldErrors.password = tValidation("passwordRequired") || "Password is required";
     }
 
     if (Object.keys(newFieldErrors).length > 0) {

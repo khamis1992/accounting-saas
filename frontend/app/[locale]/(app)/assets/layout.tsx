@@ -13,13 +13,13 @@ import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
 export default function AssetsLayout({ children }: { children: ReactNode }) {
-  const t = useTranslations();
+  const t = useTranslations("assets");
 
   return (
     <AuthenticatedLayout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{t("assets.title")}</h1>
-        <p className="text-zinc-600 dark:text-zinc-400 mt-2">{t("assets.description")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-zinc-600 dark:text-zinc-400 mt-2">{t("description")}</p>
       </div>
       {children}
     </AuthenticatedLayout>
