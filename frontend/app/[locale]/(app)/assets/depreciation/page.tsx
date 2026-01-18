@@ -346,7 +346,6 @@ export default function DepreciationPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Journal Preview Dialog */}
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
