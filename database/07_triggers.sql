@@ -15,13 +15,31 @@ DECLARE
     v_old_values JSONB;
     v_new_values JSONB;
     v_changed_fields TEXT[];
+    v_auth_user_id UUID;
 BEGIN
-    -- Get user info
+    -- Get authenticated user ID
+    v_auth_user_id := auth.uid();
+
+    -- Try to get user info from public.users table
     SELECT id, email,
-           CONCAT(first_name_en, ' ', last_name_en)
+           COALESCE(
+             CONCAT(first_name_en, ' ', last_name_en),
+             email,
+             'Unknown User'
+           )
     INTO v_user_id, v_user_email, v_user_name
     FROM public.users
-    WHERE id = auth.uid();
+    WHERE id = v_auth_user_id;
+
+    -- If user not found in public.users, use auth.uid()
+    IF v_user_id IS NULL THEN
+        v_user_id := v_auth_user_id;
+        v_user_email := 'unknown@example.com';
+        v_user_name := 'Unknown User';
+
+        -- Log warning for investigation
+        RAISE WARNING 'Audit trigger: User % not found in public.users table for table %', v_auth_user_id, TG_TABLE_NAME;
+    END IF;
 
     -- Determine old/new values based on operation
     IF TG_OP = 'DELETE' THEN

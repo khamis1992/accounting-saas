@@ -3,21 +3,21 @@
  * All COA-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface Account {
   id: string;
   code: string;
   name_en: string;
   name_ar: string;
-  type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  type: "asset" | "liability" | "equity" | "revenue" | "expense";
   subtype?: string;
   parent_id?: string;
   level: number;
   is_control_account: boolean;
   is_posting_allowed: boolean;
   is_active: boolean;
-  balance_type: 'debit' | 'credit';
+  balance_type: "debit" | "credit";
   description?: string;
   currency?: string;
   cost_center_required: boolean;
@@ -34,20 +34,20 @@ export interface AccountBalance {
   balance: number;
   netDebit: number;
   netCredit: number;
-  balanceType: 'debit' | 'credit';
+  balanceType: "debit" | "credit";
 }
 
 export interface CreateAccountDto {
   code: string;
   nameEn: string;
   nameAr: string;
-  type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  type: "asset" | "liability" | "equity" | "revenue" | "expense";
   subtype?: string;
   parentId?: string;
   isControlAccount?: boolean;
   isPostingAllowed?: boolean;
   isActive?: boolean;
-  balanceType?: 'debit' | 'credit';
+  balanceType?: "debit" | "credit";
   description?: string;
   currency?: string;
   costCenterRequired?: boolean;
@@ -60,7 +60,7 @@ export interface UpdateAccountDto {
   isControlAccount?: boolean;
   isPostingAllowed?: boolean;
   isActive?: boolean;
-  balanceType?: 'debit' | 'credit';
+  balanceType?: "debit" | "credit";
   description?: string;
   currency?: string;
   costCenterRequired?: boolean;
@@ -71,9 +71,7 @@ export const coaApi = {
    * Get all accounts (hierarchical)
    */
   async getAll(includeInactive = false): Promise<Account[]> {
-    const response = await apiClient.get<Account[]>(
-      `/coa?includeInactive=${includeInactive}`,
-    );
+    const response = await apiClient.get<Account[]>(`/coa?includeInactive=${includeInactive}`);
     return response.data || [];
   },
 
@@ -105,9 +103,7 @@ export const coaApi = {
    * Get account balance
    */
   async getBalance(id: string, asOf?: Date): Promise<AccountBalance> {
-    const url = asOf
-      ? `/coa/${id}/balance?asOf=${asOf.toISOString()}`
-      : `/coa/${id}/balance`;
+    const url = asOf ? `/coa/${id}/balance?asOf=${asOf.toISOString()}` : `/coa/${id}/balance`;
     const response = await apiClient.get<AccountBalance>(url);
     return response.data as AccountBalance;
   },
@@ -116,7 +112,7 @@ export const coaApi = {
    * Create new account
    */
   async create(data: CreateAccountDto): Promise<Account> {
-    const response = await apiClient.post<Account>('/coa', {
+    const response = await apiClient.post<Account>("/coa", {
       code: data.code,
       name_en: data.nameEn,
       name_ar: data.nameAr,

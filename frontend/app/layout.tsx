@@ -1,3 +1,13 @@
+/**
+ * Layout Component
+ *
+ * Layout wrapper for layout
+ *
+ * @fileoverview Layout component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -24,11 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
     </html>
   );
 }

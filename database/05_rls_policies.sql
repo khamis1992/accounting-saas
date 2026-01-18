@@ -21,14 +21,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Helper function to get current user's tenant_id
+-- Helper function to get current user's tenant_id with proper error handling
 CREATE OR REPLACE FUNCTION public.get_current_user_tenant()
 RETURNS UUID AS $$
+DECLARE
+    v_tenant_id UUID;
+    v_user_id UUID;
 BEGIN
-    RETURN (
-        SELECT tenant_id FROM public.users
-        WHERE id = auth.uid()
-    );
+    -- Get authenticated user ID from Supabase auth
+    v_user_id := auth.uid();
+
+    -- Check if user is authenticated
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'User is not authenticated'
+        USING ERRCODE = '28001';  -- invalid_authorization
+    END IF;
+
+    -- Get tenant_id from public.users table
+    SELECT tenant_id INTO v_tenant_id
+    FROM public.users
+    WHERE id = v_user_id;
+
+    -- Check if user exists in public.users table
+    IF v_tenant_id IS NULL THEN
+        RAISE EXCEPTION 'User % has no tenant assigned or does not exist in public.users table', v_user_id
+        USING ERRCODE = '23503';  -- foreign_key_violation
+    END IF;
+
+    RETURN v_tenant_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

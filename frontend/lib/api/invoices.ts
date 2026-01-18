@@ -3,7 +3,7 @@
  * All invoice-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface InvoiceLine {
   id: string;
@@ -35,9 +35,9 @@ export interface Invoice {
   id: string;
   tenant_id: string;
   invoice_number: string;
-  invoice_type: 'sales' | 'purchase';
+  invoice_type: "sales" | "purchase";
   party_id: string;
-  party_type: 'customer' | 'vendor';
+  party_type: "customer" | "vendor";
   party?: {
     id: string;
     name_en: string;
@@ -53,7 +53,7 @@ export interface Invoice {
   total_amount: number;
   paid_amount: number;
   outstanding_amount: number;
-  status: 'draft' | 'submitted' | 'approved' | 'posted' | 'paid' | 'partial';
+  status: "draft" | "submitted" | "approved" | "posted" | "paid" | "partial";
   notes?: string;
   attachment_url?: string;
   submitted_by?: string;
@@ -70,42 +70,42 @@ export interface Invoice {
 }
 
 export interface CreateInvoiceDto {
-  invoiceType: 'sales' | 'purchase';
-  partyId: string;
-  partyType: 'customer' | 'vendor';
-  invoiceDate: Date;
-  dueDate?: Date;
+  invoice_type: "sales" | "purchase";
+  party_id: string;
+  party_type: "customer" | "vendor";
+  invoice_date: Date | string;
+  due_date?: Date | string;
   currency?: string;
-  exchangeRate?: number;
+  exchange_rate?: number;
   notes?: string;
-  attachmentUrl?: string;
+  attachment_url?: string;
   lines: Array<{
-    lineNumber: number;
-    descriptionAr?: string;
-    descriptionEn?: string;
+    line_number: number;
+    description_ar?: string;
+    description_en?: string;
     quantity: number;
-    unitPrice: number;
-    taxRate: number;
-    discountPercent: number;
-    accountId?: string;
+    unit_price: number;
+    tax_rate: number;
+    discount_percent: number;
+    account_id?: string;
   }>;
 }
 
 export interface UpdateInvoiceDto {
-  invoiceDate?: Date;
-  dueDate?: Date;
+  invoice_date?: Date | string;
+  due_date?: Date | string;
   currency?: string;
-  exchangeRate?: number;
+  exchange_rate?: number;
   notes?: string;
-  attachmentUrl?: string;
+  attachment_url?: string;
 }
 
 export interface InvoiceFilters {
-  invoiceType?: 'sales' | 'purchase';
+  invoice_type?: "sales" | "purchase";
   status?: string;
-  partyType?: 'customer' | 'vendor';
-  startDate?: string;
-  endDate?: string;
+  party_type?: "customer" | "vendor";
+  start_date?: string;
+  end_date?: string;
 }
 
 export const invoicesApi = {
@@ -114,16 +114,14 @@ export const invoicesApi = {
    */
   async getAll(filters?: InvoiceFilters): Promise<Invoice[]> {
     const params = new URLSearchParams();
-    if (filters?.invoiceType) params.append('invoiceType', filters.invoiceType);
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.partyType) params.append('partyType', filters.partyType);
-    if (filters?.startDate) params.append('startDate', filters.startDate);
-    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.invoice_type) params.append("invoice_type", filters.invoice_type);
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.party_type) params.append("party_type", filters.party_type);
+    if (filters?.start_date) params.append("start_date", filters.start_date);
+    if (filters?.end_date) params.append("end_date", filters.end_date);
 
     const query = params.toString();
-    const response = await apiClient.get<Invoice[]>(
-      query ? `/invoices?${query}` : '/invoices',
-    );
+    const response = await apiClient.get<Invoice[]>(query ? `/invoices?${query}` : "/invoices");
     return response.data || [];
   },
 
@@ -139,25 +137,25 @@ export const invoicesApi = {
    * Create new invoice
    */
   async create(data: CreateInvoiceDto): Promise<Invoice> {
-    const response = await apiClient.post<Invoice>('/invoices', {
-      invoice_type: data.invoiceType,
-      party_id: data.partyId,
-      party_type: data.partyType,
-      invoice_date: data.invoiceDate.toISOString(),
-      due_date: data.dueDate?.toISOString(),
-      currency: data.currency || 'QAR',
-      exchange_rate: data.exchangeRate || 1,
+    const response = await apiClient.post<Invoice>("/invoices", {
+      invoice_type: data.invoice_type,
+      party_id: data.party_id,
+      party_type: data.party_type,
+      invoice_date: typeof data.invoice_date === 'string' ? data.invoice_date : data.invoice_date.toISOString(),
+      due_date: data.due_date ? (typeof data.due_date === 'string' ? data.due_date : data.due_date.toISOString()) : undefined,
+      currency: data.currency || "QAR",
+      exchange_rate: data.exchange_rate || 1,
       notes: data.notes,
-      attachment_url: data.attachmentUrl,
+      attachment_url: data.attachment_url,
       lines: data.lines.map((line) => ({
-        line_number: line.lineNumber,
-        description_ar: line.descriptionAr,
-        description_en: line.descriptionEn,
+        line_number: line.line_number,
+        description_ar: line.description_ar,
+        description_en: line.description_en,
         quantity: line.quantity,
-        unit_price: line.unitPrice,
-        tax_rate: line.taxRate,
-        discount_percent: line.discountPercent,
-        account_id: line.accountId,
+        unit_price: line.unit_price,
+        tax_rate: line.tax_rate,
+        discount_percent: line.discount_percent,
+        account_id: line.account_id,
       })),
     });
     return response.data as Invoice;
@@ -168,12 +166,12 @@ export const invoicesApi = {
    */
   async update(id: string, data: UpdateInvoiceDto): Promise<Invoice> {
     const response = await apiClient.patch<Invoice>(`/invoices/${id}`, {
-      invoice_date: data.invoiceDate?.toISOString(),
-      due_date: data.dueDate?.toISOString(),
+      invoice_date: data.invoice_date ? (typeof data.invoice_date === 'string' ? data.invoice_date : data.invoice_date.toISOString()) : undefined,
+      due_date: data.due_date ? (typeof data.due_date === 'string' ? data.due_date : data.due_date.toISOString()) : undefined,
       currency: data.currency,
-      exchange_rate: data.exchangeRate,
+      exchange_rate: data.exchange_rate,
       notes: data.notes,
-      attachment_url: data.attachmentUrl,
+      attachment_url: data.attachment_url,
     });
     return response.data as Invoice;
   },

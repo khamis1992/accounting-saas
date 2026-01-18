@@ -106,8 +106,6 @@ INSERT INTO public.branches (
     name_en,
     address_ar,
     address_en,
-    city_ar,
-    city_en,
     phone,
     email,
     is_active
@@ -120,8 +118,6 @@ SELECT
     'Main Branch',
     address_ar,
     address_en,
-    city_ar,
-    city_en,
     phone,
     email,
     true
@@ -138,8 +134,6 @@ INSERT INTO public.branches (
     name_en,
     address_ar,
     address_en,
-    city_ar,
-    city_en,
     phone,
     email,
     is_active
@@ -152,8 +146,6 @@ SELECT
     'Lusail Branch',
     'اللؤلؤة، لوسيل، قطر',
     'The Pearl, Lusail, Qatar',
-    'لوسيل',
-    'Lusail',
     '+974 5555 5555',
     'lusail@demo-company.qa',
     true
@@ -171,8 +163,7 @@ INSERT INTO public.fiscal_years (
     name_ar,
     start_date,
     end_date,
-    is_closed,
-    created_by
+    is_closed
 )
 SELECT
     gen_random_uuid()::text::uuid,
@@ -181,8 +172,7 @@ SELECT
     'العام المالي 2026',
     '2026-01-01'::DATE,
     '2026-12-31'::DATE,
-    false,
-    '00000000-0000-0000-0000-000000000001'::UUID
+    false
 FROM public.tenants
 WHERE code = 'DEMO001'
 ON CONFLICT DO NOTHING;
@@ -208,8 +198,8 @@ SELECT
     'Month ' || m::TEXT,
     'شهر ' || m::TEXT,
     m,
-    DATE '2026-01-01' + (m - 1 || ' month')::INTERVAL,
-    DATE '2026-01-01' + m || ' month'::INTERVAL - INTERVAL '1 day',
+    DATE '2026-01-01' + ((m - 1) || ' months')::INTERVAL,
+    DATE '2026-01-01' + (m || ' months')::INTERVAL - INTERVAL '1 day',
     false
 FROM public.fiscal_years fy,
     generate_series(1, 12) AS m
@@ -238,7 +228,6 @@ SELECT
     t.id,
     b.id,
     'BANK001',
-    'البنك التجاري - الرئيسي',
     'Qatar National Bank - Main Account',
     'QA12QNBA000000000000000000012345',
     'QA12QNBA000000000000000000012345',
@@ -271,7 +260,6 @@ SELECT
     t.id,
     b.id,
     'CASH001',
-    'الصندوق الرئيسي',
     'Main Cash',
     'CASH',
     'Cash',

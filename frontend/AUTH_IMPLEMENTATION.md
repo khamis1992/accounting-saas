@@ -90,6 +90,7 @@ Complete frontend authentication system for the المحاسب accounting platfo
 ### Endpoints Used
 
 #### Sign In
+
 ```
 POST /api/auth/sign-in
 Body: { email, password }
@@ -97,6 +98,7 @@ Response: { user, session }
 ```
 
 #### Sign Up (Existing Tenant)
+
 ```
 POST /api/auth/sign-up
 Body: { email, password, tenantId }
@@ -104,6 +106,7 @@ Response: { user }
 ```
 
 #### Create Tenant with Admin (Public Signup)
+
 ```
 POST /api/tenants/create-with-admin
 Body: { name, nameAr, email, password }
@@ -111,6 +114,7 @@ Response: { user, tenant, session }
 ```
 
 #### Refresh Token
+
 ```
 POST /api/auth/refresh-token
 Body: { refreshToken }
@@ -118,6 +122,7 @@ Response: { session }
 ```
 
 #### Sign Out
+
 ```
 POST /api/auth/sign-out
 Headers: Authorization: Bearer {token}
@@ -125,6 +130,7 @@ Response: { message }
 ```
 
 #### Reset Password
+
 ```
 POST /api/auth/reset-password
 Body: { email }
@@ -134,6 +140,7 @@ Response: { success }
 ## Features
 
 ### Sign-Up Page (FRONTEND-1.3)
+
 - [x] Company Name (English) field
 - [x] Company Name (Arabic) field with RTL support
 - [x] Email field with format validation
@@ -147,6 +154,7 @@ Response: { success }
 - [x] Integration with `createTenantWithAdmin` API
 
 ### Sign-In Page (FRONTEND-1.4)
+
 - [x] Email field with validation
 - [x] Password field
 - [x] "Remember me" checkbox
@@ -158,6 +166,7 @@ Response: { success }
 - [x] Success redirect to dashboard
 
 ### Auth Context (FRONTEND-1.5)
+
 - [x] AuthProvider component wrapping app
 - [x] State: user, tenant, accessToken
 - [x] Methods: signIn(), signUp(), createTenantWithAdmin(), signOut()
@@ -167,6 +176,7 @@ Response: { success }
 - [x] Clear session on sign out
 
 ### Protected Route Middleware (FRONTEND-1.6)
+
 - [x] Check for valid session via cookies
 - [x] Redirect to signin if not authenticated
 - [x] Store tenant context for API calls
@@ -175,6 +185,7 @@ Response: { success }
 - [x] Redirect authenticated users away from auth pages
 
 ### API Client Base (FRONTEND-1.7)
+
 - [x] Base URL: `http://localhost:3000/api`
 - [x] Automatically add Authorization header
 - [x] Handle token refresh on 401
@@ -212,19 +223,19 @@ export default function MyComponent() {
 ### Making API Calls
 
 ```typescript
-import { apiClient } from '@/lib/api/client';
+import { apiClient } from "@/lib/api/client";
 
 // Get request
-const data = await apiClient.get('/users');
+const data = await apiClient.get("/users");
 
 // Post request
-const result = await apiClient.post('/invoices', {
-  customerId: 'xxx',
+const result = await apiClient.post("/invoices", {
+  customerId: "xxx",
   amount: 1000,
 });
 
 // Authenticated request (token added automatically)
-const profile = await apiClient.get('/auth/verify');
+const profile = await apiClient.get("/auth/verify");
 ```
 
 ## Security Considerations
@@ -242,6 +253,7 @@ const profile = await apiClient.get('/auth/verify');
 ## Localization
 
 All text supports both English and Arabic:
+
 - Uses `next-intl` for translations
 - RTL support for Arabic
 - Locale-aware routing (`/en/...`, `/ar/...`)
@@ -257,6 +269,7 @@ All text supports both English and Arabic:
 ## Testing Checklist
 
 ### Sign-Up Flow
+
 - [ ] Fill in company name (EN)
 - [ ] Fill in company name (AR)
 - [ ] Enter valid email
@@ -269,6 +282,7 @@ All text supports both English and Arabic:
 - [ ] Verify localStorage has tokens
 
 ### Sign-In Flow
+
 - [ ] Enter invalid email (see error)
 - [ ] Enter wrong password (see error)
 - [ ] Enter valid credentials
@@ -278,6 +292,7 @@ All text supports both English and Arabic:
 - [ ] Verify session persistence on reload
 
 ### Protected Routes
+
 - [ ] Access dashboard without auth (should redirect)
 - [ ] Access dashboard with auth (should load)
 - [ ] Sign out (clears session)
@@ -313,21 +328,25 @@ The following backend endpoints need to be implemented:
 ## Troubleshooting
 
 ### "Failed to fetch" errors
+
 - Check backend is running on port 3000
 - Verify CORS configuration in backend
 - Check browser console for CORS errors
 
 ### Token not refreshing
+
 - Check localStorage for tokens
 - Verify refresh token endpoint
 - Check browser console for errors
 
 ### Middleware redirect loops
+
 - Verify cookie names match (access_token)
 - Check public paths list
 - Verify locale prefixes are handled
 
 ### RTL issues in Arabic
+
 - Verify `dir="rtl"` is set on html element
 - Check Tailwind RTL classes (`space-x-reverse`)
 - Test form layout in Arabic
@@ -335,10 +354,12 @@ The following backend endpoints need to be implemented:
 ## Files Summary
 
 ### Created
+
 - `C:\Users\khamis\Desktop\المحاسب\frontend\lib\api\client.ts`
 - `C:\Users\khamis\Desktop\المحاسب\frontend\contexts\auth-context.tsx`
 
 ### Modified
+
 - `C:\Users\khamis\Desktop\المحاسب\frontend\app\[locale]\auth\signup\page.tsx`
 - `C:\Users\khamis\Desktop\المحاسب\frontend\app\[locale]\auth\signin\page.tsx`
 - `C:\Users\khamis\Desktop\المحاسب\frontend\middleware.ts`
@@ -357,6 +378,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ### Package Dependencies
 
 Required packages (already installed):
+
 - `next-intl` - Internationalization
 - `sonner` - Toast notifications
 - `@radix-ui/react-checkbox` - Checkbox component
@@ -365,12 +387,12 @@ Required packages (already installed):
 
 ## Implementation Status
 
-| Task | Status | Notes |
-|------|--------|-------|
-| FRONTEND-1.3 | ✅ Complete | Sign-up page with all fields |
-| FRONTEND-1.4 | ✅ Complete | Sign-in page with remember me |
+| Task         | Status      | Notes                          |
+| ------------ | ----------- | ------------------------------ |
+| FRONTEND-1.3 | ✅ Complete | Sign-up page with all fields   |
+| FRONTEND-1.4 | ✅ Complete | Sign-in page with remember me  |
 | FRONTEND-1.5 | ✅ Complete | Auth context with auto-refresh |
-| FRONTEND-1.6 | ✅ Complete | Protected route middleware |
-| FRONTEND-1.7 | ✅ Complete | API client base |
+| FRONTEND-1.6 | ✅ Complete | Protected route middleware     |
+| FRONTEND-1.7 | ✅ Complete | API client base                |
 
 All frontend authentication tasks have been implemented successfully.

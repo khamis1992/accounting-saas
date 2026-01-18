@@ -1,41 +1,51 @@
-'use client';
+/**
+ * page Page
+ *
+ * Route page component for /
+ *
+ * @fileoverview page page component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
+"use client";
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/browser-client';
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/browser-client";
 
 export default function TestAuthPage() {
-  const [email, setEmail] = useState('admin@admin.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState("admin@admin.com");
+  const [password, setPassword] = useState("123456");
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const testAuth = async () => {
-    setError('');
+    setError("");
     setResult(null);
 
     try {
-      console.log('Testing Supabase connection...');
-      console.log('Email:', email);
-      console.log('Password:', password);
+      console.log("Testing Supabase connection...");
+      console.log("Email:", email);
+      console.log("Password:", password);
 
       const supabase = createClient();
-      console.log('Supabase client created:', supabase);
+      console.log("Supabase client created:", supabase);
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log('Auth result:', { data, error: signInError });
+      console.log("Auth result:", { data, error: signInError });
 
       if (signInError) {
         setError(signInError.message);
       } else {
         setResult(data);
       }
-    } catch (err: any) {
-      console.error('Test error:', err);
-      setError(err.message);
+    } catch (err: unknown) {
+      console.error("Test error:", err);
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
 
@@ -90,8 +100,11 @@ export default function TestAuthPage() {
         <div className="p-4 bg-blue-50 border border-blue-200 rounded">
           <h3 className="font-bold">Environment Variables:</h3>
           <ul className="text-sm space-y-1">
-            <li>NEXT_PUBLIC_SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not set'}</li>
-            <li>NEXT_PUBLIC_SUPABASE_ANON_KEY: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'}</li>
+            <li>NEXT_PUBLIC_SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL || "Not set"}</li>
+            <li>
+              NEXT_PUBLIC_SUPABASE_ANON_KEY:{" "}
+              {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Not set"}
+            </li>
           </ul>
         </div>
       </div>

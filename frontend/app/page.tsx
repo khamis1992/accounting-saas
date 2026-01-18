@@ -1,3 +1,13 @@
+/**
+ * page Page
+ *
+ * Route page component for /
+ *
+ * @fileoverview page page component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
 import Image from "next/image";
 
 export default function Home() {

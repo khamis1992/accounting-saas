@@ -137,7 +137,7 @@ BEGIN
         SELECT r.name, COUNT(rp.permission_id)
         FROM public.roles r
         LEFT JOIN public.role_permissions rp ON r.id = rp.role_id
-        GROUP BY r.name
+        GROUP BY r.id, r.name
         ORDER BY r.id
     LOOP
         RAISE NOTICE 'Role: % | Permissions: %', v_role_name, v_permission_count;

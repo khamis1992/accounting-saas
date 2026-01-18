@@ -3,7 +3,7 @@
  * All journal entry-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface JournalLine {
   id: string;
@@ -44,16 +44,16 @@ export interface Journal {
   branch_id?: string;
   journal_number: string;
   journal_type:
-    | 'general'
-    | 'sales'
-    | 'purchase'
-    | 'receipt'
-    | 'payment'
-    | 'expense'
-    | 'depreciation'
-    | 'adjustment'
-    | 'opening'
-    | 'closing';
+    | "general"
+    | "sales"
+    | "purchase"
+    | "receipt"
+    | "payment"
+    | "expense"
+    | "depreciation"
+    | "adjustment"
+    | "opening"
+    | "closing";
   reference_number?: string;
   description_ar: string;
   description_en?: string;
@@ -63,7 +63,7 @@ export interface Journal {
   exchange_rate: number;
   total_debit: number;
   total_credit: number;
-  status: 'draft' | 'submitted' | 'approved' | 'posted' | 'reversed';
+  status: "draft" | "submitted" | "approved" | "posted" | "reversed";
   submitted_by?: string;
   submitted_at?: string;
   approved_by?: string;
@@ -83,61 +83,61 @@ export interface Journal {
 }
 
 export interface CreateJournalDto {
-  journalNumber?: string;
-  journalType:
-    | 'general'
-    | 'sales'
-    | 'purchase'
-    | 'receipt'
-    | 'payment'
-    | 'expense'
-    | 'depreciation'
-    | 'adjustment'
-    | 'opening'
-    | 'closing';
-  referenceNumber?: string;
-  descriptionAr: string;
-  descriptionEn?: string;
-  transactionDate: Date;
-  postingDate?: Date;
+  journal_number?: string;
+  journal_type:
+    | "general"
+    | "sales"
+    | "purchase"
+    | "receipt"
+    | "payment"
+    | "expense"
+    | "depreciation"
+    | "adjustment"
+    | "opening"
+    | "closing";
+  reference_number?: string;
+  description_ar: string;
+  description_en?: string;
+  transaction_date: Date | string;
+  posting_date?: Date | string;
   currency?: string;
-  exchangeRate?: number;
+  exchange_rate?: number;
   notes?: string;
-  attachmentUrl?: string;
-  sourceModule?: string;
-  sourceId?: string;
+  attachment_url?: string;
+  source_module?: string;
+  source_id?: string;
   lines: Array<{
-    lineNumber: number;
-    accountId: string;
-    descriptionAr?: string;
-    descriptionEn?: string;
-    costCenterId?: string;
+    line_number: number;
+    account_id: string;
+    description_ar?: string;
+    description_en?: string;
+    cost_center_id?: string;
     debit: number;
     credit: number;
     currency?: string;
-    exchangeRate?: number;
+    exchange_rate?: number;
     reference?: string;
-    referenceType?: string;
-    referenceId?: string;
+    reference_type?: string;
+    reference_id?: string;
   }>;
 }
 
 export interface UpdateJournalDto {
-  descriptionAr?: string;
-  descriptionEn?: string;
-  transactionDate?: Date;
-  postingDate?: Date;
+  description_ar?: string;
+  description_en?: string;
+  transaction_date?: Date | string;
+  posting_date?: Date | string;
   currency?: string;
-  exchangeRate?: number;
+  exchange_rate?: number;
   notes?: string;
-  attachmentUrl?: string;
+  attachment_url?: string;
 }
 
 export interface JournalFilters {
   status?: string;
-  journalType?: string;
-  startDate?: string;
-  endDate?: string;
+  journal_type?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export const journalsApi = {
@@ -146,15 +146,13 @@ export const journalsApi = {
    */
   async getAll(filters?: JournalFilters): Promise<Journal[]> {
     const params = new URLSearchParams();
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.journalType) params.append('journalType', filters.journalType);
-    if (filters?.startDate) params.append('startDate', filters.startDate);
-    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.journal_type) params.append("journal_type", filters.journal_type);
+    if (filters?.start_date) params.append("start_date", filters.start_date);
+    if (filters?.end_date) params.append("end_date", filters.end_date);
 
     const query = params.toString();
-    const response = await apiClient.get<Journal[]>(
-      query ? `/journals?${query}` : '/journals',
-    );
+    const response = await apiClient.get<Journal[]>(query ? `/journals?${query}` : "/journals");
     return response.data || [];
   },
 
@@ -170,33 +168,33 @@ export const journalsApi = {
    * Create new journal
    */
   async create(data: CreateJournalDto): Promise<Journal> {
-    const response = await apiClient.post<Journal>('/journals', {
-      journal_number: data.journalNumber,
-      journal_type: data.journalType,
-      reference_number: data.referenceNumber,
-      description_ar: data.descriptionAr,
-      description_en: data.descriptionEn,
-      transaction_date: data.transactionDate.toISOString(),
-      posting_date: data.postingDate?.toISOString(),
-      currency: data.currency || 'QAR',
-      exchange_rate: data.exchangeRate || 1,
+    const response = await apiClient.post<Journal>("/journals", {
+      journal_number: data.journal_number,
+      journal_type: data.journal_type,
+      reference_number: data.reference_number,
+      description_ar: data.description_ar,
+      description_en: data.description_en,
+      transaction_date: typeof data.transaction_date === 'string' ? data.transaction_date : data.transaction_date.toISOString(),
+      posting_date: data.posting_date ? (typeof data.posting_date === 'string' ? data.posting_date : data.posting_date.toISOString()) : undefined,
+      currency: data.currency || "QAR",
+      exchange_rate: data.exchange_rate || 1,
       notes: data.notes,
-      attachment_url: data.attachmentUrl,
-      source_module: data.sourceModule,
-      source_id: data.sourceId,
+      attachment_url: data.attachment_url,
+      source_module: data.source_module,
+      source_id: data.source_id,
       lines: data.lines.map((line) => ({
-        line_number: line.lineNumber,
-        account_id: line.accountId,
-        description_ar: line.descriptionAr,
-        description_en: line.descriptionEn,
-        cost_center_id: line.costCenterId,
+        line_number: line.line_number,
+        account_id: line.account_id,
+        description_ar: line.description_ar,
+        description_en: line.description_en,
+        cost_center_id: line.cost_center_id,
         debit: line.debit,
         credit: line.credit,
-        currency: line.currency || data.currency || 'QAR',
-        exchange_rate: line.exchangeRate || data.exchangeRate || 1,
+        currency: line.currency || data.currency || "QAR",
+        exchange_rate: line.exchange_rate || data.exchange_rate || 1,
         reference: line.reference,
-        reference_type: line.referenceType,
-        reference_id: line.referenceId,
+        reference_type: line.reference_type,
+        reference_id: line.reference_id,
       })),
     });
     return response.data as Journal;
@@ -208,22 +206,22 @@ export const journalsApi = {
   async updateLines(
     id: string,
     lines: Array<{
-      lineNumber: number;
-      accountId: string;
-      descriptionAr?: string;
-      descriptionEn?: string;
-      costCenterId?: string;
+      line_number: number;
+      account_id: string;
+      description_ar?: string;
+      description_en?: string;
+      cost_center_id?: string;
       debit: number;
       credit: number;
-    }>,
+    }>
   ): Promise<Journal> {
     const response = await apiClient.put<Journal>(`/journals/${id}/lines`, {
       lines: lines.map((line) => ({
-        line_number: line.lineNumber,
-        account_id: line.accountId,
-        description_ar: line.descriptionAr,
-        description_en: line.descriptionEn,
-        cost_center_id: line.costCenterId,
+        line_number: line.line_number,
+        account_id: line.account_id,
+        description_ar: line.description_ar,
+        description_en: line.description_en,
+        cost_center_id: line.cost_center_id,
         debit: line.debit,
         credit: line.credit,
       })),
@@ -260,14 +258,14 @@ export const journalsApi = {
    */
   async update(id: string, data: UpdateJournalDto): Promise<Journal> {
     const response = await apiClient.patch<Journal>(`/journals/${id}`, {
-      description_ar: data.descriptionAr,
-      description_en: data.descriptionEn,
-      transaction_date: data.transactionDate?.toISOString(),
-      posting_date: data.postingDate?.toISOString(),
+      description_ar: data.description_ar,
+      description_en: data.description_en,
+      transaction_date: data.transaction_date ? (typeof data.transaction_date === 'string' ? data.transaction_date : data.transaction_date.toISOString()) : undefined,
+      posting_date: data.posting_date ? (typeof data.posting_date === 'string' ? data.posting_date : data.posting_date.toISOString()) : undefined,
       currency: data.currency,
-      exchange_rate: data.exchangeRate,
+      exchange_rate: data.exchange_rate,
       notes: data.notes,
-      attachment_url: data.attachmentUrl,
+      attachment_url: data.attachment_url,
     });
     return response.data as Journal;
   },

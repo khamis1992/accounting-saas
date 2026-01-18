@@ -1,5 +1,15 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+/**
+ * Utility Functions
+ *
+ * Helper functions for server-client.ts
+ *
+ * @fileoverview Utility functions
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function createClient() {
   const cookieStore = await cookies();

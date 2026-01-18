@@ -1,10 +1,20 @@
+/**
+ * Layout Component
+ *
+ * Layout wrapper for layout
+ *
+ * @fileoverview Layout component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getTranslations } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getTranslations } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from '@/contexts/auth-context';
-import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from "@/contexts/auth-context";
+import { Toaster } from "@/components/ui/sonner";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -17,29 +27,29 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const locales = ['en', 'ar'];
+const locales = ["en", "ar"];
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
-  params
+  params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'common' });
+  const t = await getTranslations({ locale, namespace: "common" });
 
   return {
-    title: t('appName'),
-    description: 'Enterprise-level Accounting SaaS platform for Qatar market',
+    title: t("appName"),
+    description: "Enterprise-level Accounting SaaS platform for Qatar market",
   };
 }
 
 export default async function LocaleLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
@@ -51,13 +61,11 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
-  const isRTL = locale === 'ar';
+  const isRTL = locale === "ar";
 
   return (
-    <html lang={locale} dir={isRTL ? 'rtl' : 'ltr'}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang={locale} dir={isRTL ? "rtl" : "ltr"}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             {children}

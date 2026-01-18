@@ -3,7 +3,7 @@
  * All payment-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface PaymentAllocation {
   id: string;
@@ -20,9 +20,9 @@ export interface Payment {
   id: string;
   tenant_id: string;
   payment_number: string;
-  payment_type: 'receipt' | 'payment';
+  payment_type: "receipt" | "payment";
   party_id: string;
-  party_type: 'customer' | 'vendor';
+  party_type: "customer" | "vendor";
   party?: {
     id: string;
     name_en: string;
@@ -31,7 +31,7 @@ export interface Payment {
   payment_date: string;
   currency: string;
   exchange_rate: number;
-  payment_method: 'cash' | 'bank_transfer' | 'check';
+  payment_method: "cash" | "bank_transfer" | "check";
   amount: number;
   bank_account_id?: string;
   reference_number?: string;
@@ -39,7 +39,7 @@ export interface Payment {
   check_date?: string;
   bank_name?: string;
   notes?: string;
-  status: 'draft' | 'submitted' | 'approved' | 'posted' | 'cancelled';
+  status: "draft" | "submitted" | "approved" | "posted" | "cancelled";
   allocations?: PaymentAllocation[];
   submitted_by?: string;
   submitted_at?: string;
@@ -56,46 +56,46 @@ export interface Payment {
 }
 
 export interface CreatePaymentDto {
-  paymentType: 'receipt' | 'payment';
-  partyId: string;
-  partyType: 'customer' | 'vendor';
-  paymentDate: Date;
+  payment_type: "receipt" | "payment";
+  party_id: string;
+  party_type: "customer" | "vendor";
+  payment_date: Date | string;
   currency?: string;
-  exchangeRate?: number;
-  paymentMethod: 'cash' | 'bank_transfer' | 'check';
+  exchange_rate?: number;
+  payment_method: "cash" | "bank_transfer" | "check";
   amount: number;
-  bankAccountId?: string;
-  referenceNumber?: string;
-  checkNumber?: string;
-  checkDate?: Date;
-  bankName?: string;
+  bank_account_id?: string;
+  reference_number?: string;
+  check_number?: string;
+  check_date?: Date | string;
+  bank_name?: string;
   notes?: string;
   allocations: Array<{
-    invoiceId: string;
+    invoice_id: string;
     amount: number;
   }>;
 }
 
 export interface UpdatePaymentDto {
-  paymentDate?: Date;
+  payment_date?: Date | string;
   currency?: string;
-  exchangeRate?: number;
-  paymentMethod?: 'cash' | 'bank_transfer' | 'check';
+  exchange_rate?: number;
+  payment_method?: "cash" | "bank_transfer" | "check";
   amount?: number;
-  bankAccountId?: string;
-  referenceNumber?: string;
-  checkNumber?: string;
-  checkDate?: Date;
-  bankName?: string;
+  bank_account_id?: string;
+  reference_number?: string;
+  check_number?: string;
+  check_date?: Date | string;
+  bank_name?: string;
   notes?: string;
 }
 
 export interface PaymentFilters {
-  paymentType?: 'receipt' | 'payment';
+  payment_type?: "receipt" | "payment";
   status?: string;
-  partyType?: 'customer' | 'vendor';
-  startDate?: string;
-  endDate?: string;
+  party_type?: "customer" | "vendor";
+  start_date?: string;
+  end_date?: string;
 }
 
 export const paymentsApi = {
@@ -104,16 +104,14 @@ export const paymentsApi = {
    */
   async getAll(filters?: PaymentFilters): Promise<Payment[]> {
     const params = new URLSearchParams();
-    if (filters?.paymentType) params.append('paymentType', filters.paymentType);
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.partyType) params.append('partyType', filters.partyType);
-    if (filters?.startDate) params.append('startDate', filters.startDate);
-    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.payment_type) params.append("payment_type", filters.payment_type);
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.party_type) params.append("party_type", filters.party_type);
+    if (filters?.start_date) params.append("start_date", filters.start_date);
+    if (filters?.end_date) params.append("end_date", filters.end_date);
 
     const query = params.toString();
-    const response = await apiClient.get<Payment[]>(
-      query ? `/payments?${query}` : '/payments',
-    );
+    const response = await apiClient.get<Payment[]>(query ? `/payments?${query}` : "/payments");
     return response.data || [];
   },
 
@@ -129,23 +127,23 @@ export const paymentsApi = {
    * Create new payment
    */
   async create(data: CreatePaymentDto): Promise<Payment> {
-    const response = await apiClient.post<Payment>('/payments', {
-      payment_type: data.paymentType,
-      party_id: data.partyId,
-      party_type: data.partyType,
-      payment_date: data.paymentDate.toISOString(),
-      currency: data.currency || 'QAR',
-      exchange_rate: data.exchangeRate || 1,
-      payment_method: data.paymentMethod,
+    const response = await apiClient.post<Payment>("/payments", {
+      payment_type: data.payment_type,
+      party_id: data.party_id,
+      party_type: data.party_type,
+      payment_date: typeof data.payment_date === 'string' ? data.payment_date : data.payment_date.toISOString(),
+      currency: data.currency || "QAR",
+      exchange_rate: data.exchange_rate || 1,
+      payment_method: data.payment_method,
       amount: data.amount,
-      bank_account_id: data.bankAccountId,
-      reference_number: data.referenceNumber,
-      check_number: data.checkNumber,
-      check_date: data.checkDate?.toISOString(),
-      bank_name: data.bankName,
+      bank_account_id: data.bank_account_id,
+      reference_number: data.reference_number,
+      check_number: data.check_number,
+      check_date: data.check_date ? (typeof data.check_date === 'string' ? data.check_date : data.check_date.toISOString()) : undefined,
+      bank_name: data.bank_name,
       notes: data.notes,
       allocations: data.allocations.map((alloc) => ({
-        invoice_id: alloc.invoiceId,
+        invoice_id: alloc.invoice_id,
         amount: alloc.amount,
       })),
     });
@@ -157,16 +155,16 @@ export const paymentsApi = {
    */
   async update(id: string, data: UpdatePaymentDto): Promise<Payment> {
     const response = await apiClient.patch<Payment>(`/payments/${id}`, {
-      payment_date: data.paymentDate?.toISOString(),
+      payment_date: data.payment_date ? (typeof data.payment_date === 'string' ? data.payment_date : data.payment_date.toISOString()) : undefined,
       currency: data.currency,
-      exchange_rate: data.exchangeRate,
-      payment_method: data.paymentMethod,
+      exchange_rate: data.exchange_rate,
+      payment_method: data.payment_method,
       amount: data.amount,
-      bank_account_id: data.bankAccountId,
-      reference_number: data.referenceNumber,
-      check_number: data.checkNumber,
-      check_date: data.checkDate?.toISOString(),
-      bank_name: data.bankName,
+      bank_account_id: data.bank_account_id,
+      reference_number: data.reference_number,
+      check_number: data.check_number,
+      check_date: data.check_date ? (typeof data.check_date === 'string' ? data.check_date : data.check_date.toISOString()) : undefined,
+      bank_name: data.bank_name,
       notes: data.notes,
     });
     return response.data as Payment;

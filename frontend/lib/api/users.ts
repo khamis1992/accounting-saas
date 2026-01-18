@@ -3,7 +3,7 @@
  * All user-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface UserProfile {
   id: string;
@@ -15,10 +15,10 @@ export interface UserProfile {
   last_name_en?: string;
   phone?: string;
   avatar_url?: string;
-  preferred_language: 'ar' | 'en';
+  preferred_language: "ar" | "en";
   timezone?: string;
   notification_preferences?: string;
-  status: 'active' | 'inactive' | 'pending' | 'suspended';
+  status: "active" | "inactive" | "pending" | "suspended";
   is_active: boolean;
   branch_id?: string;
   last_login?: string;
@@ -48,7 +48,7 @@ export interface UpdateProfileDto {
   email?: string;
   phone?: string;
   avatarUrl?: string;
-  preferredLanguage?: 'ar' | 'en';
+  preferredLanguage?: "ar" | "en";
   timezone?: string;
   notificationPreferences?: string;
 }
@@ -64,7 +64,7 @@ export interface InviteUserDto {
   firstNameEn: string;
   lastNameAr?: string;
   lastNameEn?: string;
-  preferredLanguage?: 'ar' | 'en';
+  preferredLanguage?: "ar" | "en";
   timezone?: string;
   defaultBranchId?: string;
   roleIds: string[];
@@ -83,7 +83,7 @@ export const usersApi = {
    * Get current user profile
    */
   async getProfile(): Promise<UserProfile> {
-    const response = await apiClient.get<UserProfile>('/users/me');
+    const response = await apiClient.get<UserProfile>("/users/me");
     return response.data as UserProfile;
   },
 
@@ -91,7 +91,7 @@ export const usersApi = {
    * Get current user roles
    */
   async getMyRoles(): Promise<Role[]> {
-    const response = await apiClient.get<Role[]>('/users/me/roles');
+    const response = await apiClient.get<Role[]>("/users/me/roles");
     return response.data as Role[];
   },
 
@@ -99,7 +99,7 @@ export const usersApi = {
    * Get current user permissions
    */
   async getMyPermissions(): Promise<string[]> {
-    const response = await apiClient.get<string[]>('/users/me/permissions');
+    const response = await apiClient.get<string[]>("/users/me/permissions");
     return response.data as string[];
   },
 
@@ -107,7 +107,7 @@ export const usersApi = {
    * Update current user profile
    */
   async updateProfile(data: UpdateProfileDto): Promise<UserProfile> {
-    const response = await apiClient.patch<UserProfile>('/users/me/profile', {
+    const response = await apiClient.patch<UserProfile>("/users/me/profile", {
       first_name_ar: data.firstNameAr,
       first_name_en: data.firstNameEn,
       last_name_ar: data.lastNameAr,
@@ -126,7 +126,7 @@ export const usersApi = {
    * Change password
    */
   async changePassword(data: ChangePasswordDto): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post('/users/me/change-password', {
+    const response = await apiClient.post("/users/me/change-password", {
       currentPassword: data.currentPassword,
       newPassword: data.newPassword,
     });
@@ -138,10 +138,10 @@ export const usersApi = {
    */
   async uploadAvatar(file: File): Promise<UserProfile> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/avatar`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${apiClient.getAccessToken()}`,
       },
@@ -150,7 +150,7 @@ export const usersApi = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to upload avatar');
+      throw new Error(error.message || "Failed to upload avatar");
     }
 
     const data = await response.json();
@@ -162,15 +162,13 @@ export const usersApi = {
    */
   async listUsers(filters?: UserFilters): Promise<UserProfile[]> {
     const params = new URLSearchParams();
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.search) params.append('search', filters.search);
-    if (filters?.roleId) params.append('roleId', filters.roleId);
-    if (filters?.branchId) params.append('branchId', filters.branchId);
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.search) params.append("search", filters.search);
+    if (filters?.roleId) params.append("roleId", filters.roleId);
+    if (filters?.branchId) params.append("branchId", filters.branchId);
 
     const query = params.toString();
-    const response = await apiClient.get<UserProfile[]>(
-      query ? `/users?${query}` : '/users',
-    );
+    const response = await apiClient.get<UserProfile[]>(query ? `/users?${query}` : "/users");
     return response.data || [];
   },
 
@@ -185,8 +183,10 @@ export const usersApi = {
   /**
    * Invite new user (admin only)
    */
-  async inviteUser(data: InviteUserDto): Promise<{ user: UserProfile; tempPassword: string; message: string }> {
-    const response = await apiClient.post('/users/invite', {
+  async inviteUser(
+    data: InviteUserDto
+  ): Promise<{ user: UserProfile; tempPassword: string; message: string }> {
+    const response = await apiClient.post("/users/invite", {
       email: data.email,
       firstNameAr: data.firstNameAr,
       firstNameEn: data.firstNameEn,
@@ -212,7 +212,9 @@ export const usersApi = {
   /**
    * Deactivate user (admin only)
    */
-  async deactivateUser(userId: string): Promise<{ success: boolean; message: string; user: UserProfile }> {
+  async deactivateUser(
+    userId: string
+  ): Promise<{ success: boolean; message: string; user: UserProfile }> {
     const response = await apiClient.patch(`/users/${userId}/deactivate`, {});
     return response.data as { success: boolean; message: string; user: UserProfile };
   },
@@ -220,7 +222,9 @@ export const usersApi = {
   /**
    * Activate user (admin only)
    */
-  async activateUser(userId: string): Promise<{ success: boolean; message: string; user: UserProfile }> {
+  async activateUser(
+    userId: string
+  ): Promise<{ success: boolean; message: string; user: UserProfile }> {
     const response = await apiClient.patch(`/users/${userId}/activate`, {});
     return response.data as { success: boolean; message: string; user: UserProfile };
   },

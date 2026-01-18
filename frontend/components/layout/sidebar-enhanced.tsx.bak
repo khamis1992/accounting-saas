@@ -1,0 +1,597 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
+import { useAuth } from '@/contexts/auth-context';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Package,
+  Building2,
+  Wallet,
+  FilePieChart,
+  Settings,
+  ChevronRight,
+  LogOut,
+  ChevronDown,
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { MobileMenuButton } from './mobile-menu-button';
+import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
+import { useHapticFeedback } from '@/hooks/use-haptic-feedback';
+
+interface NavItem {
+  title: string;
+  href?: string;
+  icon?: React.ReactNode;
+  items?: NavItem[];
+}
+
+export function Sidebar() {
+  const t = useTranslations('nav');
+  const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const { trigger: hapticFeedback } = useHapticFeedback();
+
+  // Get tenant/company name from user metadata or use default
+  const tenantName = user?.user_metadata?.company_name ||
+                    user?.user_metadata?.full_name ||
+                    'المحاسب';
+
+  // Pages that are currently implemented
+  const implementedPages = [
+    `/${locale}/dashboard`,
+    `/${locale}/accounting/coa`,
+    `/${locale}/accounting/journals`,
+    `/${locale}/sales/customers`,
+    `/${locale}/sales/invoices`,
+    `/${locale}/sales/payments`,
+    `/${locale}/purchases/vendors`,
+    `/${locale}/settings/users`,
+  ];
+
+  const navItems: NavItem[] = [
+    {
+      title: t('dashboard'),
+      href: `/${locale}/dashboard`,
+      icon: <LayoutDashboard className="h-5 w-5" />,
+    },
+    {
+      title: t('accounting'),
+      icon: <FileText className="h-5 w-5" />,
+      items: [
+        { title: t('chartOfAccounts'), href: `/${locale}/accounting/coa`, icon: null },
+        { title: t('journals'), href: `/${locale}/accounting/journals`, icon: null },
+        { title: t('generalLedger'), href: `/${locale}/accounting/general-ledger`, icon: null },
+        { title: t('trialBalance'), href: `/${locale}/accounting/trial-balance`, icon: null },
+        {
+          title: t('financialStatements'),
+          href: `/${locale}/accounting/statements`,
+          icon: null,
+        },
+      ],
+    },
+    {
+      title: t('sales'),
+      icon: <Users className="h-5 w-5" />,
+      items: [
+        { title: t('customers'), href: `/${locale}/sales/customers`, icon: null },
+        { title: t('invoices'), href: `/${locale}/sales/invoices`, icon: null },
+        { title: t('quotations'), href: `/${locale}/sales/quotations`, icon: null },
+        { title: t('payments'), href: `/${locale}/sales/payments`, icon: null },
+      ],
+    },
+    {
+      title: t('purchases'),
+      icon: <Package className="h-5 w-5" />,
+      items: [
+        { title: t('vendors'), href: `/${locale}/purchases/vendors`, icon: null },
+        { title: t('purchaseOrders'), href: `/${locale}/purchases/orders`, icon: null },
+        { title: t('expenses'), href: `/${locale}/purchases/expenses`, icon: null },
+      ],
+    },
+    {
+      title: t('banking'),
+      icon: <Building2 className="h-5 w-5" />,
+      items: [
+        { title: t('bankAccounts'), href: `/${locale}/banking/accounts`, icon: null },
+        { title: t('reconciliation'), href: `/${locale}/banking/reconciliation`, icon: null },
+      ],
+    },
+    {
+      title: t('assets'),
+      icon: <Wallet className="h-5 w-5" />,
+      items: [
+        { title: t('fixedAssets'), href: `/${locale}/assets/fixed`, icon: null },
+        { title: t('depreciation'), href: `/${locale}/assets/depreciation`, icon: null },
+      ],
+    },
+    {
+      title: t('tax'),
+      icon: <FilePieChart className="h-5 w-5" />,
+      items: [
+        { title: t('vat'), href: `/${locale}/tax/vat`, icon: null },
+        { title: t('vatReturns'), href: `/${locale}/tax/vat-returns`, icon: null },
+      ],
+    },
+    {
+      title: t('reports'),
+      href: `/${locale}/reports`,
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      title: t('settings'),
+      icon: <Settings className="h-5 w-5" />,
+      items: [
+        { title: t('company'), href: `/${locale}/settings/company`, icon: null },
+        { title: t('users'), href: `/${locale}/settings/users`, icon: null },
+        { title: t('roles'), href: `/${locale}/settings/roles`, icon: null },
+        { title: t('fiscalYear'), href: `/${locale}/settings/fiscal`, icon: null },
+        { title: t('costCenters'), href: `/${locale}/settings/cost-centers`, icon: null },
+      ],
+    },
+  ];
+
+  // Improved active route detection
+  const isActive = (href: string) => {
+    const normalizedPathname = pathname.replace(/\/$/, '');
+    const normalizedHref = href.replace(/\/$/, '');
+
+    if (normalizedPathname === normalizedHref) return true;
+    if (normalizedPathname.startsWith(normalizedHref + '/')) return true;
+
+    return false;
+  };
+
+  // Filter nav items based on search query
+  const filteredNavItems = navItems.filter(item => {
+    if (!searchQuery) return true;
+
+    const searchLower = searchQuery.toLowerCase();
+    const matchesTitle = item.title.toLowerCase().includes(searchLower);
+
+    if (item.items) {
+      const hasMatchingChildren = item.items.some(child =>
+        child.title.toLowerCase().includes(searchLower)
+      );
+      return matchesTitle || hasMatchingChildren;
+    }
+
+    return matchesTitle;
+  });
+
+  // Toggle group expansion
+  const toggleGroup = (title: string) => {
+    hapticFeedback('light');
+    setExpandedGroups(prev =>
+      prev.includes(title)
+        ? prev.filter(g => g !== title)
+        : [...prev, title]
+    );
+  };
+
+  // Handle navigation click
+  const handleNavClick = (href: string, title: string) => {
+    hapticFeedback('light');
+
+    if (!implementedPages.some(page => href === page || href.startsWith(page + '/'))) {
+      hapticFeedback('warning');
+      toast.info(`${title} page coming soon!`, {
+        description: 'This feature is under development and will be available soon.',
+        duration: 3000,
+      });
+      return;
+    }
+
+    router.push(href);
+    setIsOpen(false);
+  };
+
+  // Close mobile menu with haptic feedback
+  const closeMobileMenu = () => {
+    hapticFeedback('light');
+    setIsOpen(false);
+  };
+
+  // Open mobile menu with haptic feedback
+  const openMobileMenu = () => {
+    hapticFeedback('medium');
+    setIsOpen(true);
+  };
+
+  // Scroll sidebar to top when menu opens
+  useEffect(() => {
+    if (isOpen && sidebarRef.current) {
+      sidebarRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
+
+  // Keyboard support (Escape to close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeMobileMenu();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // Swipe gesture to close (mobile)
+  const swipeHandlers = useSwipeGesture({
+    onSwipedLeft: closeMobileMenu,
+    onSwiping: (deltaX) => {
+      // Optional: Add drag-following effect
+      if (sidebarRef.current) {
+        sidebarRef.current.style.transform = `translateX(${Math.min(deltaX, 0)}px)`;
+      }
+    },
+    threshold: 80,
+    trackMouse: false,
+  });
+
+  // Auto-expand groups with active items when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      const activeGroups: string[] = [];
+
+      navItems.forEach(item => {
+        if (item.items) {
+          const hasActiveChild = item.items.some(child =>
+            child.href && isActive(child.href)
+          );
+
+          if (hasActiveChild) {
+            activeGroups.push(item.title);
+          }
+        }
+      });
+
+      if (activeGroups.length > 0) {
+        setExpandedGroups(activeGroups);
+      }
+    }
+  }, [isOpen, navItems]);
+
+  // Reset swipe effect when not dragging
+  useEffect(() => {
+    if (!isOpen && sidebarRef.current) {
+      sidebarRef.current.style.transform = '';
+    }
+  }, [isOpen]);
+
+  return (
+    <>
+      {/* Floating Action Button (FAB) for mobile menu */}
+      <MobileMenuButton
+        isOpen={isOpen}
+        onClick={isOpen ? closeMobileMenu : openMobileMenu}
+      />
+
+      {/* Overlay with backdrop blur */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+            onClick={closeMobileMenu}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar with smooth animations */}
+      <motion.aside
+        ref={sidebarRef}
+        initial={false}
+        animate={
+          isOpen
+            ? { x: 0, opacity: 1 }
+            : { x: '-100%', opacity: 0 }
+        }
+        transition={{
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+        }}
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800',
+          'transform lg:relative lg:translate-x-0 lg:opacity-100 lg:z-0 lg:flex lg:flex-col',
+          'overflow-hidden flex flex-col'
+        )}
+        {...swipeHandlers}
+      >
+        {/* Header with close button */}
+        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4">
+          <Link
+            href={`/${locale}/dashboard`}
+            className="flex items-center gap-2"
+            onClick={() => {
+              hapticFeedback('light');
+              if (isOpen) setIsOpen(false);
+            }}
+          >
+            <span className="text-xl font-bold">{tenantName}</span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={closeMobileMenu}
+            className="lg:hidden hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            aria-label="Close menu"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <input
+              type="search"
+              placeholder="Search menu..."
+              className={cn(
+                'w-full pl-10 pr-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700',
+                'bg-zinc-50 dark:bg-zinc-800 text-sm',
+                'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder:text-zinc-400 dark:placeholder:text-zinc-500'
+              )}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search menu"
+            />
+          </div>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-1">
+          <AnimatePresence mode="wait">
+            {filteredNavItems.map((item) =>
+              item.items ? (
+                <NavItemGroup
+                  key={item.title}
+                  item={item}
+                  isActive={isActive}
+                  onNavClick={handleNavClick}
+                  isExpanded={expandedGroups.includes(item.title)}
+                  onToggle={() => toggleGroup(item.title)}
+                  isMobile={isOpen}
+                />
+              ) : item.href ? (
+                <NavItem
+                  key={item.href}
+                  item={item}
+                  isActive={isActive(item.href)}
+                  onNavClick={handleNavClick}
+                  isMobile={isOpen}
+                />
+              ) : null,
+            )}
+          </AnimatePresence>
+
+          {filteredNavItems.length === 0 && (
+            <div className="text-center py-8 text-zinc-500 text-sm">
+              No menu items found
+            </div>
+          )}
+        </nav>
+
+        {/* User Menu at Bottom */}
+        <div className="border-t border-zinc-200 dark:border-zinc-800 p-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 px-3 h-auto py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                onClick={() => hapticFeedback('light')}
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user?.user_metadata.avatar_url} />
+                  <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-1 flex-col items-start overflow-hidden">
+                  <span className="text-sm font-medium truncate">
+                    {user?.user_metadata.full_name || user?.email}
+                  </span>
+                  <span className="text-xs text-zinc-500 truncate">{user?.email}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-zinc-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                {user?.user_metadata.full_name || user?.email}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                asChild
+                onClick={() => {
+                  hapticFeedback('light');
+                  if (isOpen) setIsOpen(false);
+                }}
+              >
+                <Link href={`/${locale}/settings/profile`}>
+                  {t('common.edit')} Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  hapticFeedback('error');
+                  signOut();
+                  setIsOpen(false);
+                }}
+                className="text-red-600 dark:text-red-400"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {t('auth.signOut')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </motion.aside>
+    </>
+  );
+}
+
+// Navigation Item Component
+function NavItem({
+  item,
+  isActive,
+  onNavClick,
+  isMobile,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  onNavClick: (href: string, title: string) => void;
+  isMobile: boolean;
+}) {
+  if (!item.href) return null;
+
+  return (
+    <motion.button
+      onClick={() => onNavClick(item.href!, item.title)}
+      className={cn(
+        // Base styles
+        'flex w-full items-center gap-3 rounded-lg text-left transition-all duration-200',
+        // Touch target size (minimum 44px)
+        'min-h-[44px] px-3 py-2.5',
+        // Active state
+        isActive
+          ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800',
+        // Focus ring for accessibility
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+      )}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      {item.icon && <span className="shrink-0">{item.icon}</span>}
+      <span className="flex-1 truncate">{item.title}</span>
+
+      {/* Active indicator */}
+      {isActive && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="w-2 h-2 rounded-full bg-current"
+        />
+      )}
+    </motion.button>
+  );
+}
+
+// Navigation Item Group Component
+function NavItemGroup({
+  item,
+  isActive,
+  onNavClick,
+  isExpanded,
+  onToggle,
+  isMobile,
+}: {
+  item: NavItem;
+  isActive: (href: string) => boolean;
+  onNavClick: (href: string, title: string) => void;
+  isExpanded: boolean;
+  onToggle: () => void;
+  isMobile: boolean;
+}) {
+  const hasActiveChild = item.items?.some((child) => child.href && isActive(child.href));
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: isExpanded ? 'auto' : 'auto' }}
+      className="overflow-visible"
+    >
+      {/* Group Header */}
+      <motion.button
+        onClick={onToggle}
+        className={cn(
+          'flex w-full items-center justify-between rounded-lg text-left transition-all duration-200',
+          'min-h-[44px] px-3 py-2.5',
+          hasActiveChild || isExpanded
+            ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 font-medium'
+            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+        )}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        aria-expanded={isExpanded}
+      >
+        <div className="flex items-center gap-3">
+          {item.icon && <span className="shrink-0">{item.icon}</span>}
+          <span className="truncate">{item.title}</span>
+        </div>
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 shrink-0 transition-transform duration-200',
+            isExpanded && 'rotate-180'
+          )}
+        />
+      </motion.button>
+
+      {/* Expanded Items */}
+      <AnimatePresence initial={false}>
+        {isExpanded && item.items && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { duration: 0.2 },
+              opacity: { duration: 0.15 },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1 space-y-1 border-l-2 border-zinc-200 dark:border-zinc-700 pl-4 ml-3">
+              {item.items
+                .filter((child) => child.href)
+                .map((child) => (
+                  <NavItem
+                    key={child.href}
+                    item={child}
+                    isActive={isActive(child.href!)}
+                    onNavClick={onNavClick}
+                    isMobile={isMobile}
+                  />
+                ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}

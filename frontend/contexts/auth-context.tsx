@@ -1,9 +1,17 @@
-'use client';
+/**
+ * auth-context.tsx
+ *
+ * @fileoverview TypeScript module
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/browser-client';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useState } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/browser-client";
+import { useRouter } from "next/navigation";
 
 interface CreateTenantWithAdminParams {
   companyNameEn: string;
@@ -34,9 +42,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const supabase = createClient();
-  
-  // Get backend API URL from environment variable or default to production
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://accounting-saas-production-bd32.up.railway.app/api';
+
+  // Get backend API URL from environment variable - must be set
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (() => {
+      throw new Error(
+        "NEXT_PUBLIC_API_URL environment variable is not configured. Please check your .env.local file."
+      );
+    })();
+
+  // Helper function to get current locale from URL
+  const getCurrentLocale = (): string => {
+    if (typeof window === "undefined") return "en";
+
+    const pathname = window.location.pathname;
+    const segments = pathname.split("/").filter(Boolean);
+
+    if (segments.length > 0) {
+      const potentialLocale = segments[0];
+      // Validate it's a supported locale
+      if (["en", "ar"].includes(potentialLocale)) {
+        return potentialLocale;
+      }
+    }
+
+    return "en";
+  };
 
   useEffect(() => {
     // Get initial session
@@ -61,24 +93,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      
+
       // Call backend API instead of Supabase directly
       const response = await fetch(`${API_URL}/auth/sign-in`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-        credentials: 'include', // Include cookies if needed
+        credentials: "include", // Include cookies if needed
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+        const errorData = await response.json().catch(() => ({ message: "Login failed" }));
         throw new Error(errorData.message || `Login failed with status ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       // Set the session in Supabase client
       if (data.session && data.session.access_token && data.session.refresh_token) {
         const { data: sessionData, error } = await supabase.auth.setSession({
@@ -87,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (error) {
-          console.error('Error setting session:', error);
+          console.error("Error setting session:", error);
           throw error;
         }
 
@@ -97,14 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(sessionData.session.user);
         }
 
-        // Redirect to dashboard after successful login
-        router.push('/en/dashboard');
+        // Redirect to dashboard after successful login with current locale
+        const locale = getCurrentLocale();
+        router.push(`/${locale}/dashboard`);
         router.refresh(); // Force refresh to update the UI
       } else {
-        throw new Error('No session returned from server');
+        throw new Error("No session returned from server");
       }
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error("Sign in error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -130,19 +163,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createTenantWithAdmin = async (data: CreateTenantWithAdminParams) => {
     try {
       setLoading(true);
-      
+
       // Call backend API to create tenant with admin
       const response = await fetch(`${API_URL}/tenants/create-with-admin`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create tenant');
+        throw new Error(error.message || "Failed to create tenant");
       }
 
       const result = await response.json();
@@ -155,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (error) {
-          console.error('Error setting session:', error);
+          console.error("Error setting session:", error);
           throw error;
         }
 
@@ -165,8 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(sessionData.session.user);
         }
 
-        // Redirect to dashboard after successful tenant creation
-        router.push('/en/dashboard');
+        // Redirect to dashboard after successful tenant creation with current locale
+        const locale = getCurrentLocale();
+        router.push(`/${locale}/dashboard`);
         router.refresh();
       }
 
@@ -181,8 +215,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
-    // Redirect to login page after sign out
-    router.push('/en/auth/signin');
+    // Redirect to signin page after sign out with current locale
+    const locale = getCurrentLocale();
+    router.push(`/${locale}/signin`);
   };
 
   return (
@@ -205,7 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

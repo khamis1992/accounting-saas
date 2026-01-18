@@ -3,7 +3,7 @@
  * All customer-related API calls
  */
 
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface Customer {
   id: string;
@@ -28,39 +28,39 @@ export interface Customer {
 
 export interface CreateCustomerDto {
   code: string;
-  nameEn: string;
-  nameAr: string;
-  vatNumber?: string;
+  name_en: string;
+  name_ar: string;
+  vat_number?: string;
   email?: string;
   phone?: string;
   mobile?: string;
   address?: string;
   city?: string;
   country?: string;
-  creditLimit?: number;
-  paymentTermsDays?: number;
-  isActive?: boolean;
+  credit_limit?: number;
+  payment_terms_days?: number;
+  is_active?: boolean;
   notes?: string;
 }
 
 export interface UpdateCustomerDto {
-  nameEn?: string;
-  nameAr?: string;
-  vatNumber?: string;
+  name_en?: string;
+  name_ar?: string;
+  vat_number?: string;
   email?: string;
   phone?: string;
   mobile?: string;
   address?: string;
   city?: string;
   country?: string;
-  creditLimit?: number;
-  paymentTermsDays?: number;
-  isActive?: boolean;
+  credit_limit?: number;
+  payment_terms_days?: number;
+  is_active?: boolean;
   notes?: string;
 }
 
 export interface CustomerFilters {
-  isActive?: boolean;
+  is_active?: boolean;
   search?: string;
 }
 
@@ -70,13 +70,11 @@ export const customersApi = {
    */
   async getAll(filters?: CustomerFilters): Promise<Customer[]> {
     const params = new URLSearchParams();
-    if (filters?.isActive !== undefined) params.append('isActive', String(filters.isActive));
-    if (filters?.search) params.append('search', filters.search);
+    if (filters?.is_active !== undefined) params.append("is_active", String(filters.is_active));
+    if (filters?.search) params.append("search", filters.search);
 
     const query = params.toString();
-    const response = await apiClient.get<Customer[]>(
-      query ? `/customers?${query}` : '/customers',
-    );
+    const response = await apiClient.get<Customer[]>(query ? `/customers?${query}` : "/customers");
     return response.data || [];
   },
 
@@ -92,20 +90,20 @@ export const customersApi = {
    * Create new customer
    */
   async create(data: CreateCustomerDto): Promise<Customer> {
-    const response = await apiClient.post<Customer>('/customers', {
+    const response = await apiClient.post<Customer>("/customers", {
       code: data.code,
-      name_en: data.nameEn,
-      name_ar: data.nameAr,
-      vat_number: data.vatNumber,
+      name_en: data.name_en,
+      name_ar: data.name_ar,
+      vat_number: data.vat_number,
       email: data.email,
       phone: data.phone,
       mobile: data.mobile,
       address: data.address,
       city: data.city,
       country: data.country,
-      credit_limit: data.creditLimit,
-      payment_terms_days: data.paymentTermsDays,
-      is_active: data.isActive ?? true,
+      credit_limit: data.credit_limit,
+      payment_terms_days: data.payment_terms_days,
+      is_active: data.is_active ?? true,
       notes: data.notes,
     });
     return response.data as Customer;
@@ -116,18 +114,18 @@ export const customersApi = {
    */
   async update(id: string, data: UpdateCustomerDto): Promise<Customer> {
     const response = await apiClient.patch<Customer>(`/customers/${id}`, {
-      name_en: data.nameEn,
-      name_ar: data.nameAr,
-      vat_number: data.vatNumber,
+      name_en: data.name_en,
+      name_ar: data.name_ar,
+      vat_number: data.vat_number,
       email: data.email,
       phone: data.phone,
       mobile: data.mobile,
       address: data.address,
       city: data.city,
       country: data.country,
-      credit_limit: data.creditLimit,
-      payment_terms_days: data.paymentTermsDays,
-      is_active: data.isActive,
+      credit_limit: data.credit_limit,
+      payment_terms_days: data.payment_terms_days,
+      is_active: data.is_active,
       notes: data.notes,
     });
     return response.data as Customer;

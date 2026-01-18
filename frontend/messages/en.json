@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "المحاسب",
+    "appName": "Al-Muhasib",
     "search": "Search",
     "add": "Add",
     "edit": "Edit",
@@ -49,7 +49,32 @@
     "createdAt": "Created At",
     "updatedAt": "Updated At",
     "createdBy": "Created By",
-    "updatedBy": "Updated By"
+    "updatedBy": "Updated By",
+    "recent": "Recent",
+    "favorites": "Favorites",
+    "clear": "Clear",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "toggleFavorite": "Toggle favorite",
+    "toggleMenu": "Toggle menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "changeLanguage": "Change language",
+    "english": "English",
+    "arabic": "Arabic",
+    "notifications": "Notifications",
+    "searchPlaceholder": "Search..."
+  },
+  "commandPalette": {
+    "searchPlaceholder": "Search pages... (e.g., coa, invoice, vendor)",
+    "noResults": "No pages found.",
+    "comingSoon": "Coming Soon",
+    "underDevelopment": "This page is under development.",
+    "keyboardShortcuts": "Keyboard Shortcuts",
+    "openPalette": "Open this palette",
+    "navigate": "Navigate",
+    "close": "Close",
+    "toggleFavorite": "Toggle favorite"
   },
   "auth": {
     "signIn": "Sign In",
@@ -105,7 +130,501 @@
     "permissions": "Permissions",
     "fiscalYear": "Fiscal Year",
     "periods": "Periods",
-    "costCenters": "Cost Centers"
+    "costCenters": "Cost Centers",
+    "profile": "Profile"
+  },
+  "modules": {
+    "main": "Main",
+    "accounting": "Accounting",
+    "sales": "Sales",
+    "purchases": "Purchases",
+    "banking": "Banking",
+    "assets": "Assets",
+    "tax": "Tax",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "accounting": {
+    "title": "Accounting",
+    "description": "Manage your financial records, journals, and reports",
+    "generalLedger": {
+      "title": "General Ledger",
+      "description": "View all posted journal entries grouped by account",
+      "refresh": "Refresh",
+      "exporting": "Exporting...",
+      "exported": "Export successful",
+      "loading": "Loading general ledger...",
+      "errors": {
+        "fetchFailed": "Failed to load general ledger data",
+        "exportFailed": "Export failed"
+      },
+      "filters": {
+        "title": "Filters",
+        "account": "Account",
+        "selectAccount": "Select account",
+        "allAccounts": "All Accounts",
+        "accountType": "Account Type",
+        "selectAccountType": "Select account type",
+        "allTypes": "All Types",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "search": "Search",
+        "searchPlaceholder": "Search by description...",
+        "reset": "Reset Filters"
+      },
+      "table": {
+        "title": "Journal Entries",
+        "date": "Date",
+        "journal": "Journal #",
+        "account": "Account",
+        "description": "Description",
+        "debit": "Debit",
+        "credit": "Credit",
+        "balance": "Balance"
+      },
+      "pagination": {
+        "totalEntries": "Showing {{count}} entries",
+        "showing": "Showing {{start}} to {{end}} of {{total}} entries",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "empty": {
+        "title": "No entries found",
+        "description": "Try adjusting your filters or date range"
+      },
+      "accountTypes": {
+        "asset": "Asset",
+        "liability": "Liability",
+        "equity": "Equity",
+        "revenue": "Revenue",
+        "expense": "Expense"
+      }
+    },
+    "financialStatements": {
+      "title": "Financial Statements",
+      "description": "View Balance Sheet, Income Statement, and Cash Flow Statement with period comparison",
+      "tabs": {
+        "balanceSheet": "Balance Sheet",
+        "incomeStatement": "Income Statement",
+        "cashFlow": "Cash Flow"
+      },
+      "table": {
+        "lineItem": "Line Item",
+        "amount": "Amount",
+        "priorPeriod": "Prior Period",
+        "variance": "Variance",
+        "variancePercent": "Variance %",
+        "total": "Total"
+      },
+      "filters": {
+        "period": "Period",
+        "selectPeriod": "Select Period",
+        "thisMonth": "This Month",
+        "thisQuarter": "This Quarter",
+        "thisYear": "This Year",
+        "lastMonth": "Last Month",
+        "lastQuarter": "Last Quarter",
+        "lastYear": "Last Year",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "comparePrior": "Compare with Prior Period",
+        "showVariance": "Show Variance"
+      },
+      "exporting": "Exporting...",
+      "exported": "Export successful",
+      "errors": {
+        "fetchFailed": "Failed to load financial statement"
+      }
+    },
+    "trialBalance": {
+      "title": "Trial Balance",
+      "description": "Verify that debits equal credits across all accounts",
+      "refresh": "Refresh",
+      "exporting": "Exporting...",
+      "exported": "Export successful",
+      "balanced": "Trial Balance is Balanced",
+      "notBalanced": "Trial Balance is NOT Balanced",
+      "difference": "Difference",
+      "errors": {
+        "fetchFailed": "Failed to load trial balance"
+      },
+      "filters": {
+        "title": "Filters",
+        "asOfDate": "As of Date",
+        "fiscalPeriod": "Fiscal Period",
+        "showZeroBalances": "Show Zero Balances",
+        "accountType": "Account Type"
+      },
+      "table": {
+        "accountCode": "Code",
+        "accountName": "Account",
+        "debit": "Debit",
+        "credit": "Credit",
+        "total": "Total",
+        "totalDebit": "Total Debit",
+        "totalCredit": "Total Credit"
+      },
+      "accountTypes": {
+        "assets": "Assets",
+        "liabilities": "Liabilities",
+        "equity": "Equity",
+        "revenue": "Revenue",
+        "expenses": "Expenses"
+      },
+      "empty": {
+        "title": "No accounts found",
+        "description": "There are no accounts to display"
+      }
+    }
+  },
+  "sales": {
+    "title": "Sales",
+    "description": "Manage customers, invoices, quotations, and payments",
+    "quotations": {
+      "title": "Quotations",
+      "description": "Create and manage sales quotations",
+      "newQuotation": "New Quotation",
+      "loading": "Loading quotations...",
+      "converting": "Converting to invoice...",
+      "converted": "Successfully converted to invoice",
+      "exporting": "Exporting to PDF...",
+      "exported": "PDF exported successfully",
+      "sendSuccess": "Quotation sent successfully",
+      "acceptSuccess": "Quotation accepted",
+      "rejectSuccess": "Quotation rejected",
+      "createSuccess": "Quotation created successfully",
+      "updateSuccess": "Quotation updated successfully",
+      "deleteSuccess": "Quotation deleted successfully",
+      "confirmDelete": "Are you sure you want to delete quotation",
+      "confirmReject": "Are you sure you want to reject this quotation?",
+      "errors": {
+        "fetchFailed": "Failed to load quotations",
+        "convertFailed": "Failed to convert to invoice",
+        "editOnlyDraft": "Can only edit draft quotations",
+        "deleteFailed": "Failed to delete quotation",
+        "saveFailed": "Failed to save quotation",
+        "sendFailed": "Failed to send quotation",
+        "acceptFailed": "Failed to accept quotation",
+        "rejectFailed": "Failed to reject quotation",
+        "exportFailed": "Failed to export PDF"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allCustomers": "All Customers",
+        "searchPlaceholder": "Search by quote number or customer..."
+      },
+      "table": {
+        "quoteNumber": "Quote #",
+        "customer": "Customer",
+        "date": "Date",
+        "validUntil": "Valid Until",
+        "status": "Status",
+        "total": "Total",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "send": "Send",
+        "accept": "Accept",
+        "reject": "Reject",
+        "convertToInvoice": "Convert to Invoice",
+        "export": "Export PDF",
+        "refresh": "Refresh"
+      },
+      "dialog": {
+        "createTitle": "New Quotation",
+        "createDescription": "Create a new sales quotation",
+        "editTitle": "Edit Quotation",
+        "editDescription": "Update quotation details"
+      },
+      "form": {
+        "customer": "Customer",
+        "selectCustomer": "Select customer",
+        "date": "Quote Date",
+        "validUntil": "Valid Until",
+        "lineItems": "Line Items",
+        "addLine": "Add Line",
+        "descriptionEn": "Description (EN)",
+        "descriptionAr": "Description (AR)",
+        "quantity": "Quantity",
+        "unitPrice": "Unit Price",
+        "tax": "Tax %",
+        "discount": "Discount %",
+        "total": "Total",
+        "subtotal": "Subtotal",
+        "notes": "Notes",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "empty": {
+        "title": "No quotations found",
+        "description": "Create your first quotation to get started"
+      }
+    }
+  },
+  "purchases": {
+    "title": "Purchases",
+    "description": "Manage vendors, purchase orders, and expenses",
+    "purchaseOrders": {
+      "title": "Purchase Orders",
+      "description": "Create and manage purchase orders",
+      "newPurchaseOrder": "New Purchase Order",
+      "loading": "Loading purchase orders...",
+      "converting": "Converting to bill...",
+      "converted": "Successfully converted to bill",
+      "exporting": "Exporting to PDF...",
+      "exported": "PDF exported successfully",
+      "sendSuccess": "Purchase order sent successfully",
+      "receiveSuccess": "Purchase order marked as received",
+      "closeSuccess": "Purchase order closed successfully",
+      "createSuccess": "Purchase order created successfully",
+      "updateSuccess": "Purchase order updated successfully",
+      "deleteSuccess": "Purchase order deleted successfully",
+      "confirmDelete": "Are you sure you want to delete purchase order",
+      "confirmConvert": "Convert {{poNumber}} to a bill? This will create a bill from the purchase order.",
+      "errors": {
+        "fetchFailed": "Failed to load purchase orders",
+        "convertFailed": "Failed to convert to bill",
+        "editOnlyDraft": "Can only edit draft purchase orders",
+        "deleteFailed": "Failed to delete purchase order",
+        "saveFailed": "Failed to save purchase order",
+        "sendFailed": "Failed to send purchase order",
+        "receiveFailed": "Failed to mark as received",
+        "closeFailed": "Failed to close purchase order",
+        "exportFailed": "Failed to export PDF"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allVendors": "All Vendors",
+        "searchPlaceholder": "Search by PO number or vendor..."
+      },
+      "table": {
+        "poNumber": "PO #",
+        "vendor": "Vendor",
+        "date": "Date",
+        "expectedDelivery": "Expected Delivery",
+        "status": "Status",
+        "total": "Total",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "received": "Received",
+        "closed": "Closed"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "send": "Send",
+        "markReceived": "Mark Received",
+        "close": "Close",
+        "convertToBill": "Convert to Bill",
+        "export": "Export PDF",
+        "refresh": "Refresh"
+      },
+      "dialog": {
+        "createTitle": "New Purchase Order",
+        "createDescription": "Create a new purchase order",
+        "editTitle": "Edit Purchase Order",
+        "editDescription": "Update purchase order details"
+      },
+      "form": {
+        "vendor": "Vendor",
+        "selectVendor": "Select vendor",
+        "orderDate": "Order Date",
+        "expectedDeliveryDate": "Expected Delivery Date",
+        "lineItems": "Line Items",
+        "addLine": "Add Line",
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Unit Price",
+        "tax": "Tax %",
+        "discount": "Discount %",
+        "total": "Total",
+        "subtotal": "Subtotal",
+        "notes": "Notes",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "empty": {
+        "title": "No purchase orders found",
+        "description": "Create your first purchase order to get started"
+      }
+    },
+    "expenses": {
+      "title": "Expenses",
+      "description": "Track and manage business expenses",
+      "newExpense": "New Expense",
+      "summary": {
+        "totalThisMonth": "Total This Month",
+        "pendingApproval": "Pending Approval",
+        "thisWeek": "This Week",
+        "byCategory": "By Category"
+      },
+      "table": {
+        "date": "Date",
+        "category": "Category",
+        "description": "Description",
+        "vendor": "Vendor/Employee",
+        "amount": "Amount",
+        "status": "Status",
+        "receipt": "Receipt",
+        "actions": "Actions"
+      },
+      "categories": {
+        "supplies": "Supplies",
+        "travel": "Travel",
+        "meals": "Meals & Entertainment",
+        "utilities": "Utilities",
+        "rent": "Rent",
+        "marketing": "Marketing",
+        "other": "Other"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "paid": "Paid"
+      },
+      "empty": {
+        "title": "No expenses found",
+        "description": "Record your first expense to get started"
+      }
+    }
+  },
+  "banking": {
+    "title": "Banking",
+    "description": "Manage bank accounts and reconciliation",
+    "accounts": {
+      "title": "Bank Accounts",
+      "description": "View and manage all bank accounts",
+      "newAccount": "New Account",
+      "summary": {
+        "totalBalance": "Total Balance",
+        "thisMonthChanges": "This Month's Changes",
+        "activeAccounts": "Active Accounts",
+        "accounts": "accounts",
+        "acrossAccounts": "across {{count}} accounts",
+        "netChange": "net change"
+      },
+      "filters": {
+        "title": "Filters",
+        "search": "Search",
+        "searchPlaceholder": "Search by name, bank, or account number...",
+        "accountType": "Account Type",
+        "allTypes": "All Types",
+        "clear": "Clear Filters"
+      },
+      "table": {
+        "title": "Bank Accounts",
+        "accountName": "Account Name",
+        "bankName": "Bank Name",
+        "accountType": "Type",
+        "accountNumber": "Account Number",
+        "balance": "Balance",
+        "lastReconciled": "Last Reconciled",
+        "status": "Status",
+        "accounts": "accounts"
+      },
+      "accountTypes": {
+        "checking": "Checking",
+        "savings": "Savings",
+        "creditCard": "Credit Card"
+      },
+      "empty": {
+        "title": "No bank accounts found",
+        "description": "Create your first bank account to get started"
+      }
+    },
+    "reconciliation": {
+      "title": "Bank Reconciliation",
+      "description": "Match bank statements with book transactions",
+      "new": {
+        "title": "Start New Reconciliation",
+        "account": "Bank Account",
+        "selectAccount": "Select account",
+        "statementDate": "Statement Date",
+        "statementBalance": "Statement Balance",
+        "start": "Start Reconciliation",
+        "starting": "Starting..."
+      },
+      "history": {
+        "title": "Reconciliation History",
+        "empty": "No reconciliations found",
+        "table": {
+          "date": "Statement Date",
+          "statementBalance": "Statement Balance",
+          "bookBalance": "Book Balance",
+          "difference": "Difference",
+          "status": "Status"
+        }
+      },
+      "progress": {
+        "reconciling": "Reconciling",
+        "difference": "Difference",
+        "complete": "Complete Reconciliation"
+      },
+      "matched": {
+        "title": "Matched Transactions",
+        "bankTransaction": "Bank Transaction",
+        "bookTransaction": "Book Transaction"
+      },
+      "unmatched": {
+        "bankTransactions": "Bank Statement Lines",
+        "bookTransactions": "Book Transactions",
+        "noBankTransactions": "No unmatched bank transactions",
+        "noBookTransactions": "No unmatched book transactions"
+      },
+      "suggestions": {
+        "title": "Suggested Matches"
+      },
+      "actions": {
+        "match": "Match Selected",
+        "clear": "Clear Selection"
+      },
+      "status": {
+        "in-progress": "In Progress",
+        "completed": "Completed"
+      },
+      "messages": {
+        "started": "Reconciliation started successfully",
+        "matched": "Transactions matched successfully",
+        "unmatched": "Transactions unmatched successfully",
+        "completed": "Reconciliation completed successfully"
+      },
+      "errors": {
+        "differenceNotZero": "Difference must be zero to complete reconciliation"
+      }
+    }
+  },
+  "assets": {
+    "title": "Assets",
+    "description": "Manage fixed assets and depreciation"
+  },
+  "tax": {
+    "title": "Tax",
+    "description": "Manage VAT and tax returns"
+  },
+  "reports": {
+    "title": "Reports",
+    "description": "Generate and view financial reports"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage company settings, users, and roles"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -199,7 +718,7 @@
     "items": "Items",
     "item": "Item",
     "quantity": "Quantity",
-      "unitPrice": "Unit Price",
+    "unitPrice": "Unit Price",
     "vatRate": "VAT Rate",
     "vatCode": "VAT Code",
     "statuses": {
@@ -304,63 +823,214 @@
   },
   "assets": {
     "title": "Fixed Assets",
+    "description": "Manage your fixed assets and depreciation",
     "assetNumber": "Asset Number",
+    "assetCode": "Asset Code",
     "name": "Name",
     "nameArabic": "Arabic Name",
     "category": "Category",
+    "categories": {
+      "furniture": "Furniture",
+      "equipment": "Equipment",
+      "vehicles": "Vehicles",
+      "computers": "Computers",
+      "buildings": "Buildings",
+      "land": "Land",
+      "other": "Other"
+    },
     "acquisitionDate": "Acquisition Date",
+    "purchaseDate": "Purchase Date",
     "cost": "Cost",
     "salvageValue": "Salvage Value",
-    "usefulLife": "Useful Life (Months)",
+    "usefulLife": "Useful Life",
+    "usefulLifeYears": "Useful Life (Years)",
     "depreciationMethod": "Depreciation Method",
     "accumulatedDepreciation": "Accumulated Depreciation",
     "netBookValue": "Net Book Value",
     "status": "Status",
+    "location": "Location",
+    "notes": "Notes",
     "addAsset": "Add Asset",
     "editAsset": "Edit Asset",
     "deleteAsset": "Delete Asset",
+    "disposeAsset": "Dispose Asset",
+    "sellAsset": "Sell Asset",
     "depreciate": "Depreciate",
     "depreciationHistory": "Depreciation History",
+    "dispose": "Dispose",
+    "sell": "Sell",
+    "disposalDate": "Disposal Date",
+    "disposalAmount": "Disposal Amount",
+    "saleDate": "Sale Date",
+    "saleAmount": "Sale Amount",
+    "depreciation": {
+      "title": "Depreciation",
+      "description": "Calculate and post depreciation entries",
+      "periodStart": "Period Start",
+      "periodEnd": "Period End",
+      "calculate": "Calculate Depreciation",
+      "calculating": "Calculating...",
+      "previewJournal": "Preview Journal",
+      "postToJournal": "Post to Journal",
+      "posting": "Posting...",
+      "viewHistory": "View History",
+      "summary": "Depreciation Summary",
+      "numberOfAssets": "Number of Assets",
+      "totalDepreciation": "Total Depreciation This Period",
+      "schedule": "Depreciation Schedule",
+      "annualDepreciation": "Annual Depreciation",
+      "thisPeriod": "This Period",
+      "journalPreview": "Journal Entry Preview",
+      "journalBalanced": "Journal is balanced",
+      "journalNotBalanced": "Journal is NOT balanced",
+      "history": "Depreciation History",
+      "noHistory": "No depreciation history found",
+      "statusCalculated": "Calculated",
+      "statusPosted": "Posted"
+    },
     "depreciationMethods": {
       "straight_line": "Straight Line",
-      "declining_balance": "Declining Balance"
+      "declining_balance": "Declining Balance",
+      "units_of_production": "Units of Production"
     },
     "statuses": {
       "active": "Active",
-      "fullyDepreciated": "Fully Depreciated",
+      "fullydepreciated": "Fully Depreciated",
       "disposed": "Disposed",
-      "inactive": "Inactive"
+      "sold": "Sold"
+    },
+    "summary": {
+      "totalAssets": "Total Assets",
+      "registeredAssets": "Registered assets",
+      "totalCost": "Total Cost",
+      "originalPurchaseCost": "Original purchase cost",
+      "accumulatedDepreciation": "Accumulated Depreciation",
+      "totalDepreciationToDate": "Total depreciation to date",
+      "netBookValue": "Net Book Value",
+      "currentAssetValue": "Current asset value"
+    },
+    "table": {
+      "assetCode": "Asset Code",
+      "assetName": "Asset Name",
+      "category": "Category",
+      "purchaseDate": "Purchase Date",
+      "cost": "Cost",
+      "accumulatedDepreciation": "Accum. Depreciation",
+      "netBookValue": "Net Book Value",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "filters": {
+      "allCategories": "All Categories",
+      "allStatuses": "All Statuses",
+      "searchPlaceholder": "Search assets..."
     }
   },
   "vat": {
-    "title": "VAT",
-    "vatTransactions": "VAT Transactions",
-    "vatReturns": "VAT Returns",
-    "vatReport": "VAT Report",
-    "period": "Period",
-    "taxableSupplies": "Taxable Supplies",
-    "exemptSupplies": "Exempt Supplies",
-    "vatOutput": "VAT Output",
-    "vatInput": "VAT Input",
-    "vatPayable": "VAT Payable",
-    "vatRecoverable": "VAT Recoverable",
-    "vatCodes": "VAT Codes",
+    "title": "VAT Management",
+    "description": "Configure VAT rates and codes",
+    "addRate": "Add VAT Rate",
+    "editRate": "Edit VAT Rate",
+    "editRateDescription": "Update VAT rate details",
+    "addRateDescription": "Add a new VAT rate to your system",
+    "ratesList": "VAT Rates",
+    "search": "Search rates...",
+    "loading": "Loading VAT rates...",
+    "noRates": "No VAT rates found",
+    "saving": "Saving...",
     "code": "Code",
-    "description": "Description",
+    "name": "Name",
     "rate": "Rate (%)",
     "type": "Type",
+    "selectType": "Select type",
+    "effectiveDate": "Effective Date",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "setDefaultRate": "Set as default rate",
+    "cancel": "Cancel",
+    "save": "Save",
     "types": {
       "standard": "Standard",
-      "zeroRated": "Zero Rated",
-      "exempt": "Exempt",
-      "outOfScope": "Out of Scope"
+      "reduced": "Reduced",
+      "zero": "Zero",
+      "exempt": "Exempt"
+    },
+    "summary": {
+      "standardRate": "Standard Rate",
+      "reducedRates": "Reduced Rates",
+      "lastUpdated": "Last Updated",
+      "notSet": "Not set",
+      "activeRates": "active rates",
+      "totalRates": "Total {{count}} rates"
+    }
+  },
+  "vatReturns": {
+    "title": "VAT Returns",
+    "description": "Generate and file VAT returns",
+    "calculateReturn": "Calculate Return",
+    "calculate": "Calculate",
+    "calculating": "Calculating...",
+    "calculateDescription": "Calculate VAT return for a specific period",
+    "returnsList": "VAT Returns",
+    "search": "Search returns...",
+    "loading": "Loading VAT returns...",
+    "noReturns": "No VAT returns found",
+    "period": "Period",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "outputVat": "Output VAT",
+    "inputVat": "Input VAT",
+    "netVat": "Net VAT",
+    "actions": "Actions",
+    "viewBreakdown": "View breakdown",
+    "markAsFiled": "Mark as Filed",
+    "recordPayment": "Record Payment",
+    "exportPdf": "Export PDF",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "filing": "Filing...",
+    "recording": "Recording...",
+    "fileDescription": "Mark this VAT return as filed with tax authorities",
+    "paymentDescription": "Record payment for this VAT return",
+    "paymentDate": "Payment Date",
+    "paymentReference": "Payment Reference",
+    "breakdownTitle": "VAT Return Breakdown",
+    "sales": "Sales",
+    "purchases": "Purchases",
+    "totalSales": "Total Sales",
+    "totalPurchases": "Total Purchases",
+    "vatOnSales": "VAT on Sales",
+    "vatOnPurchases": "VAT on Purchases",
+    "byRate": "By Rate",
+    "statuses": {
+      "draft": "Draft",
+      "calculated": "Calculated",
+      "filed": "Filed",
+      "paid": "Paid"
+    },
+    "summary": {
+      "totalOutput": "Total Output VAT",
+      "totalInput": "Total Input VAT",
+      "netPayable": "Net Payable/Refundable",
+      "outputVat": "Output VAT",
+      "inputVat": "Input VAT",
+      "payable": "Payable",
+      "refundable": "Refundable"
     }
   },
   "reports": {
     "title": "Reports",
+    "description": "Generate and view financial reports",
     "generate": "Generate",
+    "generating": "Generating...",
+    "generateReport": "Generate Report",
+    "configureParameters": "Configure report parameters",
     "exportPdf": "Export as PDF",
     "exportExcel": "Export as Excel",
+    "download": "Download",
     "trialBalance": "Trial Balance",
     "balanceSheet": "Balance Sheet",
     "incomeStatement": "Income Statement",
@@ -368,27 +1038,58 @@
     "generalLedger": "General Ledger",
     "agedReceivables": "Aged Receivables",
     "agedPayables": "Aged Payables",
+    "salesByCustomer": "Sales by Customer",
+    "purchasesByVendor": "Purchases by Vendor",
+    "profitLossByPeriod": "Profit & Loss by Period",
+    "budgetVsActual": "Budget vs Actual",
+    "inventoryValuation": "Inventory Valuation",
+    "transactionDetail": "Transaction Detail",
     "vatReport": "VAT Report",
     "asOfDate": "As of Date",
     "fromDate": "From Date",
     "toDate": "To Date",
-    "currency": "Currency"
+    "currency": "Currency",
+    "period": "Period",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "thisQuarter": "This Quarter",
+    "thisYear": "This Year",
+    "format": "Format",
+    "favorites": "Favorites",
+    "recentReports": "Recent Reports",
+    "allCategories": "All Categories",
+    "selectCategory": "Select Category",
+    "searchPlaceholder": "Search reports...",
+    "noReportsFound": "No reports found",
+    "tryDifferentFilters": "Try adjusting your search or filters"
   },
   "fiscal": {
     "title": "Fiscal Periods",
+    "description": "Manage fiscal years and accounting periods",
     "fiscalYear": "Fiscal Year",
     "period": "Period",
     "startDate": "Start Date",
     "endDate": "End Date",
     "status": "Status",
+    "closingDate": "Closing Date",
     "isLocked": "Is Locked",
     "openPeriod": "Open Period",
     "closePeriod": "Close Period",
+    "close": "Close",
+    "open": "Open",
+    "periods": "Periods",
+    "periodNumber": "Period {{number}}",
+    "transactions": "Transactions",
     "addYear": "Add Fiscal Year",
     "addPeriod": "Add Period",
+    "createFiscalYear": "Create Fiscal Year",
+    "editFiscalYear": "Edit Fiscal Year",
+    "cannotModifyClosedYear": "Cannot modify a closed fiscal year",
+    "saving": "Saving...",
     "statuses": {
       "open": "Open",
-      "closed": "Closed"
+      "closed": "Closed",
+      "adjusting": "Adjusting"
     }
   },
   "users": {
@@ -411,21 +1112,124 @@
     "permissions": "Permissions",
     "addRole": "Add Role",
     "editRole": "Edit Role",
-    "deleteRole": "Delete Role"
+    "deleteRole": "Delete Role",
+    "basicInformation": "Basic Information",
+    "roleCode": "Role Code",
+    "roleName": "Role Name",
+    "roleNameArabic": "Role Name (Arabic)",
+    "allModules": "All Modules",
+    "accounting": "Accounting",
+    "sales": "Sales",
+    "reports": "Reports",
+    "system": "System",
+    "custom": "Custom",
+    "saving": "Saving..."
   },
   "company": {
     "title": "Company Settings",
+    "description": "Manage company information and financial settings",
+    "companyInformation": "Company Information",
     "companyName": "Company Name",
     "companyNameArabic": "Arabic Company Name",
+    "legalName": "Legal Name",
     "taxNumber": "Tax Number",
+    "taxRegistrationNumber": "Tax Registration Number",
+    "vatNumber": "VAT Number",
     "crNumber": "CR Number",
     "address": "Address",
+    "city": "City",
+    "country": "Country",
     "phone": "Phone",
     "email": "Email",
+    "website": "Website",
     "logo": "Logo",
+    "companyLogo": "Company Logo",
+    "logoRequirements": "Max 2MB, PNG or JPG",
     "settings": "Settings",
     "currencies": "Currencies",
-    "defaultCurrency": "Default Currency"
+    "defaultCurrency": "Default Currency",
+    "currencyAndTax": "Currency & Tax Settings",
+    "baseCurrency": "Base Currency",
+    "taxYearStart": "Tax Year Start",
+    "taxYearEnd": "Tax Year End",
+    "financialSettings": "Financial Settings",
+    "decimalPlaces": "Decimal Places",
+    "rounding": "Rounding",
+    "roundingNearest": "Round to nearest",
+    "roundingUp": "Always round up",
+    "roundingDown": "Always round down",
+    "saveSettings": "Save Settings",
+    "saving": "Saving...",
+    "settingsSaved": "Settings saved successfully"
+  },
+  "settings": {
+    "title": "Settings",
+    "company": {
+      "title": "Company Settings"
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "description": "Manage user roles and their permissions",
+      "createRole": "Create Role",
+      "allRoles": "All Roles",
+      "roleName": "Role Name",
+      "description": "Description",
+      "status": "Status",
+      "permissions": "Permissions",
+      "basicInformation": "Basic Information",
+      "roleCode": "Role Code",
+      "roleNameArabic": "Role Name (Arabic)",
+      "allModules": "All Modules",
+      "accounting": "Accounting",
+      "sales": "Sales",
+      "reports": "Reports",
+      "system": "System",
+      "custom": "Custom",
+      "saving": "Saving..."
+    },
+    "fiscal": {
+      "title": "Fiscal Year",
+      "description": "Manage fiscal years and accounting periods",
+      "fiscalYears": "Fiscal Years",
+      "year": "Year",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "closingDate": "Closing Date",
+      "periods": "Periods",
+      "periodNumber": "Period {{number}}",
+      "transactions": "Transactions",
+      "createFiscalYear": "Create Fiscal Year",
+      "editFiscalYear": "Edit Fiscal Year",
+      "cannotModifyClosedYear": "Cannot modify a closed fiscal year",
+      "saving": "Saving...",
+      "statuses": {
+        "open": "Open",
+        "closed": "Closed",
+        "adjusting": "Adjusting"
+      }
+    },
+    "costCenters": {
+      "title": "Cost Centers",
+      "description": "Manage cost centers for expense tracking",
+      "code": "Code",
+      "name": "Name",
+      "nameArabic": "Arabic Name",
+      "parent": "Parent",
+      "parentCostCenter": "Parent Cost Center",
+      "selectParent": "Select parent cost center",
+      "noParent": "No Parent",
+      "description": "Description",
+      "accounts": "Accounts",
+      "status": "Status",
+      "createCostCenter": "Create Cost Center",
+      "editCostCenter": "Edit Cost Center",
+      "allCostCenters": "All Cost Centers",
+      "totalCostCenters": "Total Cost Centers",
+      "activeCostCenters": "Active Cost Centers",
+      "totalAccounts": "Total Accounts",
+      "saving": "Saving..."
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -445,5 +1249,57 @@
     "invalidDate": "Invalid date",
     "futureDate": "Date cannot be in the future",
     "pastDate": "Date cannot be in the past"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "accounting": "Accounting",
+    "sales": "Sales",
+    "purchases": "Purchases",
+    "banking": "Banking",
+    "assets": "Assets",
+    "tax": "Tax",
+    "reports": "Reports",
+    "settings": "Settings",
+    "chartOfAccounts": "Chart of Accounts",
+    "journals": "Journals",
+    "newJournal": "New Journal Entry",
+    "generalLedger": "General Ledger",
+    "trialBalance": "Trial Balance",
+    "financialStatements": "Financial Statements",
+    "balanceSheet": "Balance Sheet",
+    "incomeStatement": "Income Statement",
+    "customers": "Customers",
+    "invoices": "Invoices",
+    "newInvoice": "New Invoice",
+    "quotations": "Quotations",
+    "newQuotation": "New Quotation",
+    "payments": "Payments",
+    "vendors": "Vendors",
+    "purchaseOrders": "Purchase Orders",
+    "newPurchaseOrder": "New Purchase Order",
+    "expenses": "Expenses",
+    "newExpense": "New Expense",
+    "bankAccounts": "Bank Accounts",
+    "reconciliation": "Bank Reconciliation",
+    "fixedAssets": "Fixed Assets",
+    "depreciation": "Depreciation",
+    "vat": "VAT",
+    "vatReturns": "VAT Returns",
+    "company": "Company",
+    "users": "Users",
+    "roles": "Roles",
+    "fiscal": "Fiscal Year",
+    "costCenters": "Cost Centers",
+    "new": "New",
+    "edit": "Edit",
+    "view": "View",
+    "statements": "Financial Statements",
+    "coa": "Chart of Accounts",
+    "orders": "Purchase Orders",
+    "fiscalYear": "Fiscal Year",
+    "profile": "Profile",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites"
   }
 }

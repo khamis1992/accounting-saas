@@ -1,6 +1,16 @@
-import * as React from "react"
+/**
+ * Input Component
+ *
+ * Input field component with validation
+ *
+ * @fileoverview Input React component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -15,7 +25,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Input }
+export { Input };

@@ -1,32 +1,37 @@
-'use client';
+/**
+ * ExportButton Component
+ *
+ * React component for UI functionality
+ *
+ * @fileoverview ExportButton React component
+ * @author Frontend Team
+ * @created 2026-01-17
+ * @updated 2026-01-17
+ */
+"use client";
 
 /**
  * Export Button Component
  * Provides dropdown menu to export data in CSV or Excel format
  */
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import * as exportUtil from '@/lib/utils/export';
+} from "@/components/ui/dropdown-menu";
+import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import * as exportUtil from "@/lib/utils/export";
+import logger from "@/lib/logger";
 
 export interface ExportButtonProps {
-  entityType:
-    | 'customers'
-    | 'vendors'
-    | 'invoices'
-    | 'payments'
-    | 'journals'
-    | 'chartOfAccounts';
+  entityType: "customers" | "vendors" | "invoices" | "payments" | "journals" | "chartOfAccounts";
   filters?: Record<string, any>;
-  language?: 'en' | 'ar' | 'both';
+  language?: "en" | "ar" | "both";
   includeInactive?: boolean;
   disabled?: boolean;
 }
@@ -34,14 +39,14 @@ export interface ExportButtonProps {
 export function ExportButton({
   entityType,
   filters = {},
-  language = 'both',
+  language = "both",
   includeInactive = false,
   disabled = false,
 }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'excel' | null>(null);
+  const [exportFormat, setExportFormat] = useState<"csv" | "excel" | null>(null);
 
-  const handleExport = async (format: 'csv' | 'excel') => {
+  const handleExport = async (format: "csv" | "excel") => {
     try {
       setIsExporting(true);
       setExportFormat(format);
@@ -54,42 +59,39 @@ export function ExportButton({
 
       // Call the appropriate export function based on entity type
       switch (entityType) {
-        case 'customers':
+        case "customers":
           await exportUtil.exportCustomers(format, options);
           break;
-        case 'vendors':
+        case "vendors":
           await exportUtil.exportVendors(format, options);
           break;
-        case 'invoices':
+        case "invoices":
           await exportUtil.exportInvoices(format, options);
           break;
-        case 'payments':
+        case "payments":
           await exportUtil.exportPayments(format, options);
           break;
-        case 'journals':
+        case "journals":
           await exportUtil.exportJournals(format, options);
           break;
-        case 'chartOfAccounts':
+        case "chartOfAccounts":
           await exportUtil.exportChartOfAccounts(format, options);
           break;
         default:
           throw new Error(`Unknown entity type: ${entityType}`);
       }
 
-      toast.success(
-        `Successfully exported ${entityType} as ${format.toUpperCase()}`,
-      );
-    } catch (error: any) {
-      console.error('Export failed:', error);
-      toast.error(error.message || `Failed to export ${entityType}`);
+      toast.success(`Successfully exported ${entityType} as ${format.toUpperCase()}`);
+    } catch (error) {
+      logger.error("Export failed", error as Error, { entityType, format });
+      toast.error(error instanceof Error ? error.message : `Failed to export ${entityType}`);
     } finally {
       setIsExporting(false);
       setExportFormat(null);
     }
   };
 
-  const isCurrentFormat = (format: 'csv' | 'excel') =>
-    isExporting && exportFormat === format;
+  const isCurrentFormat = (format: "csv" | "excel") => isExporting && exportFormat === format;
 
   return (
     <DropdownMenu>
@@ -109,22 +111,16 @@ export function ExportButton({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => handleExport('excel')}
-          disabled={isCurrentFormat('excel')}
-        >
-          {isCurrentFormat('excel') ? (
+        <DropdownMenuItem onClick={() => handleExport("excel")} disabled={isCurrentFormat("excel")}>
+          {isCurrentFormat("excel") ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <FileSpreadsheet className="h-4 w-4 mr-2" />
           )}
           Export as Excel
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleExport('csv')}
-          disabled={isCurrentFormat('csv')}
-        >
-          {isCurrentFormat('csv') ? (
+        <DropdownMenuItem onClick={() => handleExport("csv")} disabled={isCurrentFormat("csv")}>
+          {isCurrentFormat("csv") ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <FileText className="h-4 w-4 mr-2" />

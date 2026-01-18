@@ -49,7 +49,32 @@
     "createdAt": "تاريخ الإنشاء",
     "updatedAt": "تاريخ التحديث",
     "createdBy": "أنشأه",
-    "updatedBy": "حدثه"
+    "updatedBy": "حدثه",
+    "recent": "الأخيرة",
+    "favorites": "المفضلة",
+    "clear": "مسح",
+    "addFavorite": "إضافة للمفضلة",
+    "removeFavorite": "إزالة من المفضلة",
+    "toggleFavorite": "تبديل المفضلة",
+    "toggleMenu": "تبديل القائمة",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "changeLanguage": "تغيير اللغة",
+    "english": "English",
+    "arabic": "العربية",
+    "notifications": "الإشعارات",
+    "searchPlaceholder": "بحث..."
+  },
+  "commandPalette": {
+    "searchPlaceholder": "البحث في الصفحات... (مثال: دليل، فاتورة، مورد)",
+    "noResults": "لم يتم العثور على صفحات.",
+    "comingSoon": "قريباً",
+    "underDevelopment": "هذه الصفحة قيد التطوير.",
+    "keyboardShortcuts": "اختصارات لوحة المفاتيح",
+    "openPalette": "فتح هذه اللوحة",
+    "navigate": "التنقل",
+    "close": "إغلاق",
+    "toggleFavorite": "تبديل المفضلة"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -105,7 +130,501 @@
     "permissions": "الصلاحيات",
     "fiscalYear": "السنة المالية",
     "periods": "الفترات",
-    "costCenters": "مراكز التكلفة"
+    "costCenters": "مراكز التكلفة",
+    "profile": "الملف الشخصي"
+  },
+  "modules": {
+    "main": "الرئيسي",
+    "accounting": "المحاسبة",
+    "sales": "المبيعات",
+    "purchases": "المشتريات",
+    "banking": "البنوك",
+    "assets": "الأصول",
+    "tax": "الضرائب",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
+  "accounting": {
+    "title": "المحاسبة",
+    "description": "إدارة السجلات المالية والقيود والتقارير",
+    "generalLedger": {
+      "title": "الأستاذ العام",
+      "description": "عرض جميع القيود المحاسبية المترحلة مجمعة حسب الحساب",
+      "refresh": "تحديث",
+      "exporting": "جاري التصدير...",
+      "exported": "تم التصدير بنجاح",
+      "loading": "جاري تحميل الأستاذ العام...",
+      "errors": {
+        "fetchFailed": "فشل في تحميل بيانات الأستاذ العام",
+        "exportFailed": "فشل التصدير"
+      },
+      "filters": {
+        "title": "الفلاتر",
+        "account": "الحساب",
+        "selectAccount": "اختر الحساب",
+        "allAccounts": "جميع الحسابات",
+        "accountType": "نوع الحساب",
+        "selectAccountType": "اختر نوع الحساب",
+        "allTypes": "جميع الأنواع",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ النهاية",
+        "search": "بحث",
+        "searchPlaceholder": "بحث بالوصف...",
+        "reset": "إعادة تعيين الفلاتر"
+      },
+      "table": {
+        "title": "القيود المحاسبية",
+        "date": "التاريخ",
+        "journal": "رقم القيد",
+        "account": "الحساب",
+        "description": "الوصف",
+        "debit": "مدين",
+        "credit": "دائن",
+        "balance": "الرصيد"
+      },
+      "pagination": {
+        "totalEntries": "عرض {{count}} قيود",
+        "showing": "عرض {{start}} إلى {{end}} من {{total}} قيود",
+        "previous": "السابق",
+        "next": "التالي"
+      },
+      "empty": {
+        "title": "لا توجد قيود",
+        "description": "حاول تعديل الفلاتر أو نطاق التاريخ"
+      },
+      "accountTypes": {
+        "asset": "أصل",
+        "liability": "التزامات",
+        "equity": "حقوق الملكية",
+        "revenue": "إيرادات",
+        "expense": "مصاريف"
+      }
+    },
+    "financialStatements": {
+      "title": "القوائم المالية",
+      "description": "عرض القائمة المالية، قائمة الدخل، وقائمة التدفق النقدي مع مقارنة الفترات",
+      "tabs": {
+        "balanceSheet": "القائمة المالية",
+        "incomeStatement": "قائمة الدخل",
+        "cashFlow": "قائمة التدفق النقدي"
+      },
+      "table": {
+        "lineItem": "البند",
+        "amount": "المبلغ",
+        "priorPeriod": "الفترة السابقة",
+        "variance": "الانحراف",
+        "variancePercent": "الانحراف %",
+        "total": "الإجمالي"
+      },
+      "filters": {
+        "period": "الفترة",
+        "selectPeriod": "اختر الفترة",
+        "thisMonth": "هذا الشهر",
+        "thisQuarter": "هذا الربع",
+        "thisYear": "هذه السنة",
+        "lastMonth": "الشهر الماضي",
+        "lastQuarter": "الربع الماضي",
+        "lastYear": "السنة الماضية",
+        "startDate": "تاريخ البدء",
+        "endDate": "تاريخ الانتهاء",
+        "comparePrior": "مقارنة مع الفترة السابقة",
+        "showVariance": "إظهار الانحراف"
+      },
+      "exporting": "جاري التصدير...",
+      "exported": "تم التصدير بنجاح",
+      "errors": {
+        "fetchFailed": "فشل تحميل القوائم المالية"
+      }
+    },
+    "trialBalance": {
+      "title": "ميزان المراجعة",
+      "description": "التحقق من أن المدين يساوي الدائن في جميع الحسابات",
+      "refresh": "تحديث",
+      "exporting": "جاري التصدير...",
+      "exported": "تم التصدير بنجاح",
+      "balanced": "ميزان المراجعة متوازن",
+      "notBalanced": "ميزان المراجعة غير متوازن",
+      "difference": "الفرق",
+      "errors": {
+        "fetchFailed": "فشل تحميل ميزان المراجعة"
+      },
+      "filters": {
+        "title": "التصفية",
+        "asOfDate": "بتاريخ",
+        "fiscalPeriod": "الفترة المالية",
+        "showZeroBalances": "إظهار الأرصدة الصفرية",
+        "accountType": "نوع الحساب"
+      },
+      "table": {
+        "accountCode": "الرمز",
+        "accountName": "الحساب",
+        "debit": "مدين",
+        "credit": "دائن",
+        "total": "المجموع",
+        "totalDebit": "إجمالي المدين",
+        "totalCredit": "إجمالي الدائن"
+      },
+      "accountTypes": {
+        "assets": "الأصول",
+        "liabilities": "الخصوم",
+        "equity": "حقوق الملكية",
+        "revenue": "الإيرادات",
+        "expenses": "المصاريف"
+      },
+      "empty": {
+        "title": "لا توجد حسابات",
+        "description": "لا توجد حسابات للعرض"
+      }
+    }
+  },
+  "sales": {
+    "title": "المبيعات",
+    "description": "إدارة العملاء والفواتير وعروض الأسعار والمدفوعات",
+    "quotations": {
+      "title": "عروض الأسعار",
+      "description": "إنشاء وإدارة عروض أسعار المبيعات",
+      "newQuotation": "عرض سعر جديد",
+      "loading": "جاري تحميل عروض الأسعار...",
+      "converting": "جاري التحويل إلى فاتورة...",
+      "converted": "تم التحويل إلى فاتورة بنجاح",
+      "exporting": "جاري التصدير إلى PDF...",
+      "exported": "تم تصدير PDF بنجاح",
+      "sendSuccess": "تم إرسال عرض السعر بنجاح",
+      "acceptSuccess": "تم قبول عرض السعر",
+      "rejectSuccess": "تم رفض عرض السعر",
+      "createSuccess": "تم إنشاء عرض السعر بنجاح",
+      "updateSuccess": "تم تحديث عرض السعر بنجاح",
+      "deleteSuccess": "تم حذف عرض السعر بنجاح",
+      "confirmDelete": "هل أنت متأكد من حذف عرض السعر؟",
+      "confirmReject": "هل أنت متأكد من رفض هذا العرض؟",
+      "errors": {
+        "fetchFailed": "فشل تحميل عروض الأسعار",
+        "convertFailed": "فشل التحويل إلى فاتورة",
+        "editOnlyDraft": "يمكن تعديل عروض المسودة فقط",
+        "deleteFailed": "فشل حذف عرض السعر",
+        "saveFailed": "فشل حفظ عرض السعر",
+        "sendFailed": "فشل إرسال عرض السعر",
+        "acceptFailed": "فشل قبول عرض السعر",
+        "rejectFailed": "فشل رفض عرض السعر",
+        "exportFailed": "فشل تصدير PDF"
+      },
+      "filters": {
+        "allStatuses": "جميع الحالات",
+        "allCustomers": "جميع العملاء",
+        "searchPlaceholder": "البحث برقم العرض أو العميل..."
+      },
+      "table": {
+        "quoteNumber": "رقم العرض",
+        "customer": "العميل",
+        "date": "التاريخ",
+        "validUntil": "ساري حتى",
+        "status": "الحالة",
+        "total": "المجموع",
+        "actions": "الإجراءات"
+      },
+      "statuses": {
+        "draft": "مسودة",
+        "sent": "مرسل",
+        "accepted": "مقبول",
+        "rejected": "مرفوض",
+        "expired": "منتهي"
+      },
+      "actions": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "send": "إرسال",
+        "accept": "قبول",
+        "reject": "رفض",
+        "convertToInvoice": "تحويل لفاتورة",
+        "export": "تصدير PDF",
+        "refresh": "تحديث"
+      },
+      "dialog": {
+        "createTitle": "عرض سعر جديد",
+        "createDescription": "إنشاء عرض سعر مبيعات جديد",
+        "editTitle": "تعديل عرض السعر",
+        "editDescription": "تحديث تفاصيل عرض السعر"
+      },
+      "form": {
+        "customer": "العميل",
+        "selectCustomer": "اختر العميل",
+        "date": "تاريخ العرض",
+        "validUntil": "ساري حتى",
+        "lineItems": "البنود",
+        "addLine": "إضافة بند",
+        "descriptionEn": "الوصف (EN)",
+        "descriptionAr": "الوصف (AR)",
+        "quantity": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "tax": "الضريبة %",
+        "discount": "خصم %",
+        "total": "المجموع",
+        "subtotal": "المجموع الفرعي",
+        "notes": "ملاحظات",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "saving": "جاري الحفظ..."
+      },
+      "empty": {
+        "title": "لم يتم العثور على عروض أسعار",
+        "description": "أنشئ أول عرض سعر للبدء"
+      }
+    }
+  },
+  "purchases": {
+    "title": "المشتريات",
+    "description": "إدارة الموردين وأوامر الشراء والمصاريف",
+    "purchaseOrders": {
+      "title": "أوامر الشراء",
+      "description": "إنشاء وإدارة أوامر الشراء",
+      "newPurchaseOrder": "أمر شراء جديد",
+      "loading": "جاري تحميل أوامر الشراء...",
+      "converting": "جاري التحويل إلى فاتورة...",
+      "converted": "تم التحويل إلى فاتورة بنجاح",
+      "exporting": "جاري التصدير إلى PDF...",
+      "exported": "تم التصدير إلى PDF بنجاح",
+      "sendSuccess": "تم إرسال أمر الشراء بنجاح",
+      "receiveSuccess": "تم وضع علامة مستلم على أمر الشراء",
+      "closeSuccess": "تم إغلاق أمر الشراء بنجاح",
+      "createSuccess": "تم إنشاء أمر الشراء بنجاح",
+      "updateSuccess": "تم تحديث أمر الشراء بنجاح",
+      "deleteSuccess": "تم حذف أمر الشراء بنجاح",
+      "confirmDelete": "هل أنت متأكد من حذف أمر الشراء؟",
+      "confirmConvert": "تحويل {{poNumber}} إلى فاتورة؟ سيؤدي هذا إلى إنشاء فاتورة من أمر الشراء.",
+      "errors": {
+        "fetchFailed": "فشل في تحميل أوامر الشراء",
+        "convertFailed": "فشل في التحويل إلى فاتورة",
+        "editOnlyDraft": "يمكن فقط تعديل أوامر الشراء المسودة",
+        "deleteFailed": "فشل في حذف أمر الشراء",
+        "saveFailed": "فشل في حفظ أمر الشراء",
+        "sendFailed": "فشل في إرسال أمر الشراء",
+        "receiveFailed": "فشل في وضع علامة مستلم",
+        "closeFailed": "فشل في إغلاق أمر الشراء",
+        "exportFailed": "فشل في تصدير PDF"
+      },
+      "filters": {
+        "allStatuses": "جميع الحالات",
+        "allVendors": "جميع الموردين",
+        "searchPlaceholder": "بحث برقم أمر الشراء أو المورد..."
+      },
+      "table": {
+        "poNumber": "رقم أمر الشراء",
+        "vendor": "المورد",
+        "date": "التاريخ",
+        "expectedDelivery": "تاريخ الاستلام المتوقع",
+        "status": "الحالة",
+        "total": "المجموع",
+        "actions": "الإجراءات"
+      },
+      "statuses": {
+        "draft": "مسودة",
+        "sent": "مرسل",
+        "accepted": "مقبول",
+        "rejected": "مرفوض",
+        "received": "مستلم",
+        "closed": "مغلق"
+      },
+      "actions": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "send": "إرسال",
+        "markReceived": "وضع علامة مستلم",
+        "close": "إغلاق",
+        "convertToBill": "تحويل إلى فاتورة",
+        "export": "تصدير PDF",
+        "refresh": "تحديث"
+      },
+      "dialog": {
+        "createTitle": "أمر شراء جديد",
+        "createDescription": "إنشاء أمر شراء جديد",
+        "editTitle": "تعديل أمر الشراء",
+        "editDescription": "تحديث تفاصيل أمر الشراء"
+      },
+      "form": {
+        "vendor": "المورد",
+        "selectVendor": "اختر المورد",
+        "orderDate": "تاريخ الأمر",
+        "expectedDeliveryDate": "تاريخ الاستلام المتوقع",
+        "lineItems": "بنود الأمر",
+        "addLine": "إضافة بند",
+        "description": "الوصف",
+        "quantity": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "tax": "الضريبة %",
+        "discount": "الخصم %",
+        "total": "المجموع",
+        "subtotal": "المجموع الفرعي",
+        "notes": "ملاحظات",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "saving": "جاري الحفظ..."
+      },
+      "empty": {
+        "title": "لم يتم العثور على أوامر شراء",
+        "description": "أنشئ أول أمر شراء للبدء"
+      }
+    },
+    "expenses": {
+      "title": "المصاريف",
+      "description": "تسجيل وإدارة المصاريف التجارية",
+      "newExpense": "مصروف جديد",
+      "summary": {
+        "totalThisMonth": "إجمالي هذا الشهر",
+        "pendingApproval": "في انتظار الموافقة",
+        "thisWeek": "هذا الأسبوع",
+        "byCategory": "حسب الفئة"
+      },
+      "table": {
+        "date": "التاريخ",
+        "category": "الفئة",
+        "description": "الوصف",
+        "vendor": "المورد/الموظف",
+        "amount": "المبلغ",
+        "status": "الحالة",
+        "receipt": "الإيصال",
+        "actions": "الإجراءات"
+      },
+      "categories": {
+        "supplies": "المستلزمات",
+        "travel": "السفر",
+        "meals": "الوجبات والترفيه",
+        "utilities": "المرافق",
+        "rent": "الإيجار",
+        "marketing": "التسويق",
+        "other": "أخرى"
+      },
+      "statuses": {
+        "pending": "معلق",
+        "approved": "موافق عليه",
+        "rejected": "مرفوض",
+        "paid": "مدفوع"
+      },
+      "empty": {
+        "title": "لم يتم العثور على مصاريف",
+        "description": "سجل أول مصروف للبدء"
+      }
+    }
+  },
+  "banking": {
+    "title": "البنوك",
+    "description": "إدارة الحسابات البنكية ومطابقة البنوك",
+    "accounts": {
+      "title": "الحسابات البنكية",
+      "description": "عرض وإدارة جميع الحسابات البنكية",
+      "newAccount": "حساب جديد",
+      "summary": {
+        "totalBalance": "إجمالي الرصيد",
+        "thisMonthChanges": "تغييرات هذا الشهر",
+        "activeAccounts": "الحسابات النشطة",
+        "accounts": "حسابات",
+        "acrossAccounts": "عبر {{count}} حسابات",
+        "netChange": "التغيير الصافي"
+      },
+      "filters": {
+        "title": "الفلاتر",
+        "search": "بحث",
+        "searchPlaceholder": "بحث بالاسم أو البنك أو رقم الحساب...",
+        "accountType": "نوع الحساب",
+        "allTypes": "جميع الأنواع",
+        "clear": "مسح الفلاتر"
+      },
+      "table": {
+        "title": "الحسابات البنكية",
+        "accountName": "اسم الحساب",
+        "bankName": "اسم البنك",
+        "accountType": "النوع",
+        "accountNumber": "رقم الحساب",
+        "balance": "الرصيد",
+        "lastReconciled": "آخر مطابقة",
+        "status": "الحالة",
+        "accounts": "حسابات"
+      },
+      "accountTypes": {
+        "checking": "جاري",
+        "savings": "توفير",
+        "creditCard": "بطاقة ائتمان"
+      },
+      "empty": {
+        "title": "لم يتم العثور على حسابات بنكية",
+        "description": "أنشئ أول حساب بنكي للبدء"
+      }
+    },
+    "reconciliation": {
+      "title": "مطابقة البنوك",
+      "description": "مطابقة كشوفات الحسابات مع العمليات المحاسبية",
+      "new": {
+        "title": "بدء مطابقة جديدة",
+        "account": "الحساب البنكي",
+        "selectAccount": "اختر الحساب",
+        "statementDate": "تاريخ الكشف",
+        "statementBalance": "رصيد الكشف",
+        "start": "بدء المطابقة",
+        "starting": "جاري البدء..."
+      },
+      "history": {
+        "title": "سجل المطابقات",
+        "empty": "لم يتم العثور على مطابقات",
+        "table": {
+          "date": "تاريخ الكشف",
+          "statementBalance": "رصيد الكشف",
+          "bookBalance": "رصيد الدفتر",
+          "difference": "الفرق",
+          "status": "الحالة"
+        }
+      },
+      "progress": {
+        "reconciling": "جاري المطابقة",
+        "difference": "الفرق",
+        "complete": "إكمال المطابقة"
+      },
+      "matched": {
+        "title": "العمليات المطابقة",
+        "bankTransaction": "عملية بنكية",
+        "bookTransaction": "عملية دفترية"
+      },
+      "unmatched": {
+        "bankTransactions": "بنود كشف الحساب",
+        "bookTransactions": "العمليات الدفترية",
+        "noBankTransactions": "لا توجد عمليات بنكية غير مطابقة",
+        "noBookTransactions": "لا توجد عمليات دفترية غير مطابقة"
+      },
+      "suggestions": {
+        "title": "مطابقات مقترحة"
+      },
+      "actions": {
+        "match": "مطابقة المحدد",
+        "clear": "مسح التحديد"
+      },
+      "status": {
+        "in-progress": "قيد التنفيذ",
+        "completed": "مكتمل"
+      },
+      "messages": {
+        "started": "تم بدء المطابقة بنجاح",
+        "matched": "تمت مطابقة العمليات بنجاح",
+        "unmatched": "تم إلغاء مطابقة العمليات بنجاح",
+        "completed": "تم إكمال المطابقة بنجاح"
+      },
+      "errors": {
+        "differenceNotZero": "يجب أن يكون الفرق صفراً لإكمال المطابقة"
+      }
+    }
+  },
+  "assets": {
+    "title": "الأصول",
+    "description": "إدارة الأصول الثابتة والاهتلاك"
+  },
+  "tax": {
+    "title": "الضرائب",
+    "description": "إدارة ضريبة القيمة المضافة والإقرارات الضريبية"
+  },
+  "reports": {
+    "title": "التقارير",
+    "description": "إنشاء وعرض التقارير المالية"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة إعدادات الشركة والمستخدمين والأدوار"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -304,63 +823,214 @@
   },
   "assets": {
     "title": "الأصول الثابتة",
+    "description": "إدارة الأصول الثابتة والاهتلاك",
     "assetNumber": "رقم الأصل",
+    "assetCode": "رمز الأصل",
     "name": "الاسم",
     "nameArabic": "الاسم بالعربية",
     "category": "الفئة",
+    "categories": {
+      "furniture": "أثاث",
+      "equipment": "معدات",
+      "vehicles": "مركبات",
+      "computers": "حواسيب",
+      "buildings": "مباني",
+      "land": "أراضي",
+      "other": "أخرى"
+    },
     "acquisitionDate": "تاريخ الشراء",
+    "purchaseDate": "تاريخ الشراء",
     "cost": "التكلفة",
     "salvageValue": "القيمة التخريدية",
-    "usefulLife": "العمر الانتاجي (أشهر)",
+    "usefulLife": "العمر الانتاجي",
+    "usefulLifeYears": "العمر الانتاجي (سنوات)",
     "depreciationMethod": "طريقة الإهلاك",
     "accumulatedDepreciation": "الإهلاك المتراكم",
     "netBookValue": "القيمة الدفترية الصافية",
     "status": "الحالة",
+    "location": "الموقع",
+    "notes": "ملاحظات",
     "addAsset": "إضافة أصل",
     "editAsset": "تعديل الأصل",
     "deleteAsset": "حذف الأصل",
+    "disposeAsset": "التخلص من الأصل",
+    "sellAsset": "بيع الأصل",
     "depreciate": "إهلاك",
     "depreciationHistory": "تاريخ الإهلاك",
+    "dispose": "التخلص",
+    "sell": "بيع",
+    "disposalDate": "تاريخ التخلص",
+    "disposalAmount": "قيمة التخلص",
+    "saleDate": "تاريخ البيع",
+    "saleAmount": "قيمة البيع",
+    "depreciation": {
+      "title": "الإهلاك",
+      "description": "حساب وترحيل قيود الإهلاك",
+      "periodStart": "بداية الفترة",
+      "periodEnd": "نهاية الفترة",
+      "calculate": "حساب الإهلاك",
+      "calculating": "جاري الحساب...",
+      "previewJournal": "معاينة القيد",
+      "postToJournal": "ترحيل لليومية",
+      "posting": "جاري الترحيل...",
+      "viewHistory": "عرض السجل",
+      "summary": "ملخص الإهلاك",
+      "numberOfAssets": "عدد الأصول",
+      "totalDepreciation": "إجمالي الإهلاك لهذه الفترة",
+      "schedule": "جدول الإهلاك",
+      "annualDepreciation": "الإهلاك السنوي",
+      "thisPeriod": "هذه الفترة",
+      "journalPreview": "معاينة القيد اليومي",
+      "journalBalanced": "القيد متوازن",
+      "journalNotBalanced": "القيد غير متوازن",
+      "history": "سجل الإهلاك",
+      "noHistory": "لا يوجد سجل إهلاك",
+      "statusCalculated": "محسوب",
+      "statusPosted": "مرحل"
+    },
     "depreciationMethods": {
       "straight_line": "القسط الثابت",
-      "declining_balance": "الرصيد المتناقص"
+      "declining_balance": "الرصيد المتناقص",
+      "units_of_production": "وحدات الإنتاج"
     },
     "statuses": {
       "active": "نشط",
-      "fullyDepreciated": "مستهلك بالكامل",
+      "fullydepreciated": "مستهلك بالكامل",
       "disposed": "متخلص منه",
-      "inactive": "غير نشط"
+      "sold": "تم بيعه"
+    },
+    "summary": {
+      "totalAssets": "إجمالي الأصول",
+      "registeredAssets": "الأصول المسجلة",
+      "totalCost": "إجمالي التكلفة",
+      "originalPurchaseCost": "تكلفة الشراء الأصلية",
+      "accumulatedDepreciation": "الإهلاك المتراكم",
+      "totalDepreciationToDate": "إجمالي الإهلاك حتى تاريخه",
+      "netBookValue": "القيمة الدفترية الصافية",
+      "currentAssetValue": "القيمة الحالية للأصول"
+    },
+    "table": {
+      "assetCode": "رمز الأصل",
+      "assetName": "اسم الأصل",
+      "category": "الفئة",
+      "purchaseDate": "تاريخ الشراء",
+      "cost": "التكلفة",
+      "accumulatedDepreciation": "الإهلاك المتراكم",
+      "netBookValue": "القيمة الدفترية الصافية",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "filters": {
+      "allCategories": "جميع الفئات",
+      "allStatuses": "جميع الحالات",
+      "searchPlaceholder": "البحث في الأصول..."
     }
   },
   "vat": {
-    "title": "ضريبة القيمة المضافة",
-    "vatTransactions": "عمليات ضريبة القيمة المضافة",
-    "vatReturns": "إقرارات ضريبة القيمة المضافة",
-    "vatReport": "تقرير ضريبة القيمة المضافة",
-    "period": "المدة",
-    "taxableSupplies": "المبيعات الخاضعة للضريبة",
-    "exemptSupplies": "المبيعات المعفاة",
-    "vatOutput": "ضريبة القيمة المضافة المستحقة",
-    "vatInput": "ضريبة القيمة المضافة القابلة للاسترداد",
-    "vatPayable": "ضريبة القيمة المضافة المستحقة الدفع",
-    "vatRecoverable": "ضريبة القيمة المضافة القابلة للاسترداد",
-    "vatCodes": "رموز الضريبة",
+    "title": "إدارة ضريبة القيمة المضافة",
+    "description": "تكوين نسب ورموز ضريبة القيمة المضافة",
+    "addRate": "إضافة نسبة ضريبية",
+    "editRate": "تعديل النسبة الضريبية",
+    "editRateDescription": "تحديث تفاصيل النسبة الضريبية",
+    "addRateDescription": "إضافة نسبة ضريبية جديدة للنظام",
+    "ratesList": "نسب ضريبة القيمة المضافة",
+    "search": "البحث في النسب...",
+    "loading": "جاري تحميل نسب ضريبة القيمة المضافة...",
+    "noRates": "لم يتم العثور على نسب ضريبية",
+    "saving": "جاري الحفظ...",
     "code": "الرمز",
-    "description": "الوصف",
+    "name": "الاسم",
     "rate": "النسبة (%)",
     "type": "النوع",
+    "selectType": "اختر النوع",
+    "effectiveDate": "تاريخ السريان",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "setDefaultRate": "تعيين كنسبة افتراضية",
+    "cancel": "إلغاء",
+    "save": "حفظ",
     "types": {
-      "standard": "النسبة القياسية",
-      "zeroRated": "نسبة صفرية",
-      "exempt": "معفى",
-      "outOfScope": "خارج النطاق"
+      "standard": "قياسي",
+      "reduced": "مخفض",
+      "zero": "صفر",
+      "exempt": "معفى"
+    },
+    "summary": {
+      "standardRate": "النسبة القياسية",
+      "reducedRates": "النسب المخفضة",
+      "lastUpdated": "آخر تحديث",
+      "notSet": "غير محدد",
+      "activeRates": "نسب نشطة",
+      "totalRates": "إجمالي {{count}} نسب"
+    }
+  },
+  "vatReturns": {
+    "title": "إقرارات ضريبة القيمة المضافة",
+    "description": "إنشاء وتقديم إقرارات ضريبة القيمة المضافة",
+    "calculateReturn": "حساب الإقرار",
+    "calculate": "حساب",
+    "calculating": "جاري الحساب...",
+    "calculateDescription": "حساب إقرار ضريبة القيمة المضافة لفترة محددة",
+    "returnsList": "إقرارات ضريبة القيمة المضافة",
+    "search": "البحث في الإقرارات...",
+    "loading": "جاري تحميل الإقرارات...",
+    "noReturns": "لم يتم العثور على إقرارات",
+    "period": "المدة",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "status": "الحالة",
+    "outputVat": "ضريبة القيمة المضافة المستحقة",
+    "inputVat": "ضريبة القيمة المضافة القابلة للاسترداد",
+    "netVat": "صافي ضريبة القيمة المضافة",
+    "actions": "الإجراءات",
+    "viewBreakdown": "عرض التفاصيل",
+    "markAsFiled": "تعيين كمقدم",
+    "recordPayment": "تسجيل الدفع",
+    "exportPdf": "تصدير PDF",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "filing": "جاري التقديم...",
+    "recording": "جاري التسجيل...",
+    "fileDescription": "تعيين هذا الإقرار كمقدم للسلطات الضريبية",
+    "paymentDescription": "تسجيل دفع هذا الإقرار",
+    "paymentDate": "تاريخ الدفع",
+    "paymentReference": "مرجع الدفع",
+    "breakdownTitle": "تفاصيل إقرار ضريبة القيمة المضافة",
+    "sales": "المبيعات",
+    "purchases": "المشتريات",
+    "totalSales": "إجمالي المبيعات",
+    "totalPurchases": "إجمالي المشتريات",
+    "vatOnSales": "ضريبة القيمة المضافة على المبيعات",
+    "vatOnPurchases": "ضريبة القيمة المضافة على المشتريات",
+    "byRate": "حسب النسبة",
+    "statuses": {
+      "draft": "مسودة",
+      "calculated": "محسوب",
+      "filed": "مقدم",
+      "paid": "مدفوع"
+    },
+    "summary": {
+      "totalOutput": "إجمالي ضريبة القيمة المضافة المستحقة",
+      "totalInput": "إجمالي ضريبة القيمة المضافة القابلة للاسترداد",
+      "netPayable": "صافي المستحق/المسترد",
+      "outputVat": "ضريبة القيمة المضافة المستحقة",
+      "inputVat": "ضريبة القيمة المضافة القابلة للاسترداد",
+      "payable": "مستحق الدفع",
+      "refundable": "قابل للاسترداد"
     }
   },
   "reports": {
     "title": "التقارير",
+    "description": "إنشاء وعرض التقارير المالية",
     "generate": "إنشاء",
+    "generating": "جاري الإنشاء...",
+    "generateReport": "إنشاء تقرير",
+    "configureParameters": "تكوين معلمات التقرير",
     "exportPdf": "تصدير PDF",
     "exportExcel": "تصدير Excel",
+    "download": "تنزيل",
     "trialBalance": "ميزان المراجعة",
     "balanceSheet": "قائمة المركز المالي",
     "incomeStatement": "قائمة الدخل",
@@ -368,27 +1038,58 @@
     "generalLedger": "الأستاذ العام",
     "agedReceivables": "تقارير أعمار الذمم المدينة",
     "agedPayables": "تقارير أعمار الذمم الدائنة",
+    "salesByCustomer": "المبيعات حسب العميل",
+    "purchasesByVendor": "المشتريات حسب المورد",
+    "profitLossByPeriod": "قائمة الأرباح والخسائر حسب الفترة",
+    "budgetVsActual": "الميزانية والفعلي",
+    "inventoryValuation": "تقييم المخزون",
+    "transactionDetail": "تفاصيل المعاملات",
     "vatReport": "تقرير ضريبة القيمة المضافة",
     "asOfDate": "حتى تاريخ",
     "fromDate": "من تاريخ",
     "toDate": "إلى تاريخ",
-    "currency": "العملة"
+    "currency": "العملة",
+    "period": "الفترة",
+    "thisMonth": "هذا الشهر",
+    "lastMonth": "الشهر الماضي",
+    "thisQuarter": "هذا الربع",
+    "thisYear": "هذه السنة",
+    "format": "التنسيق",
+    "favorites": "المفضلة",
+    "recentReports": "التقارير الأخيرة",
+    "allCategories": "جميع الفئات",
+    "selectCategory": "اختر الفئة",
+    "searchPlaceholder": "البحث في التقارير...",
+    "noReportsFound": "لم يتم العثور على تقارير",
+    "tryDifferentFilters": "حاول تعديل البحث أو الفلاتر"
   },
   "fiscal": {
     "title": "الفترات المالية",
+    "description": "إدارة السنوات المالية وفترات المحاسبة",
     "fiscalYear": "السنة المالية",
     "period": "الفترة",
     "startDate": "تاريخ البدء",
     "endDate": "تاريخ الانتهاء",
     "status": "الحالة",
+    "closingDate": "تاريخ الإغلاق",
     "isLocked": "مغلق",
     "openPeriod": "فتح الفترة",
     "closePeriod": "إغلاق الفترة",
+    "close": "إغلاق",
+    "open": "فتح",
+    "periods": "الفترات",
+    "periodNumber": "الفترة {{number}}",
+    "transactions": "المعاملات",
     "addYear": "إضافة سنة مالية",
     "addPeriod": "إضافة فترة",
+    "createFiscalYear": "إنشاء سنة مالية",
+    "editFiscalYear": "تعديل السنة المالية",
+    "cannotModifyClosedYear": "لا يمكن تعديل سنة مالية مغلقة",
+    "saving": "جاري الحفظ...",
     "statuses": {
       "open": "مفتوحة",
-      "closed": "مغلقة"
+      "closed": "مغلقة",
+      "adjusting": "تعديل"
     }
   },
   "users": {
@@ -411,21 +1112,124 @@
     "permissions": "الصلاحيات",
     "addRole": "إضافة دور",
     "editRole": "تعديل الدور",
-    "deleteRole": "حذف الدور"
+    "deleteRole": "حذف الدور",
+    "basicInformation": "المعلومات الأساسية",
+    "roleCode": "رمز الدور",
+    "roleName": "اسم الدور",
+    "roleNameArabic": "اسم الدور (عربي)",
+    "allModules": "جميع الوحدات",
+    "accounting": "المحاسبة",
+    "sales": "المبيعات",
+    "reports": "التقارير",
+    "system": "النظام",
+    "custom": "مخصص",
+    "saving": "جاري الحفظ..."
   },
   "company": {
     "title": "إعدادات الشركة",
+    "description": "إدارة معلومات الشركة والإعدادات المالية",
+    "companyInformation": "معلومات الشركة",
     "companyName": "اسم الشركة",
     "companyNameArabic": "اسم الشركة بالعربية",
+    "legalName": "الاسم القانوني",
     "taxNumber": "الرقم الضريبي",
+    "taxRegistrationNumber": "رقم التسجيل الضريبي",
+    "vatNumber": "رقم ضريبة القيمة المضافة",
     "crNumber": "رقم السجل التجاري",
     "address": "العنوان",
+    "city": "المدينة",
+    "country": "الدولة",
     "phone": "رقم الهاتف",
     "email": "البريد الإلكتروني",
+    "website": "الموقع الإلكتروني",
     "logo": "الشعار",
+    "companyLogo": "شعار الشركة",
+    "logoRequirements": "الحد الأقصى 2 ميجابايت، PNG أو JPG",
     "settings": "الإعدادات",
     "currencies": "العملات",
-    "defaultCurrency": "العملة الافتراضية"
+    "defaultCurrency": "العملة الافتراضية",
+    "currencyAndTax": "إعدادات العملة والضريبة",
+    "baseCurrency": "العملة الأساسية",
+    "taxYearStart": "بداية السنة الضريبية",
+    "taxYearEnd": "نهاية السنة الضريبية",
+    "financialSettings": "الإعدادات المالية",
+    "decimalPlaces": "الأماكن العشرية",
+    "rounding": "التقريب",
+    "roundingNearest": "تقريب لأقرب رقم",
+    "roundingUp": "تقريب للأعلى دائماً",
+    "roundingDown": "تقريب للأسفل دائماً",
+    "saveSettings": "حفظ الإعدادات",
+    "saving": "جاري الحفظ...",
+    "settingsSaved": "تم حفظ الإعدادات بنجاح"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "company": {
+      "title": "إعدادات الشركة"
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "description": "إدارة أدوار المستخدمين وصلاحياتهم",
+      "createRole": "إنشاء دور",
+      "allRoles": "جميع الأدوار",
+      "roleName": "اسم الدور",
+      "description": "الوصف",
+      "status": "الحالة",
+      "permissions": "الصلاحيات",
+      "basicInformation": "المعلومات الأساسية",
+      "roleCode": "رمز الدور",
+      "roleNameArabic": "اسم الدور (عربي)",
+      "allModules": "جميع الوحدات",
+      "accounting": "المحاسبة",
+      "sales": "المبيعات",
+      "reports": "التقارير",
+      "system": "النظام",
+      "custom": "مخصص",
+      "saving": "جاري الحفظ..."
+    },
+    "fiscal": {
+      "title": "السنة المالية",
+      "description": "إدارة السنوات المالية وفترات المحاسبة",
+      "fiscalYears": "السنوات المالية",
+      "year": "السنة",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "status": "الحالة",
+      "closingDate": "تاريخ الإغلاق",
+      "periods": "الفترات",
+      "periodNumber": "الفترة {{number}}",
+      "transactions": "المعاملات",
+      "createFiscalYear": "إنشاء سنة مالية",
+      "editFiscalYear": "تعديل السنة المالية",
+      "cannotModifyClosedYear": "لا يمكن تعديل سنة مالية مغلقة",
+      "saving": "جاري الحفظ...",
+      "statuses": {
+        "open": "مفتوحة",
+        "closed": "مغلقة",
+        "adjusting": "تعديل"
+      }
+    },
+    "costCenters": {
+      "title": "مراكز التكلفة",
+      "description": "إدارة مراكز التكلفة لتتبع المصاريف",
+      "code": "الرمز",
+      "name": "الاسم",
+      "nameArabic": "الاسم بالعربية",
+      "parent": "الأصل",
+      "parentCostCenter": "مركز التكلفة الأصل",
+      "selectParent": "اختر مركز التكلفة الأصل",
+      "noParent": "لا يوجد أصل",
+      "description": "الوصف",
+      "accounts": "الحسابات",
+      "status": "الحالة",
+      "createCostCenter": "إنشاء مركز تكلفة",
+      "editCostCenter": "تعديل مركز التكلفة",
+      "allCostCenters": "جميع مراكز التكلفة",
+      "totalCostCenters": "إجمالي مراكز التكلفة",
+      "activeCostCenters": "مراكز التكلفة النشطة",
+      "totalAccounts": "إجمالي الحسابات",
+      "saving": "جاري الحفظ..."
+    }
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -445,5 +1249,57 @@
     "invalidDate": "تاريخ غير صالح",
     "futureDate": "لا يمكن أن يكون التاريخ في المستقبل",
     "pastDate": "لا يمكن أن يكون التاريخ في الماضي"
+  },
+  "breadcrumbs": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "accounting": "المحاسبة",
+    "sales": "المبيعات",
+    "purchases": "المشتريات",
+    "banking": "البنوك",
+    "assets": "الأصول",
+    "tax": "الضرائب",
+    "reports": "التقارير",
+    "settings": "الإعدادات",
+    "chartOfAccounts": "دليل الحسابات",
+    "journals": "اليوميات",
+    "newJournal": "قيد يومي جديد",
+    "generalLedger": "الأستاذ العام",
+    "trialBalance": "ميزان المراجعة",
+    "financialStatements": "القوائم المالية",
+    "balanceSheet": "قائمة المركز المالي",
+    "incomeStatement": "قائمة الدخل",
+    "customers": "العملاء",
+    "invoices": "الفواتير",
+    "newInvoice": "فاتورة جديدة",
+    "quotations": "عروض الأسعار",
+    "newQuotation": "عرض سعر جديد",
+    "payments": "المدفوعات",
+    "vendors": "الموردين",
+    "purchaseOrders": "أوامر الشراء",
+    "newPurchaseOrder": "أمر شراء جديد",
+    "expenses": "المصروفات",
+    "newExpense": "مصروف جديد",
+    "bankAccounts": "الحسابات البنكية",
+    "reconciliation": "مطابقة البنوك",
+    "fixedAssets": "الأصول الثابتة",
+    "depreciation": "الإهلاك",
+    "vat": "ضريبة القيمة المضافة",
+    "vatReturns": "إقرارات الضريبة",
+    "company": "الشركة",
+    "users": "المستخدمون",
+    "roles": "الأدوار",
+    "fiscal": "السنة المالية",
+    "costCenters": "مراكز التكلفة",
+    "new": "جديد",
+    "edit": "تعديل",
+    "view": "عرض",
+    "statements": "القوائم المالية",
+    "coa": "دليل الحسابات",
+    "orders": "أوامر الشراء",
+    "fiscalYear": "السنة المالية",
+    "profile": "الملف الشخصي",
+    "addFavorite": "إضافة للمفضلة",
+    "removeFavorite": "إزالة من المفضلة"
   }
 }
