@@ -94,7 +94,7 @@ export default function CostCentersPage() {
       name: "",
       nameAr: "",
       description: "",
-      parentId: "",
+      parentId: "none",
       isActive: true,
     });
     setOpen(true);
@@ -108,7 +108,7 @@ export default function CostCentersPage() {
       name: center.name,
       nameAr: center.name_ar,
       description: center.description || "",
-      parentId: center.parent_id || "",
+      parentId: center.parent_id || "none",
       isActive: center.is_active,
     });
     setOpen(true);
@@ -125,7 +125,7 @@ export default function CostCentersPage() {
         name: formData.name,
         nameAr: formData.nameAr,
         description: formData.description,
-        parentId: formData.parentId || undefined,
+        parentId: formData.parentId === "none" ? undefined : formData.parentId || undefined,
         isActive: formData.isActive,
       };
 
@@ -383,7 +383,7 @@ export default function CostCentersPage() {
                     <SelectValue placeholder={t("selectParent")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("noParent")}</SelectItem>
+                    <SelectItem value="none">{t("noParent")}</SelectItem>
                     {costCenters
                       .filter((c) => c.id !== editCenter?.id)
                       .map((center) => (

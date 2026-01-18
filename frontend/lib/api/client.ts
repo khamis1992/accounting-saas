@@ -5,6 +5,7 @@
 
 import type { ApiResponse, ApiError, User, Session, Tenant } from "@/types";
 import logger from "@/lib/logger";
+import { createClient } from "@/lib/supabase/browser-client";
 
 interface LegacyApiResponse<T = unknown> {
   data?: T;
@@ -32,6 +33,33 @@ class ApiClient {
     // This prevents XSS attacks from stealing tokens
     //
     // Tokens are managed by Supabase client and sent automatically via cookies
+  }
+
+  /**
+   * Get access token from Supabase session
+   * This ensures the API client always uses the current valid session token
+   */
+  private async getTokenFromSupabase(): Promise<string | null> {
+    // Only run in browser environment
+    if (typeof window === "undefined") {
+      return this.accessToken;
+    }
+
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.access_token) {
+        // Update local cache for consistency
+        this.accessToken = session.access_token;
+        this.refreshTokenValue = session.refresh_token;
+        return session.access_token;
+      }
+    } catch (error) {
+      logger.warn("Failed to get session from Supabase", { error: error as Error });
+    }
+
+    return this.accessToken;
   }
 
   /**
@@ -141,14 +169,17 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
 
+    // Get current token from Supabase session
+    const token = await this.getTokenFromSupabase();
+
     // Add authorization header if token exists
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
     };
 
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     let response = await fetch(url, {
@@ -251,13 +282,16 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     let url = `${this.baseURL}${endpoint}`;
 
+    // Get current token from Supabase session
+    const token = await this.getTokenFromSupabase();
+
     // Add authorization header if token exists
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
     };
 
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     let response = await fetch(url, {
@@ -326,9 +360,12 @@ class ApiClient {
     const query = params.toString();
     const url = `${this.baseURL}${endpoint}${query ? `?${query}` : ""}`;
 
+    // Get current token from Supabase session
+    const token = await this.getTokenFromSupabase();
+
     const headers: Record<string, string> = {};
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const response = await fetch(url, {
@@ -373,9 +410,12 @@ class ApiClient {
     const { method = "POST" } = options;
     const url = `${this.baseURL}${endpoint}`;
 
+    // Get current token from Supabase session
+    const token = await this.getTokenFromSupabase();
+
     const headers: Record<string, string> = {};
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
     // NOTE: Do NOT set Content-Type for FormData - browser will set it with boundary
 

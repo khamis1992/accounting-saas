@@ -78,8 +78,8 @@ export default function QuotationsPage() {
   const t = useTranslations("sales.quotations");
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [customerFilter, setCustomerFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [customerFilter, setCustomerFilter] = useState<string>("all");
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +114,8 @@ export default function QuotationsPage() {
     try {
       setLoading(true);
       const filters: Record<string, string | number | boolean | undefined> = {};
-      if (statusFilter) filters.status = statusFilter;
-      if (customerFilter) filters.customer_id = customerFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (customerFilter && customerFilter !== "all") filters.customer_id = customerFilter;
 
       const data = await quotationsApi.getAll(filters);
       setQuotations(data);
@@ -495,7 +495,7 @@ export default function QuotationsPage() {
                     <SelectValue placeholder={t("filters.allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
                     <SelectItem value="draft">{t("statuses.draft")}</SelectItem>
                     <SelectItem value="sent">{t("statuses.sent")}</SelectItem>
                     <SelectItem value="accepted">{t("statuses.accepted")}</SelectItem>
@@ -508,7 +508,7 @@ export default function QuotationsPage() {
                     <SelectValue placeholder={t("filters.allCustomers")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("filters.allCustomers")}</SelectItem>
+                    <SelectItem value="all">{t("filters.allCustomers")}</SelectItem>
                     {customers.map((cust) => (
                       <SelectItem key={cust.id} value={cust.id}>
                         {cust.name_en}

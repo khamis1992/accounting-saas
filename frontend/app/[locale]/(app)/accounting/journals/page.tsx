@@ -52,8 +52,8 @@ export default function JournalsPage() {
   const router = useRouter();
   const locale = useLocale();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [journals, setJournals] = useState<Journal[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -67,8 +67,8 @@ export default function JournalsPage() {
     try {
       setLoading(true);
       const filters: Record<string, string> = {};
-      if (statusFilter) filters.status = statusFilter;
-      if (typeFilter) filters.journalType = typeFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (typeFilter && typeFilter !== "all") filters.journalType = typeFilter;
 
       const data = await journalsApi.getAll(filters);
       setJournals(data);
@@ -261,7 +261,7 @@ export default function JournalsPage() {
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
@@ -273,7 +273,7 @@ export default function JournalsPage() {
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="general">General</SelectItem>
                     <SelectItem value="sales">Sales</SelectItem>
                     <SelectItem value="purchase">Purchase</SelectItem>
@@ -302,10 +302,10 @@ export default function JournalsPage() {
               <EmptyState
                 icon={BookOpen}
                 title={
-                  search || typeFilter || statusFilter ? "No journals found" : "No journals yet"
+                  search || typeFilter !== "all" || statusFilter !== "all" ? "No journals found" : "No journals yet"
                 }
                 description={
-                  search || typeFilter || statusFilter
+                  search || typeFilter !== "all" || statusFilter !== "all"
                     ? "Try adjusting your search or filter criteria"
                     : "Get started by creating your first journal entry"
                 }

@@ -95,7 +95,7 @@ export const expensesApi = {
 
     const query = params.toString();
     const response = await apiClient.get<Expense[]>(
-      query ? `/purchases/expenses?${query}` : "/purchases/expenses"
+      query ? `/expenses?${query}` : "/expenses"
     );
     return response.data || [];
   },
@@ -104,7 +104,7 @@ export const expensesApi = {
    * Get expense by ID
    */
   async getById(id: string): Promise<Expense> {
-    const response = await apiClient.get<Expense>(`/purchases/expenses/${id}`);
+    const response = await apiClient.get<Expense>(`/expenses/${id}`);
     return response.data as Expense;
   },
 
@@ -116,7 +116,7 @@ export const expensesApi = {
       ...data,
       date: typeof data.date === 'string' ? data.date : data.date.toISOString(),
     };
-    const response = await apiClient.post<Expense>("/purchases/expenses", payload);
+    const response = await apiClient.post<Expense>("/expenses", payload);
     return response.data as Expense;
   },
 
@@ -128,7 +128,7 @@ export const expensesApi = {
       ...data,
       date: data.date ? (typeof data.date === 'string' ? data.date : data.date.toISOString()) : undefined,
     };
-    const response = await apiClient.put<Expense>(`/purchases/expenses/${id}`, payload);
+    const response = await apiClient.put<Expense>(`/expenses/${id}`, payload);
     return response.data as Expense;
   },
 
@@ -136,7 +136,7 @@ export const expensesApi = {
    * Delete expense (only pending expenses)
    */
   async delete(id: string): Promise<{ success: boolean }> {
-    const response = await apiClient.delete<{ success: boolean }>(`/purchases/expenses/${id}`);
+    const response = await apiClient.delete<{ success: boolean }>(`/expenses/${id}`);
     return response.data as { success: boolean };
   },
 
@@ -144,7 +144,7 @@ export const expensesApi = {
    * Approve expense
    */
   async approve(id: string): Promise<Expense> {
-    const response = await apiClient.post<Expense>(`/purchases/expenses/${id}/approve`, {});
+    const response = await apiClient.post<Expense>(`/expenses/${id}/approve`, {});
     return response.data as Expense;
   },
 
@@ -152,7 +152,7 @@ export const expensesApi = {
    * Reject expense
    */
   async reject(id: string, reason?: string): Promise<Expense> {
-    const response = await apiClient.post<Expense>(`/purchases/expenses/${id}/reject`, { reason });
+    const response = await apiClient.post<Expense>(`/expenses/${id}/reject`, { reason });
     return response.data as Expense;
   },
 
@@ -163,31 +163,20 @@ export const expensesApi = {
     const formData = new FormData();
     formData.append("receipt", file);
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/purchases/expenses/${id}/receipt`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiClient.getAccessToken()}`,
-        },
-        body: formData,
-      }
+    const response = await apiClient.upload<{ data: Expense }>(
+      `/expenses/${id}/receipt`,
+      formData,
+      { method: "POST" }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to upload receipt");
-    }
-
-    const data = await response.json();
-    return data.data as Expense;
+    return response.data as unknown as Expense;
   },
 
   /**
    * Get expense summary statistics
    */
   async getSummary(): Promise<ExpenseSummary> {
-    const response = await apiClient.get<ExpenseSummary>("/purchases/expenses/summary");
+    const response = await apiClient.get<ExpenseSummary>("/expenses/summary");
     return response.data as ExpenseSummary;
   },
 
@@ -205,6 +194,6 @@ export const expensesApi = {
     if (filters?.max_amount) filtersObj.max_amount = filters.max_amount;
     if (filters?.search) filtersObj.search = filters.search;
 
-    return apiClient.download("/purchases/expenses/export/excel", filtersObj);
+    return apiClient.download("/expenses/export/excel", filtersObj);
   },
 };

@@ -51,9 +51,9 @@ export default function TrialBalancePage() {
   const common = useTranslations("common");
 
   const [asOfDate, setAsOfDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [fiscalPeriod, setFiscalPeriod] = useState<string>("");
+  const [fiscalPeriod, setFiscalPeriod] = useState<string>("all");
   const [showZeroBalances, setShowZeroBalances] = useState<boolean>(false);
-  const [accountTypeFilter, setAccountTypeFilter] = useState<string>("");
+  const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all");
   const [data, setData] = useState<TrialBalanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -70,8 +70,8 @@ export default function TrialBalancePage() {
         as_of_date: asOfDate,
         show_zero_balances: showZeroBalances,
       };
-      if (fiscalPeriod) filters.fiscal_period_id = fiscalPeriod;
-      if (accountTypeFilter) filters.account_type = accountTypeFilter;
+      if (fiscalPeriod && fiscalPeriod !== "all") filters.fiscal_period_id = fiscalPeriod;
+      if (accountTypeFilter && accountTypeFilter !== "all") filters.account_type = accountTypeFilter;
 
       const response = await trialBalanceApi.get(filters);
       setData(response);
@@ -90,8 +90,8 @@ export default function TrialBalancePage() {
         as_of_date: asOfDate,
         show_zero_balances: showZeroBalances,
       };
-      if (fiscalPeriod) filters.fiscal_period_id = fiscalPeriod;
-      if (accountTypeFilter) filters.account_type = accountTypeFilter;
+      if (fiscalPeriod && fiscalPeriod !== "all") filters.fiscal_period_id = fiscalPeriod;
+      if (accountTypeFilter && accountTypeFilter !== "all") filters.account_type = accountTypeFilter;
 
       const blob = await trialBalanceApi.exportToPDF(filters);
       const url = window.URL.createObjectURL(blob);
@@ -118,8 +118,8 @@ export default function TrialBalancePage() {
         as_of_date: asOfDate,
         show_zero_balances: showZeroBalances,
       };
-      if (fiscalPeriod) filters.fiscal_period_id = fiscalPeriod;
-      if (accountTypeFilter) filters.account_type = accountTypeFilter;
+      if (fiscalPeriod && fiscalPeriod !== "all") filters.fiscal_period_id = fiscalPeriod;
+      if (accountTypeFilter && accountTypeFilter !== "all") filters.account_type = accountTypeFilter;
 
       const blob = await trialBalanceApi.exportToExcel(filters);
       const url = window.URL.createObjectURL(blob);
@@ -221,7 +221,7 @@ export default function TrialBalancePage() {
                     <SelectValue placeholder={common("filter")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{common("all")}</SelectItem>
+                    <SelectItem value="all">{common("all")}</SelectItem>
                     {/* TODO: Fetch fiscal periods from API */}
                     <SelectItem value="current">Current Period</SelectItem>
                     <SelectItem value="previous">Previous Period</SelectItem>
@@ -236,7 +236,7 @@ export default function TrialBalancePage() {
                     <SelectValue placeholder={common("filter")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{common("all")}</SelectItem>
+                    <SelectItem value="all">{common("all")}</SelectItem>
                     {accountTypes.map((type) => (
                       <SelectItem key={type.key} value={type.key}>
                         {type.label}

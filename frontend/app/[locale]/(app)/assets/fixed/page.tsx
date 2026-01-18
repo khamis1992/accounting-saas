@@ -74,8 +74,8 @@ export default function FixedAssetsPage() {
   const router = useRouter();
   const locale = useLocale();
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assets, setAssets] = useState<FixedAsset[]>([]);
   const [summary, setSummary] = useState({
     total_cost: 0,
@@ -107,8 +107,8 @@ export default function FixedAssetsPage() {
     try {
       setLoading(true);
       const filters: Record<string, string | number | boolean | undefined> = {};
-      if (categoryFilter) filters.category = categoryFilter;
-      if (statusFilter) filters.status = statusFilter;
+      if (categoryFilter && categoryFilter !== "all") filters.category = categoryFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
 
       const data = await assetsApi.getAssets(filters);
       setAssets(data);
@@ -330,7 +330,7 @@ export default function FixedAssetsPage() {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="furniture">Furniture</SelectItem>
                     <SelectItem value="equipment">Equipment</SelectItem>
                     <SelectItem value="vehicles">Vehicles</SelectItem>
@@ -346,7 +346,7 @@ export default function FixedAssetsPage() {
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="fully-depreciated">Fully Depreciated</SelectItem>
                     <SelectItem value="disposed">Disposed</SelectItem>

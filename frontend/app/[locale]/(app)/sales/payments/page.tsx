@@ -73,9 +73,9 @@ interface PaymentAllocationForm {
 
 export default function PaymentsPage() {
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [partyTypeFilter, setPartyTypeFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [partyTypeFilter, setPartyTypeFilter] = useState<string>("all");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
@@ -113,9 +113,9 @@ export default function PaymentsPage() {
     try {
       setLoading(true);
       const filters: Record<string, string | number | boolean | undefined> = {};
-      if (typeFilter) filters.paymentType = typeFilter;
-      if (statusFilter) filters.status = statusFilter;
-      if (partyTypeFilter) filters.partyType = partyTypeFilter;
+      if (typeFilter && typeFilter !== "all") filters.paymentType = typeFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (partyTypeFilter && partyTypeFilter !== "all") filters.partyType = partyTypeFilter;
 
       const data = await paymentsApi.getAll(filters);
       setPayments(data);
@@ -537,7 +537,7 @@ export default function PaymentsPage() {
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="receipt">Receipt</SelectItem>
                     <SelectItem value="payment">Payment</SelectItem>
                   </SelectContent>
@@ -547,7 +547,7 @@ export default function PaymentsPage() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
@@ -560,7 +560,7 @@ export default function PaymentsPage() {
                     <SelectValue placeholder="Party Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Parties</SelectItem>
+                    <SelectItem value="all">All Parties</SelectItem>
                     <SelectItem value="customer">Customers</SelectItem>
                     <SelectItem value="vendor">Vendors</SelectItem>
                   </SelectContent>

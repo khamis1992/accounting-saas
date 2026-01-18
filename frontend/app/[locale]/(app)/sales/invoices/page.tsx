@@ -76,9 +76,9 @@ interface InvoiceLineForm {
 
 export default function InvoicesPage() {
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [partyTypeFilter, setPartyTypeFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [partyTypeFilter, setPartyTypeFilter] = useState<string>("all");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<
     Array<{ id: string; name_en: string; name_ar: string }>
@@ -123,9 +123,9 @@ export default function InvoicesPage() {
     try {
       setLoading(true);
       const filters: Record<string, string> = {};
-      if (typeFilter) filters.invoiceType = typeFilter;
-      if (statusFilter) filters.status = statusFilter;
-      if (partyTypeFilter) filters.partyType = partyTypeFilter;
+      if (typeFilter && typeFilter !== "all") filters.invoiceType = typeFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (partyTypeFilter && partyTypeFilter !== "all") filters.partyType = partyTypeFilter;
 
       const data = await invoicesApi.getAll(filters);
       setInvoices(data);
@@ -469,7 +469,7 @@ export default function InvoicesPage() {
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="sales">Sales</SelectItem>
                     <SelectItem value="purchase">Purchase</SelectItem>
                   </SelectContent>
@@ -479,7 +479,7 @@ export default function InvoicesPage() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
@@ -491,7 +491,7 @@ export default function InvoicesPage() {
                     <SelectValue placeholder="Party Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Parties</SelectItem>
+                    <SelectItem value="all">All Parties</SelectItem>
                     <SelectItem value="customer">Customers</SelectItem>
                     <SelectItem value="vendor">Vendors</SelectItem>
                   </SelectContent>

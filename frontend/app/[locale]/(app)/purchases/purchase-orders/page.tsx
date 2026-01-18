@@ -85,8 +85,8 @@ interface PurchaseOrderLineForm {
 export default function PurchaseOrdersPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [vendorFilter, setVendorFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [vendorFilter, setVendorFilter] = useState<string>("all");
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,8 +120,8 @@ export default function PurchaseOrdersPage() {
     try {
       setLoading(true);
       const filters: Record<string, string | number | boolean | undefined> = {};
-      if (statusFilter) filters.status = statusFilter;
-      if (vendorFilter) filters.vendor_id = vendorFilter;
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (vendorFilter && vendorFilter !== "all") filters.vendor_id = vendorFilter;
 
       const data = await purchaseOrdersApi.getAll(filters);
       setPurchaseOrders(data);
@@ -488,7 +488,7 @@ export default function PurchaseOrdersPage() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="sent">Sent</SelectItem>
                     <SelectItem value="accepted">Accepted</SelectItem>
@@ -502,7 +502,7 @@ export default function PurchaseOrdersPage() {
                     <SelectValue placeholder="Vendor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Vendors</SelectItem>
+                    <SelectItem value="all">All Vendors</SelectItem>
                     {vendors.map((vendor) => (
                       <SelectItem key={vendor.id} value={vendor.id}>
                         {vendor.name_en}

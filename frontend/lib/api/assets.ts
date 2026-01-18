@@ -86,7 +86,7 @@ export const assetsApi = {
     if (filters?.status) params.append("status", filters.status);
     if (filters?.search) params.append("search", filters.search);
 
-    const url = `/assets/fixed${params.toString() ? `?${params.toString()}` : ""}`;
+    const url = `/assets${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await apiClient.get<FixedAsset[]>(url);
     return response.data || [];
   },
@@ -95,7 +95,7 @@ export const assetsApi = {
    * Get a single fixed asset by ID
    */
   getAsset: async (id: string): Promise<FixedAsset> => {
-    const response = await apiClient.get<FixedAsset>(`/assets/fixed/${id}`);
+    const response = await apiClient.get<FixedAsset>(`/assets/${id}`);
     return response.data as FixedAsset;
   },
 
@@ -105,7 +105,7 @@ export const assetsApi = {
   createAsset: async (
     data: Omit<FixedAsset, "id" | "accumulated_depreciation" | "net_book_value">
   ): Promise<FixedAsset> => {
-    const response = await apiClient.post<FixedAsset>("/assets/fixed", data);
+    const response = await apiClient.post<FixedAsset>("/assets", data);
     return response.data as FixedAsset;
   },
 
@@ -113,7 +113,7 @@ export const assetsApi = {
    * Update an existing fixed asset
    */
   updateAsset: async (id: string, data: Partial<FixedAsset>): Promise<FixedAsset> => {
-    const response = await apiClient.put<FixedAsset>(`/assets/fixed/${id}`, data);
+    const response = await apiClient.put<FixedAsset>(`/assets/${id}`, data);
     return response.data as FixedAsset;
   },
 
@@ -126,7 +126,7 @@ export const assetsApi = {
     disposalAmount: number,
     disposalType: "dispose" | "sell"
   ): Promise<void> => {
-    await apiClient.post(`/assets/fixed/${id}/${disposalType}`, {
+    await apiClient.post(`/assets/${id}/${disposalType}`, {
       disposal_date: disposalDate,
       disposal_amount: disposalAmount,
     });
