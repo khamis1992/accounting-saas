@@ -13,6 +13,7 @@ export interface GeneralLedgerEntry {
   journal_type: string;
   transaction_date: string;
   posting_date?: string;
+  account_id?: string;
   account_code: string;
   account_name_ar: string;
   account_name_en: string;
@@ -27,6 +28,7 @@ export interface GeneralLedgerEntry {
   cost_center_name_ar?: string;
   cost_center_name_en?: string;
   reference?: string;
+  reference_number?: string;
   reference_type?: string;
   reference_id?: string;
   branch_name_ar?: string;
@@ -36,13 +38,18 @@ export interface GeneralLedgerEntry {
   created_at: string;
   // Running balance (calculated on frontend)
   balance?: number;
+  running_balance?: number;
 }
 
 export interface GeneralLedgerFilters {
   accountId?: string;
+  account_id?: string;
   startDate?: string;
+  start_date?: string;
   endDate?: string;
+  end_date?: string;
   accountType?: string;
+  account_type?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -62,9 +69,13 @@ export const generalLedgerApi = {
    */
   async getAll(filters?: GeneralLedgerFilters): Promise<GeneralLedgerEntry[]> {
     const params = new URLSearchParams();
-    if (filters?.accountId) params.append("accountId", filters.accountId);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
+    const accountId = filters?.accountId || filters?.account_id;
+    const startDate = filters?.startDate || filters?.start_date;
+    const endDate = filters?.endDate || filters?.end_date;
+    
+    if (accountId) params.append("accountId", accountId);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
 
     const query = params.toString();
     const response = await apiClient.get<GeneralLedgerEntry[]>(
@@ -84,6 +95,9 @@ export const generalLedgerApi = {
       return {
         ...entry,
         balance: runningBalance,
+        running_balance: runningBalance,
+        account_id: entry.account_id || entry.account_code,
+        reference_number: entry.reference_number || entry.reference,
       };
     });
   },
@@ -118,6 +132,9 @@ export const generalLedgerApi = {
       return {
         ...entry,
         balance: runningBalance,
+        running_balance: runningBalance,
+        account_id: entry.account_id || entry.account_code,
+        reference_number: entry.reference_number || entry.reference,
       };
     });
 
@@ -135,9 +152,13 @@ export const generalLedgerApi = {
    */
   async exportToPDF(filters?: GeneralLedgerFilters): Promise<Blob> {
     const params = new URLSearchParams();
-    if (filters?.accountId) params.append("accountId", filters.accountId);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
+    const accountId = filters?.accountId || filters?.account_id;
+    const startDate = filters?.startDate || filters?.start_date;
+    const endDate = filters?.endDate || filters?.end_date;
+    
+    if (accountId) params.append("accountId", accountId);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
 
     const query = params.toString();
     const url = query
@@ -162,9 +183,13 @@ export const generalLedgerApi = {
    */
   async exportToExcel(filters?: GeneralLedgerFilters): Promise<Blob> {
     const params = new URLSearchParams();
-    if (filters?.accountId) params.append("accountId", filters.accountId);
-    if (filters?.startDate) params.append("startDate", filters.startDate);
-    if (filters?.endDate) params.append("endDate", filters.endDate);
+    const accountId = filters?.accountId || filters?.account_id;
+    const startDate = filters?.startDate || filters?.start_date;
+    const endDate = filters?.endDate || filters?.end_date;
+    
+    if (accountId) params.append("accountId", accountId);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
 
     const query = params.toString();
     const url = query

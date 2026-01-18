@@ -82,15 +82,32 @@ export const assetsApi = {
     category?: AssetCategory;
     status?: AssetStatus;
     search?: string;
+    is_active?: boolean;
   }): Promise<FixedAsset[]> => {
     const params = new URLSearchParams();
     if (filters?.category) params.append("category", filters.category);
     if (filters?.status) params.append("status", filters.status);
     if (filters?.search) params.append("search", filters.search);
+    // Handle is_active filter by converting to status
+    if (filters?.is_active !== undefined) {
+      params.append("status", filters.is_active ? "active" : "disposed");
+    }
 
     const url = `/assets${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await apiClient.get<FixedAsset[]>(url);
     return response.data || [];
+  },
+
+  /**
+   * Alias for getAssets for backward compatibility
+   */
+  getAll: async (filters?: {
+    category?: AssetCategory;
+    status?: AssetStatus;
+    search?: string;
+    is_active?: boolean;
+  }): Promise<FixedAsset[]> => {
+    return assetsApi.getAssets(filters);
   },
 
   /**

@@ -26,7 +26,9 @@ import {
   ChevronDown, 
   ChevronUp,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Search,
+  FileText
 } from "lucide-react";
 import {
   Select,
@@ -38,7 +40,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { trialBalanceApi, TrialBalanceEntry } from "@/lib/api/trial-balance";
+import { trialBalanceApi, TrialBalanceEntry, TrialBalanceData } from "@/lib/api/trial-balance";
 import { coaApi, Account } from "@/lib/api/coa";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -82,7 +84,7 @@ export default function TrialBalancePage() {
 
   const fetchAccounts = async () => {
     try {
-      const data = await coaApi.getAll({ is_active: true });
+      const data = await coaApi.getAll(false); // only active accounts
       setAccounts(data);
     } catch (error) {
       logger.error("Failed to load accounts", error as Error);
@@ -96,7 +98,7 @@ export default function TrialBalancePage() {
     return data.entries.filter(entry => 
       entry.account_code.toLowerCase().includes(search.toLowerCase()) ||
       entry.account_name_en.toLowerCase().includes(search.toLowerCase()) ||
-      entry.account_name_ar.includes(search)
+      entry.account_name_ar?.includes(search)
     );
   }, [data?.entries, search]);
 
@@ -418,7 +420,7 @@ export default function TrialBalancePage() {
                         </TableHeader>
                         <TableBody>
                           {entries.map((entry) => (
-                            <TableRow key={entry.id}>
+                            <TableRow key={entry.id || entry.account_id}>
                               <TableCell className="font-mono">{entry.account_code}</TableCell>
                               <TableCell>
                                 <div>

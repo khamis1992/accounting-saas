@@ -5,9 +5,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,9 +35,10 @@ import {
   TrendingDown,
   DollarSign,
   PieChart,
-  BarChart3
+  BarChart3,
+  FileText
 } from "lucide-react";
-import { financialStatementsApi, FinancialStatementData } from "@/lib/api/financial-statements";
+import { financialStatementsApi, FinancialStatementData, FinancialStatementRow } from "@/lib/api/financial-statements";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import logger from "@/lib/logger";
@@ -143,7 +145,8 @@ export default function FinancialStatementsPage() {
   };
 
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount == null) return "-";
     return new Intl.NumberFormat("en-QA", {
       style: "currency",
       currency: "QAR",
@@ -296,7 +299,7 @@ export default function FinancialStatementsPage() {
         </Card>
 
         {/* Financial Statements Tabs */}
-        <Tabs value={activeTab} onValueChange={(value: "balance-sheet" | "income-statement" | "cash-flow") => setActiveTab(value)}>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "balance-sheet" | "income-statement" | "cash-flow")}>
           <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="balance-sheet" className="gap-2">
               <PieChart className="h-4 w-4" />
@@ -394,7 +397,7 @@ export default function FinancialStatementsPage() {
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.balance_sheet.assets_variance_percentage !== null 
+                              {data.balance_sheet.assets_variance_percentage != null 
                                 ? `${data.balance_sheet.assets_variance_percentage.toFixed(2)}%` 
                                 : "-"}
                             </TableCell>
@@ -417,7 +420,7 @@ export default function FinancialStatementsPage() {
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.balance_sheet.liabilities_equity_variance_percentage !== null 
+                              {data.balance_sheet.liabilities_equity_variance_percentage != null 
                                 ? `${data.balance_sheet.liabilities_equity_variance_percentage.toFixed(2)}%` 
                                 : "-"}
                             </TableCell>
@@ -492,7 +495,7 @@ export default function FinancialStatementsPage() {
                           {t("incomeStatement.costOfGoodsSold")}
                         </TableCell>
                       </TableRow>
-                      {renderStatementRows(data.income_statement.cost_of_goods_sold)}
+                      {renderStatementRows(data.income_statement.cost_of_goods_sold || [])}
                       
                       {/* Expenses */}
                       <TableRow className="bg-zinc-100 dark:bg-zinc-800 font-semibold mt-4">
@@ -514,12 +517,12 @@ export default function FinancialStatementsPage() {
                               {formatCurrency(data.income_statement.previous_gross_profit || 0)}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.income_statement.gross_profit_variance !== null 
+                              {data.income_statement.gross_profit_variance != null 
                                 ? formatCurrency(data.income_statement.gross_profit_variance) 
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.income_statement.gross_profit_variance_percentage !== null 
+                              {data.income_statement.gross_profit_variance_percentage != null 
                                 ? `${data.income_statement.gross_profit_variance_percentage.toFixed(2)}%` 
                                 : "-"}
                             </TableCell>
@@ -542,7 +545,7 @@ export default function FinancialStatementsPage() {
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.income_statement.net_income_variance_percentage !== null 
+                              {data.income_statement.net_income_variance_percentage != null 
                                 ? `${data.income_statement.net_income_variance_percentage.toFixed(2)}%` 
                                 : "-"}
                             </TableCell>
@@ -609,7 +612,7 @@ export default function FinancialStatementsPage() {
                           {t("cashFlow.operatingActivities")}
                         </TableCell>
                       </TableRow>
-                      {renderStatementRows(data.cash_flow.operating_activities)}
+                      {renderStatementRows(data.cash_flow.operating_activities || data.cash_flow.operating || [])}
                       
                       {/* Investing Activities */}
                       <TableRow className="bg-zinc-100 dark:bg-zinc-800 font-semibold mt-4">
@@ -617,7 +620,7 @@ export default function FinancialStatementsPage() {
                           {t("cashFlow.investingActivities")}
                         </TableCell>
                       </TableRow>
-                      {renderStatementRows(data.cash_flow.investing_activities)}
+                      {renderStatementRows(data.cash_flow.investing_activities || data.cash_flow.investing || [])}
                       
                       {/* Financing Activities */}
                       <TableRow className="bg-zinc-100 dark:bg-zinc-800 font-semibold mt-4">
@@ -625,26 +628,26 @@ export default function FinancialStatementsPage() {
                           {t("cashFlow.financingActivities")}
                         </TableCell>
                       </TableRow>
-                      {renderStatementRows(data.cash_flow.financing_activities)}
+                      {renderStatementRows(data.cash_flow.financing_activities || data.cash_flow.financing || [])}
                       
                       {/* Totals */}
                       <TableRow className="font-bold border-t-2">
                         <TableCell>{t("cashFlow.netIncreaseDecrease")}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(data.cash_flow.net_increase_decrease)}
+                          {formatCurrency(data.cash_flow.net_increase_decrease ?? data.cash_flow.net_change_in_cash)}
                         </TableCell>
                         {comparePeriod !== "none" && (
                           <>
                             <TableCell className="text-right">
-                              {formatCurrency(data.cash_flow.previous_net_increase_decrease || 0)}
+                              {formatCurrency(data.cash_flow.previous_net_increase_decrease ?? data.cash_flow.previous_net_change_in_cash ?? 0)}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.cash_flow.net_increase_variance !== null 
+                              {data.cash_flow.net_increase_variance != null 
                                 ? formatCurrency(data.cash_flow.net_increase_variance) 
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.cash_flow.net_increase_variance_percentage !== null 
+                              {data.cash_flow.net_increase_variance_percentage != null 
                                 ? `${data.cash_flow.net_increase_variance_percentage.toFixed(2)}%` 
                                 : "-"}
                             </TableCell>
@@ -654,22 +657,18 @@ export default function FinancialStatementsPage() {
                       <TableRow className="font-bold">
                         <TableCell>{t("cashFlow.cashAtEnd")}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(data.cash_flow.cash_at_end_period)}
+                          {formatCurrency(data.cash_flow.cash_at_end_period ?? data.cash_flow.ending_cash)}
                         </TableCell>
                         {comparePeriod !== "none" && (
                           <>
                             <TableCell className="text-right">
-                              {formatCurrency(data.cash_flow.previous_cash_at_end_period || 0)}
+                              {"-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.cash_flow.cash_end_variance !== null 
-                                ? formatCurrency(data.cash_flow.cash_end_variance) 
-                                : "-"}
+                              {"-"}
                             </TableCell>
                             <TableCell className="text-right">
-                              {data.cash_flow.cash_end_variance_percentage !== null 
-                                ? `${data.cash_flow.cash_end_variance_percentage.toFixed(2)}%` 
-                                : "-"}
+                              {"-"}
                             </TableCell>
                           </>
                         )}

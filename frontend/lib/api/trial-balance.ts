@@ -6,9 +6,11 @@
 import { apiClient } from "./client";
 
 export interface TrialBalanceEntry {
+  id?: string;
   account_id: string;
   account_code: string;
   account_name: string;
+  account_name_en: string;
   account_name_ar?: string;
   account_type: string;
   debit: number;
@@ -36,6 +38,9 @@ export interface TrialBalanceResponse {
   subtotals: TrialBalanceSubtotals;
   as_of_date: string;
 }
+
+// Alias for backward compatibility
+export type TrialBalanceData = TrialBalanceResponse;
 
 export interface TrialBalanceFilters {
   as_of_date?: string;

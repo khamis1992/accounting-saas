@@ -36,7 +36,8 @@ import {
   ChevronUp,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  FileText
 } from "lucide-react";
 import { generalLedgerApi, GeneralLedgerEntry } from "@/lib/api/general-ledger";
 import { coaApi, Account } from "@/lib/api/coa";
@@ -88,7 +89,7 @@ export default function GeneralLedgerPage() {
 
   const fetchAccounts = async () => {
     try {
-      const data = await coaApi.getAll({ is_active: true });
+      const data = await coaApi.getAll(false); // only active accounts
       setAccounts(data);
     } catch (error) {
       logger.error("Failed to load accounts", error as Error);
@@ -100,10 +101,11 @@ export default function GeneralLedgerPage() {
     const groups: Record<string, GeneralLedgerEntry[]> = {};
     
     entries.forEach(entry => {
-      if (!groups[entry.account_id]) {
-        groups[entry.account_id] = [];
+      const accountKey = entry.account_id || entry.account_code;
+      if (!groups[accountKey]) {
+        groups[accountKey] = [];
       }
-      groups[entry.account_id].push(entry);
+      groups[accountKey].push(entry);
     });
     
     return groups;

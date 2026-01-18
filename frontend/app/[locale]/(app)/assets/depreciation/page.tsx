@@ -7,6 +7,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,6 +58,8 @@ import logger from "@/lib/logger";
 
 export default function DepreciationPage() {
   const t = useTranslations("assets.depreciation");
+  const router = useRouter();
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assetFilter, setAssetFilter] = useState<string>("all");
@@ -92,7 +97,7 @@ export default function DepreciationPage() {
 
   const fetchAssets = async () => {
     try {
-      const data = await assetsApi.getAll({ is_active: true });
+      const data = await assetsApi.getAll({ is_active: true }) as unknown as Asset[];
       setAssets(data);
     } catch (error: unknown) {
       logger.error("Failed to load assets", error as Error);
@@ -398,7 +403,7 @@ export default function DepreciationPage() {
                         {format(new Date(depreciation.calculation_date), "dd/MM/yyyy")}
                       </TableCell>
                       <TableCell>
-                        {getMethodBadge(depreciation.method)}
+                        {getMethodBadge(depreciation.method || depreciation.depreciation_method)}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(depreciation.status)}
