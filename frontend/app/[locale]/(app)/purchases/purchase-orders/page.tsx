@@ -1,25 +1,12 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * Purchase Orders Page
+ * Manage purchase orders with workflow and approval process
  */
+
 "use client";
 
-/**
- * Purchase Orders Page
- * Displays purchase orders list with filtering, workflow actions, and CRUD operations
- *
- * FIXED: Added safe number parsing to prevent calculation errors
- * FIXED: Added null checks for array operations
- * FIXED: Fixed tax/discount calculation bugs
- */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,29 +20,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Send,
-  FileText,
-  Download,
-  CheckCircle,
-  XCircle,
-  Package,
-  Eye,
-} from "lucide-react";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { purchaseOrdersApi, PurchaseOrder, PurchaseOrderStatus } from "@/lib/api/purchase-orders";
-import { vendorsApi } from "@/lib/api/vendors";
-import logger from "@/lib/logger";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -64,25 +34,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 import {
-  safeParseFloat,
-  calculateLineItem,
-  calculateInvoiceTotals,
-  sanitizeInput,
-} from "@/lib/utils/validation";
-
-interface PurchaseOrderLineForm {
-  lineNumber: number;
-  description: string;
-  quantity: string;
-  unitPrice: string;
-  taxRate: string;
-  discount: string;
-}
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Send,
+  Check,
+  X,
+  Download,
+  Eye,
+  FileText,
+  Package,
+  Calendar,
+  RefreshCw,
+} from "lucide-react";
+import { purchaseOrdersApi, PurchaseOrder, PurchaseOrderStatus } from "@/lib/api/purchase-orders";
+import { vendorsApi } from "@/lib/api/vendors";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import logger from "@/lib/logger";
 
 export default function PurchaseOrdersPage() {
-  const router = useRouter();
+  const t = useTranslations("purchases.purchaseOrders");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [vendorFilter, setVendorFilter] = useState<string>("all");
@@ -90,26 +64,30 @@ export default function PurchaseOrdersPage() {
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editPurchaseOrder, setEditPurchaseOrder] = useState<PurchaseOrder | null>(null);
+  const [showPurchaseOrderDialog, setShowPurchaseOrderDialog] = useState(false);
+  const [editingPurchaseOrder, setEditingPurchaseOrder] = useState<PurchaseOrder | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [purchaseOrderForm, setPurchaseOrderForm] = useState({
     vendorId: "",
     date: new Date().toISOString().split("T")[0],
     expectedDeliveryDate: "",
+    referenceNumber: "",
     notes: "",
+    status: "draft" as PurchaseOrderStatus,
   });
-  const [lines, setLines] = useState<PurchaseOrderLineForm[]>([
+  const [lines, setLines] = useState([
     {
-      lineNumber: 1,
+      id: 1,
       description: "",
-      quantity: "1",
-      unitPrice: "0",
-      taxRate: "0",
-      discount: "0",
-    },
+      descriptionAr: "",
+      quantity: 1,
+      unitPrice: 0,
+      taxRate: 0,
+      discount: 0,
+    }
   ]);
 
+  // Fetch initial data
   useEffect(() => {
     fetchPurchaseOrders();
     fetchVendors();
@@ -125,7 +103,9 @@ export default function PurchaseOrdersPage() {
       const data = await purchaseOrdersApi.getAll(filters);
       setPurchaseOrders(data);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load purchase orders");
+      const message = error instanceof Error ? error.message : "Failed to load purchase orders";
+      toast.error(message);
+      logger.error("Failed to load purchase orders", error as Error);
     } finally {
       setLoading(false);
     }
@@ -136,383 +116,508 @@ export default function PurchaseOrdersPage() {
       const data = await vendorsApi.getAll({ is_active: true });
       setVendors(data);
     } catch (error: unknown) {
-      logger.error("Failed to load vendors:", error);
+      logger.error("Failed to load vendors", error as Error);
     }
   };
 
+  // Filter purchase orders based on search
+  const filteredPurchaseOrders = useMemo(() => {
+    return purchaseOrders.filter(
+      (po) =>
+        po.po_number.toLowerCase().includes(search.toLowerCase()) ||
+        po.vendor?.name_en?.toLowerCase().includes(search.toLowerCase()) ||
+        po.vendor?.name_ar?.includes(search) ||
+        po.reference_number?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [purchaseOrders, search]);
+
+  // Get status badge
   const getStatusBadge = (status: PurchaseOrderStatus) => {
-    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+    const variants: Record<PurchaseOrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
       draft: "secondary",
       sent: "outline",
       accepted: "default",
       rejected: "destructive",
+      partially_received: "outline",
       received: "default",
       closed: "secondary",
     };
-
-    const labels: Record<string, string> = {
-      draft: "Draft",
-      sent: "Sent",
-      accepted: "Accepted",
-      rejected: "Rejected",
-      received: "Received",
-      closed: "Closed",
+    
+    const labels: Record<PurchaseOrderStatus, string> = {
+      draft: t("statuses.draft"),
+      sent: t("statuses.sent"),
+      accepted: t("statuses.accepted"),
+      rejected: t("statuses.rejected"),
+      partially_received: t("statuses.partiallyReceived"),
+      received: t("statuses.received"),
+      closed: t("statuses.closed"),
     };
-
-    return <Badge variant={variants[status] || "secondary"}>{labels[status] || status}</Badge>;
+    
+    return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
-  const filteredPurchaseOrders =
-    purchaseOrders?.filter(
-      (po) =>
-        po?.po_number?.toLowerCase().includes(search.toLowerCase()) ||
-        po?.vendor_name?.toLowerCase().includes(search.toLowerCase())
-    ) || [];
-
+  // Handle create purchase order
   const handleCreate = () => {
-    setEditPurchaseOrder(null);
-    setFormData({
+    setEditingPurchaseOrder(null);
+    setPurchaseOrderForm({
       vendorId: "",
       date: new Date().toISOString().split("T")[0],
       expectedDeliveryDate: "",
+      referenceNumber: "",
       notes: "",
+      status: "draft",
     });
     setLines([
       {
-        lineNumber: 1,
+        id: 1,
         description: "",
-        quantity: "1",
-        unitPrice: "0",
-        taxRate: "0",
-        discount: "0",
-      },
+        descriptionAr: "",
+        quantity: 1,
+        unitPrice: 0,
+        taxRate: 0,
+        discount: 0,
+      }
     ]);
-    setDialogOpen(true);
+    setShowPurchaseOrderDialog(true);
   };
 
+  // Handle edit purchase order
   const handleEdit = (purchaseOrder: PurchaseOrder) => {
-    if (purchaseOrder.status !== "draft") {
-      toast.error("Can only edit draft purchase orders");
+    if (purchaseOrder.status !== "draft" && purchaseOrder.status !== "rejected") {
+      toast.error(t("errors.editOnlyDraftOrRejected"));
       return;
     }
-    setEditPurchaseOrder(purchaseOrder);
-    setFormData({
+    
+    setEditingPurchaseOrder(purchaseOrder);
+    setPurchaseOrderForm({
       vendorId: purchaseOrder.vendor_id,
       date: purchaseOrder.date.split("T")[0],
       expectedDeliveryDate: purchaseOrder.expected_delivery_date?.split("T")[0] || "",
+      referenceNumber: purchaseOrder.reference_number || "",
       notes: purchaseOrder.notes || "",
+      status: purchaseOrder.status,
     });
+    
     setLines(
-      purchaseOrder.items?.map((item) => ({
-        lineNumber: item.id ? parseInt(item.id) : 1,
-        description: item.description,
-        quantity: item.quantity.toString(),
-        unitPrice: item.unit_price.toString(),
-        taxRate: item.tax_rate.toString(),
-        discount: item.discount.toString(),
+      purchaseOrder.items?.map((item, idx) => ({
+        id: idx + 1,
+        description: item.description_en || "",
+        descriptionAr: item.description_ar || "",
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        taxRate: item.tax_rate,
+        discount: item.discount_percent,
       })) || [
         {
-          lineNumber: 1,
+          id: 1,
           description: "",
-          quantity: "1",
-          unitPrice: "0",
-          taxRate: "0",
-          discount: "0",
-        },
+          descriptionAr: "",
+          quantity: 1,
+          unitPrice: 0,
+          taxRate: 0,
+          discount: 0,
+        }
       ]
     );
-    setDialogOpen(true);
+    
+    setShowPurchaseOrderDialog(true);
   };
 
+  // Handle delete purchase order
   const handleDelete = async (purchaseOrder: PurchaseOrder) => {
-    if (!confirm(`Are you sure you want to delete ${purchaseOrder.po_number}?`)) {
+    if (!confirm(`${t("confirmDelete")} ${purchaseOrder.po_number}?`)) {
       return;
     }
 
     try {
       await purchaseOrdersApi.delete(purchaseOrder.id);
-      toast.success("Purchase order deleted successfully");
+      toast.success(t("deleteSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete purchase order");
+      const message = error instanceof Error ? error.message : "Failed to delete purchase order";
+      toast.error(message);
     }
   };
 
+  // Handle send purchase order
+  const handleSend = async (purchaseOrder: PurchaseOrder) => {
+    setActionLoading(purchaseOrder.id);
+    try {
+      await purchaseOrdersApi.send(purchaseOrder.id);
+      toast.success(t("sendSuccess"));
+      await fetchPurchaseOrders();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to send purchase order";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle accept purchase order
+  const handleAccept = async (purchaseOrder: PurchaseOrder) => {
+    setActionLoading(purchaseOrder.id);
+    try {
+      await purchaseOrdersApi.accept(purchaseOrder.id);
+      toast.success(t("acceptSuccess"));
+      await fetchPurchaseOrders();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to accept purchase order";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle reject purchase order
+  const handleReject = async (purchaseOrder: PurchaseOrder) => {
+    if (!confirm(t("confirmReject"))) {
+      return;
+    }
+    
+    setActionLoading(purchaseOrder.id);
+    try {
+      await purchaseOrdersApi.reject(purchaseOrder.id);
+      toast.success(t("rejectSuccess"));
+      await fetchPurchaseOrders();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to reject purchase order";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle mark as received
+  const handleMarkAsReceived = async (purchaseOrder: PurchaseOrder) => {
+    setActionLoading(purchaseOrder.id);
+    try {
+      await purchaseOrdersApi.markAsReceived(purchaseOrder.id);
+      toast.success(t("receiveSuccess"));
+      await fetchPurchaseOrders();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to mark as received";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle close purchase order
+  const handleClose = async (purchaseOrder: PurchaseOrder) => {
+    if (!confirm(t("confirmClose"))) {
+      return;
+    }
+    
+    setActionLoading(purchaseOrder.id);
+    try {
+      await purchaseOrdersApi.close(purchaseOrder.id);
+      toast.success(t("closeSuccess"));
+      await fetchPurchaseOrders();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to close purchase order";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
       const data = {
-        vendor_id: formData.vendorId,
-        date: formData.date,
-        expected_delivery_date: formData.expectedDeliveryDate || undefined,
-        notes: formData.notes || undefined,
-        items:
-          lines?.map((line) => ({
-            description: line.description,
-            quantity: safeParseFloat(line.quantity, 0),
-            unit_price: safeParseFloat(line.unitPrice, 0),
-            tax_rate: safeParseFloat(line.taxRate, 0),
-            discount: safeParseFloat(line.discount, 0),
-          })) || [],
+        vendor_id: purchaseOrderForm.vendorId,
+        date: purchaseOrderForm.date,
+        expected_delivery_date: purchaseOrderForm.expectedDeliveryDate || undefined,
+        reference_number: purchaseOrderForm.referenceNumber || undefined,
+        notes: purchaseOrderForm.notes || undefined,
+        items: lines.map((line) => ({
+          description_en: line.description,
+          description_ar: line.descriptionAr || undefined,
+          quantity: line.quantity,
+          unit_price: line.unitPrice,
+          tax_rate: line.taxRate,
+          discount_percent: line.discount,
+        })),
       };
 
-      if (editPurchaseOrder) {
-        await purchaseOrdersApi.update(editPurchaseOrder.id, data);
-        toast.success("Purchase order updated successfully");
+      if (editingPurchaseOrder) {
+        await purchaseOrdersApi.update(editingPurchaseOrder.id, data);
+        toast.success(t("updateSuccess"));
       } else {
         await purchaseOrdersApi.create(data);
-        toast.success("Purchase order created successfully");
+        toast.success(t("createSuccess"));
       }
 
-      setDialogOpen(false);
+      setShowPurchaseOrderDialog(false);
       await fetchPurchaseOrders();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to save purchase order");
+      const message = error instanceof Error ? error.message : "Failed to save purchase order";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleSend = async (purchaseOrder: PurchaseOrder) => {
-    setActionLoading(purchaseOrder.id);
-    try {
-      // Status update not available in UpdatePurchaseOrderDto
-      // TODO: Implement dedicated status update API endpoint
-      toast.success("Status update not yet implemented");
-      // await fetchPurchaseOrders();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to send purchase order");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleMarkReceived = async (purchaseOrder: PurchaseOrder) => {
-    setActionLoading(purchaseOrder.id);
-    try {
-      // Status update not available in UpdatePurchaseOrderDto
-      // TODO: Implement dedicated status update API endpoint
-      toast.success("Status update not yet implemented");
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to mark as received");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleClose = async (purchaseOrder: PurchaseOrder) => {
-    setActionLoading(purchaseOrder.id);
-    try {
-      // Status update not available in UpdatePurchaseOrderDto
-      // TODO: Implement dedicated status update API endpoint
-      toast.success("Status update not yet implemented");
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to close purchase order");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleConvertToBill = async (purchaseOrder: PurchaseOrder) => {
-    if (
-      !confirm(
-        `Convert ${purchaseOrder.po_number} to a bill? This will create a bill from the purchase order.`
-      )
-    ) {
-      return;
-    }
-
-    setActionLoading(purchaseOrder.id);
-    try {
-      await purchaseOrdersApi.convertToBill(purchaseOrder.id);
-      toast.success("Purchase order converted to bill successfully");
-      await fetchPurchaseOrders();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to convert to bill");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
+  // Handle export PDF
   const handleExportPDF = async (purchaseOrder: PurchaseOrder) => {
     try {
       const blob = await purchaseOrdersApi.exportToPDF(purchaseOrder.id);
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `PO-${purchaseOrder.po_number}.pdf`;
+      a.download = `purchase-order-${purchaseOrder.po_number}.pdf`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      toast.success("PDF exported successfully");
+      URL.revokeObjectURL(url);
+      toast.success(t("exportSuccess"));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to export PDF");
+      const message = error instanceof Error ? error.message : "Failed to export PDF";
+      toast.error(message);
     }
   };
 
+  // Handle export Excel
+  const handleExportExcel = async (purchaseOrder: PurchaseOrder) => {
+    try {
+      const blob = await purchaseOrdersApi.exportToExcel(purchaseOrder.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `purchase-order-${purchaseOrder.po_number}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportExcelSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export Excel";
+      toast.error(message);
+    }
+  };
+
+  // Add a new line item
   const addLine = () => {
-    const newLine: PurchaseOrderLineForm = {
-      lineNumber: (lines?.length || 0) + 1,
-      description: "",
-      quantity: "1",
-      unitPrice: "0",
-      taxRate: "0",
-      discount: "0",
-    };
-    setLines((prev) => [...(prev || []), newLine]);
+    setLines([
+      ...lines,
+      {
+        id: lines.length + 1,
+        description: "",
+        descriptionAr: "",
+        quantity: 1,
+        unitPrice: 0,
+        taxRate: 0,
+        discount: 0,
+      }
+    ]);
   };
 
-  const removeLine = (index: number) => {
-    if (lines && lines.length > 1) {
-      const newLines = lines.filter((_, i) => i !== index);
-      setLines(newLines.map((line, i) => ({ ...line, lineNumber: i + 1 })));
+  // Remove a line item
+  const removeLine = (id: number) => {
+    if (lines.length > 1) {
+      setLines(lines.filter(line => line.id !== id));
     }
   };
 
-  const updateLine = (index: number, field: keyof PurchaseOrderLineForm, value: string) => {
-    if (!lines || lines.length === 0) return;
-
+  // Update a line item
+  const updateLine = (id: number, field: string, value: string | number) => {
     setLines(
-      (prev) => prev?.map((line, i) => (i === index ? { ...line, [field]: value } : line)) || []
+      lines.map(line => 
+        line.id === id ? { ...line, [field]: value } : line
+      )
     );
   };
 
-  const calculateLineTotal = (line: PurchaseOrderLineForm): number => {
-    const result = calculateLineItem(line.quantity, line.unitPrice, line.taxRate, line.discount);
-    return result.total;
+  // Calculate line total
+  const calculateLineTotal = (line: any) => {
+    const subtotal = line.quantity * line.unitPrice;
+    const discountAmount = subtotal * (line.discount / 100);
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = taxableAmount * (line.taxRate / 100);
+    return taxableAmount + taxAmount;
   };
 
+  // Calculate totals
   const calculateTotals = () => {
-    const result = calculateInvoiceTotals(
-      lines?.map((line) => ({
-        quantity: line.quantity,
-        unitPrice: line.unitPrice,
-        taxRate: line.taxRate,
-        discountPercent: line.discount,
-      })) || []
-    );
+    let subtotal = 0;
+    let totalTax = 0;
+    let totalDiscount = 0;
+
+    lines.forEach(line => {
+      const lineSubtotal = line.quantity * line.unitPrice;
+      const lineDiscount = lineSubtotal * (line.discount / 100);
+      const taxableAmount = lineSubtotal - lineDiscount;
+      const lineTax = taxableAmount * (line.taxRate / 100);
+
+      subtotal += lineSubtotal;
+      totalDiscount += lineDiscount;
+      totalTax += lineTax;
+    });
 
     return {
-      subtotal: result.subtotal,
-      totalTax: result.totalTax,
-      totalDiscount: result.totalDiscount,
-      totalAmount: result.totalAmount,
+      subtotal,
+      totalTax,
+      totalDiscount,
+      total: subtotal - totalDiscount + totalTax,
     };
   };
 
+  const totals = calculateTotals();
+
+  // Get action buttons for each purchase order
   const getActionButtons = (purchaseOrder: PurchaseOrder) => {
     const buttons = [];
 
-    if (purchaseOrder.status === "draft") {
+    // View button (always available)
+    buttons.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: t("actions.view"),
+      onClick: () => handleView(purchaseOrder),
+    });
+
+    // Edit button (draft/rejected only)
+    if (purchaseOrder.status === "draft" || purchaseOrder.status === "rejected") {
       buttons.push({
         icon: <Edit className="h-4 w-4" />,
-        label: "Edit",
+        label: t("actions.edit"),
         onClick: () => handleEdit(purchaseOrder),
       });
-      buttons.push({
-        icon: <Trash2 className="h-4 w-4" />,
-        label: "Delete",
-        onClick: () => handleDelete(purchaseOrder),
-      });
+    }
+
+    // Send button (draft only)
+    if (purchaseOrder.status === "draft") {
       buttons.push({
         icon: <Send className="h-4 w-4" />,
-        label: "Send",
+        label: t("actions.send"),
         onClick: () => handleSend(purchaseOrder),
         loading: actionLoading === purchaseOrder.id,
       });
     }
 
+    // Accept button (sent only)
     if (purchaseOrder.status === "sent") {
       buttons.push({
-        icon: <CheckCircle className="h-4 w-4" />,
-        label: "Mark Received",
-        onClick: () => handleMarkReceived(purchaseOrder),
+        icon: <Check className="h-4 w-4" />,
+        label: t("actions.accept"),
+        onClick: () => handleAccept(purchaseOrder),
         loading: actionLoading === purchaseOrder.id,
       });
     }
 
-    if (purchaseOrder.status === "received") {
+    // Reject button (sent only)
+    if (purchaseOrder.status === "sent") {
       buttons.push({
-        icon: <FileText className="h-4 w-4" />,
-        label: "Convert to Bill",
-        onClick: () => handleConvertToBill(purchaseOrder),
+        icon: <X className="h-4 w-4" />,
+        label: t("actions.reject"),
+        onClick: () => handleReject(purchaseOrder),
         loading: actionLoading === purchaseOrder.id,
       });
     }
 
-    if (["accepted", "received"].includes(purchaseOrder.status)) {
+    // Mark as received (accepted only)
+    if (purchaseOrder.status === "accepted") {
       buttons.push({
         icon: <Package className="h-4 w-4" />,
-        label: "Close",
+        label: t("actions.markReceived"),
+        onClick: () => handleMarkAsReceived(purchaseOrder),
+        loading: actionLoading === purchaseOrder.id,
+      });
+    }
+
+    // Close button (received only)
+    if (purchaseOrder.status === "received") {
+      buttons.push({
+        icon: <X className="h-4 w-4" />,
+        label: t("actions.close"),
         onClick: () => handleClose(purchaseOrder),
         loading: actionLoading === purchaseOrder.id,
       });
     }
 
+    // Export buttons (always available)
     buttons.push({
       icon: <Download className="h-4 w-4" />,
-      label: "Export PDF",
+      label: t("actions.exportPDF"),
       onClick: () => handleExportPDF(purchaseOrder),
     });
+
+    buttons.push({
+      icon: <FileText className="h-4 w-4" />,
+      label: t("actions.exportExcel"),
+      onClick: () => handleExportExcel(purchaseOrder),
+    });
+
+    // Delete button (draft/rejected only)
+    if (purchaseOrder.status === "draft" || purchaseOrder.status === "rejected") {
+      buttons.push({
+        icon: <Trash2 className="h-4 w-4" />,
+        label: t("actions.delete"),
+        onClick: () => handleDelete(purchaseOrder),
+      });
+    }
 
     return buttons;
   };
 
-  const totals = calculateTotals();
-
   return (
     <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Purchase Orders</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">Create and manage purchase orders</p>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
           </div>
           <Button onClick={handleCreate} className="gap-2">
             <Plus className="h-4 w-4" />
-            New Purchase Order
+            {t("newPurchaseOrder")}
           </Button>
         </div>
 
+        {/* Filters Card */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <CardTitle>Purchase Orders</CardTitle>
+              <CardTitle>{t("title")}</CardTitle>
               <div className="flex items-center gap-4">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={t("filters.allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="accepted">Accepted</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="received">Received</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="draft">{t("statuses.draft")}</SelectItem>
+                    <SelectItem value="sent">{t("statuses.sent")}</SelectItem>
+                    <SelectItem value="accepted">{t("statuses.accepted")}</SelectItem>
+                    <SelectItem value="rejected">{t("statuses.rejected")}</SelectItem>
+                    <SelectItem value="partially_received">{t("statuses.partiallyReceived")}</SelectItem>
+                    <SelectItem value="received">{t("statuses.received")}</SelectItem>
+                    <SelectItem value="closed">{t("statuses.closed")}</SelectItem>
                   </SelectContent>
                 </Select>
+                
                 <Select value={vendorFilter} onValueChange={setVendorFilter}>
                   <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Vendor" />
+                    <SelectValue placeholder={t("filters.allVendors")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Vendors</SelectItem>
+                    <SelectItem value="all">{t("filters.allVendors")}</SelectItem>
                     {vendors.map((vendor) => (
                       <SelectItem key={vendor.id} value={vendor.id}>
-                        {vendor.name_en}
+                        {vendor.name_en} ({vendor.name_ar})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <Input
                     type="search"
-                    placeholder="Search..."
+                    placeholder={t("filters.searchPlaceholder")}
                     className="w-64 pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -523,35 +628,61 @@ export default function PurchaseOrdersPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-8 text-center text-zinc-500">Loading purchase orders...</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>{t("loading")}</span>
+                </div>
+              </div>
             ) : filteredPurchaseOrders.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">No purchase orders found</div>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="h-12 w-12 text-zinc-400 mb-4" />
+                <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                <p className="text-zinc-500">{t("empty.description")}</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/${locale}/purchases/purchase-orders/new`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("createFirst")}
+                  </Link>
+                </Button>
+              </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>PO #</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Expected Delivery</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("table.poNumber")}</TableHead>
+                    <TableHead>{t("table.vendor")}</TableHead>
+                    <TableHead>{t("table.date")}</TableHead>
+                    <TableHead>{t("table.deliveryDate")}</TableHead>
+                    <TableHead>{t("table.status")}</TableHead>
+                    <TableHead className="text-right">{t("table.total")}</TableHead>
+                    <TableHead className="text-right">{t("table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPurchaseOrders.map((po) => (
                     <TableRow key={po.id}>
                       <TableCell className="font-mono">{po.po_number}</TableCell>
-                      <TableCell>{po.vendor_name}</TableCell>
-                      <TableCell>{new Date(po.date).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        {po.expected_delivery_date
-                          ? new Date(po.expected_delivery_date).toLocaleDateString()
-                          : "-"}
+                        <div>
+                          <div>{po.vendor?.name_en}</div>
+                          <div className="text-sm text-zinc-500" dir="rtl">
+                            {po.vendor?.name_ar}
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell>{getStatusBadge(po.status)}</TableCell>
-                      <TableCell className="text-right">QAR {po.total.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {format(new Date(po.date), "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        {po.expected_delivery_date ? format(new Date(po.expected_delivery_date), "dd/MM/yyyy") : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(po.status)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        QAR {po.total_amount?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           {getActionButtons(po).map((btn, idx) => (
@@ -567,7 +698,7 @@ export default function PurchaseOrdersPage() {
                               title={btn.label}
                             >
                               {btn.loading ? (
-                                <span className="h-4 w-4 animate-spin">⌛</span>
+                                <span className="h-4 w-4 animate-spin">⏳</span>
                               ) : (
                                 btn.icon
                               )}
@@ -583,30 +714,28 @@ export default function PurchaseOrdersPage() {
           </CardContent>
         </Card>
 
-        {/* Create/Edit Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-4xl">
+        {/* Create/Edit Purchase Order Dialog */}
+        <Dialog open={showPurchaseOrderDialog} onOpenChange={setShowPurchaseOrderDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editPurchaseOrder ? "Edit Purchase Order" : "New Purchase Order"}
+                {editingPurchaseOrder ? t("dialogs.editTitle") : t("dialogs.createTitle")}
               </DialogTitle>
               <DialogDescription>
-                {editPurchaseOrder
-                  ? "Update purchase order details"
-                  : "Create a new purchase order"}
+                {editingPurchaseOrder ? t("dialogs.editDescription") : t("dialogs.createDescription")}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="vendorId">Vendor *</Label>
+                  <Label htmlFor="vendor">{t("fields.vendor")} *</Label>
                   <Select
-                    value={formData.vendorId}
-                    onValueChange={(value) => setFormData({ ...formData, vendorId: value })}
+                    value={purchaseOrderForm.vendorId}
+                    onValueChange={(value) => setPurchaseOrderForm({ ...purchaseOrderForm, vendorId: value })}
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select vendor" />
+                      <SelectValue placeholder={t("fields.selectVendor")} />
                     </SelectTrigger>
                     <SelectContent>
                       {vendors.map((vendor) => (
@@ -617,158 +746,192 @@ export default function PurchaseOrdersPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="date">Order Date *</Label>
+                  <Label htmlFor="referenceNumber">{t("fields.referenceNumber")}</Label>
+                  <Input
+                    id="referenceNumber"
+                    value={purchaseOrderForm.referenceNumber}
+                    onChange={(e) => setPurchaseOrderForm({ ...purchaseOrderForm, referenceNumber: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="date">{t("fields.date")} *</Label>
                   <Input
                     id="date"
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    value={purchaseOrderForm.date}
+                    onChange={(e) => setPurchaseOrderForm({ ...purchaseOrderForm, date: e.target.value })}
                     required
                   />
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="expectedDeliveryDate">Expected Delivery Date</Label>
+                  <Label htmlFor="deliveryDate">{t("fields.deliveryDate")}</Label>
                   <Input
-                    id="expectedDeliveryDate"
+                    id="deliveryDate"
                     type="date"
-                    value={formData.expectedDeliveryDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, expectedDeliveryDate: e.target.value })
-                    }
+                    value={purchaseOrderForm.expectedDeliveryDate}
+                    onChange={(e) => setPurchaseOrderForm({ ...purchaseOrderForm, expectedDeliveryDate: e.target.value })}
                   />
                 </div>
               </div>
-
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <Label>Line Items</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes">{t("fields.notes")}</Label>
+                <Textarea
+                  id="notes"
+                  value={purchaseOrderForm.notes}
+                  onChange={(e) => setPurchaseOrderForm({ ...purchaseOrderForm, notes: e.target.value })}
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">{t("fields.lineItems")}</h3>
                   <Button type="button" variant="outline" size="sm" onClick={addLine}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Line
+                    {t("fields.addLine")}
                   </Button>
                 </div>
+                
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-24">Quantity</TableHead>
-                        <TableHead className="w-32">Unit Price</TableHead>
-                        <TableHead className="w-24">Tax %</TableHead>
-                        <TableHead className="w-24">Discount %</TableHead>
-                        <TableHead className="w-32">Total</TableHead>
+                        <TableHead>{t("fields.descriptionEn")}</TableHead>
+                        <TableHead>{t("fields.descriptionAr")}</TableHead>
+                        <TableHead className="w-24">{t("fields.quantity")}</TableHead>
+                        <TableHead className="w-32">{t("fields.unitPrice")}</TableHead>
+                        <TableHead className="w-24">{t("fields.tax")}</TableHead>
+                        <TableHead className="w-24">{t("fields.discount")}</TableHead>
+                        <TableHead className="w-32 text-right">{t("fields.total")}</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {lines.map((line, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-mono">{line.lineNumber}</TableCell>
+                        <TableRow key={line.id}>
+                          <TableCell className="font-mono">{line.id}</TableCell>
                           <TableCell>
                             <Input
                               value={line.description}
-                              onChange={(e) => updateLine(index, "description", e.target.value)}
-                              placeholder="Description"
+                              onChange={(e) => updateLine(line.id, "description", e.target.value)}
+                              placeholder={t("fields.descriptionEn")}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={line.descriptionAr}
+                              onChange={(e) => updateLine(line.id, "descriptionAr", e.target.value)}
+                              placeholder={t("fields.descriptionAr")}
+                              dir="rtl"
                             />
                           </TableCell>
                           <TableCell>
                             <Input
                               type="number"
+                              min="0"
                               step="0.01"
                               value={line.quantity}
-                              onChange={(e) => updateLine(index, "quantity", e.target.value)}
+                              onChange={(e) => updateLine(line.id, "quantity", parseFloat(e.target.value) || 0)}
                             />
                           </TableCell>
                           <TableCell>
                             <Input
                               type="number"
+                              min="0"
                               step="0.01"
                               value={line.unitPrice}
-                              onChange={(e) => updateLine(index, "unitPrice", e.target.value)}
+                              onChange={(e) => updateLine(line.id, "unitPrice", parseFloat(e.target.value) || 0)}
                             />
                           </TableCell>
                           <TableCell>
                             <Input
                               type="number"
+                              min="0"
+                              max="100"
                               step="0.01"
                               value={line.taxRate}
-                              onChange={(e) => updateLine(index, "taxRate", e.target.value)}
+                              onChange={(e) => updateLine(line.id, "taxRate", parseFloat(e.target.value) || 0)}
                             />
                           </TableCell>
                           <TableCell>
                             <Input
                               type="number"
+                              min="0"
+                              max="100"
                               step="0.01"
                               value={line.discount}
-                              onChange={(e) => updateLine(index, "discount", e.target.value)}
+                              onChange={(e) => updateLine(line.id, "discount", parseFloat(e.target.value) || 0)}
                             />
                           </TableCell>
-                          <TableCell className="text-right">
-                            {calculateLineTotal(line).toFixed(2)}
+                          <TableCell className="text-right font-medium">
+                            QAR {calculateLineTotal(line).toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeLine(index)}
-                              disabled={lines.length === 1}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {lines.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeLine(line.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <div className="w-64 space-y-2 rounded-lg border p-4">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal:</span>
-                    <span>QAR {totals.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Discount:</span>
-                    <span className="text-red-600">-QAR {totals.totalDiscount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Tax:</span>
-                    <span>QAR {totals.totalTax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2 font-bold">
-                    <span>Total:</span>
-                    <span>QAR {totals.totalAmount.toFixed(2)}</span>
+                
+                <div className="flex justify-end">
+                  <div className="w-64 space-y-1">
+                    <div className="flex justify-between">
+                      <span>{t("fields.subtotal")}:</span>
+                      <span>QAR {totals.subtotal.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>{t("fields.totalDiscount")}:</span>
+                      <span>- QAR {totals.totalDiscount.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>{t("fields.totalTax")}:</span>
+                      <span>+ QAR {totals.totalTax.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between font-bold pt-2 border-t">
+                      <span>{t("fields.totalAmount")}:</span>
+                      <span>QAR {totals.total.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <textarea
-                  id="notes"
-                  className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:focus:ring-zinc-300"
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </div>
-
+              
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setDialogOpen(false)}
+                  onClick={() => setShowPurchaseOrderDialog(false)}
                   disabled={submitting}
                 >
-                  Cancel
+                  {t("actions.cancel")}
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? "Saving..." : "Save"}
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      {editingPurchaseOrder ? t("actions.updating") : t("actions.creating")}
+                    </>
+                  ) : editingPurchaseOrder ? (
+                    t("actions.update")
+                  ) : (
+                    t("actions.create")
+                  )}
                 </Button>
               </div>
             </form>

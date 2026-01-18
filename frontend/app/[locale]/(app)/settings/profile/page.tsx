@@ -1,25 +1,16 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * Profile Page
+ * User profile management with personal information and preferences
  */
+
 "use client";
 
-/**
- * Settings - Profile Page
- * User profile management with avatar upload, personal info, and password change
- */
-
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -27,509 +18,510 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { User as UserIcon, Mail, Phone, Camera, Lock, Save, CheckCircle } from "lucide-react";
-import { usersApi, UserProfile, UpdateProfileDto, ChangePasswordDto } from "@/lib/api/users";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Globe,
+  Building2,
+  CreditCard,
+  Shield,
+  Bell,
+  Lock,
+  Save,
+  Camera,
+  Upload,
+  Languages,
+  Moon,
+  Sun,
+} from "lucide-react";
+import { userProfileApi, UserProfile } from "@/lib/api/user-profile";
+import { useAuth } from "@/contexts/auth-context";
+import logger from "@/lib/logger";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const t = useTranslations("settings.profile");
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const [profileForm, setProfileForm] = useState({
-    firstNameAr: "",
-    firstNameEn: "",
-    lastNameAr: "",
-    lastNameEn: "",
-    email: "",
-    phone: "",
-    preferredLanguage: "en",
-    timezone: "Asia/Qatar",
-  });
-
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
+  // Fetch user profile
   useEffect(() => {
-    fetchProfile();
+    fetchUserProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const data = await usersApi.getProfile();
-      setUser(data);
-      setProfileForm({
-        firstNameAr: data.first_name_ar || "",
-        firstNameEn: data.first_name_en || "",
-        lastNameAr: data.last_name_ar || "",
-        lastNameEn: data.last_name_en || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        preferredLanguage: data.preferred_language || "en",
-        timezone: data.timezone || "Asia/Qatar",
-      });
+      const data = await userProfileApi.get();
+      setProfile(data);
+      if (data.avatar_url) {
+        setAvatarPreview(data.avatar_url);
+      }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load profile");
+      const message = error instanceof Error ? error.message : "Failed to load profile";
+      toast.error(message);
+      logger.error("Failed to load user profile", error as Error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
-    try {
-      const updateDto: UpdateProfileDto = {
-        firstNameAr: profileForm.firstNameAr || undefined,
-        firstNameEn: profileForm.firstNameEn || undefined,
-        lastNameAr: profileForm.lastNameAr || undefined,
-        lastNameEn: profileForm.lastNameEn || undefined,
-        email: profileForm.email || undefined,
-        phone: profileForm.phone || undefined,
-        preferredLanguage: profileForm.preferredLanguage as "ar" | "en",
-        timezone: profileForm.timezone,
+  // Handle avatar change
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
       };
+      reader.readAsDataURL(file);
+    }
+  };
 
-      const updated = await usersApi.updateProfile(updateDto);
-      setUser(updated);
-      toast.success("Profile updated successfully");
+  // Handle form changes
+  const handleChange = (field: keyof UserProfile, value: string | boolean) => {
+    setProfile((prev) => (prev ? { ...prev, [field]: value } : null));
+  };
+
+  // Handle address changes
+  const handleAddressChange = (field: string, value: string) => {
+    setProfile((prev) => (prev ? { ...prev, address: { ...prev.address, [field]: value } } : null));
+  };
+
+  // Handle preferences changes
+  const handlePreferencesChange = (field: string, value: string | boolean) => {
+    setProfile((prev) => (prev ? { ...prev, preferences: { ...prev.preferences, [field]: value } } : null));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile) return;
+
+    setSaving(true);
+    try {
+      // Prepare data for submission
+      const formData = new FormData();
+      formData.append("first_name_en", profile.first_name_en || "");
+      formData.append("first_name_ar", profile.first_name_ar || "");
+      formData.append("last_name_en", profile.last_name_en || "");
+      formData.append("last_name_ar", profile.last_name_ar || "");
+      formData.append("email", profile.email || "");
+      formData.append("phone", profile.phone || "");
+      formData.append("job_title", profile.job_title || "");
+      formData.append("department", profile.department || "");
+      formData.append("bio", profile.bio || "");
+      formData.append("timezone", profile.preferences?.timezone || "Asia/Qatar");
+      formData.append("language", profile.preferences?.language || "en");
+      formData.append("theme", profile.preferences?.theme || "system");
+      formData.append("notifications_enabled", profile.preferences?.notifications_enabled ? "true" : "false");
+      formData.append("email_notifications", profile.preferences?.email_notifications ? "true" : "false");
+
+      // Add address fields
+      if (profile.address) {
+        formData.append("address_street", profile.address.street || "");
+        formData.append("address_city", profile.address.city || "");
+        formData.append("address_state", profile.address.state || "");
+        formData.append("address_postal_code", profile.address.postal_code || "");
+        formData.append("address_country", profile.address.country || "QA");
+      }
+
+      // Add avatar if changed
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      await userProfileApi.update(profile.id, formData);
+      toast.success(t("updateSuccess"));
+
+      // Update auth context with new profile info
+      if (user) {
+        await updateUser({
+          ...user,
+          user_metadata: {
+            ...user.user_metadata,
+            full_name: `${profile.first_name_en} ${profile.last_name_en}`,
+            avatar_url: profile.avatar_url,
+          },
+        });
+      }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to update profile");
+      const message = error instanceof Error ? error.message : "Failed to save profile";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-
-    setChangingPassword(true);
-
-    try {
-      const changePasswordDto: ChangePasswordDto = {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      };
-
-      await usersApi.changePassword(changePasswordDto);
-      toast.success("Password changed successfully");
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to change password");
-    } finally {
-      setChangingPassword(false);
-    }
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.match(/image\/(jpeg|jpg|png|webp)$/)) {
-      toast.error("Invalid file type. Please upload JPEG, PNG, or WebP image.");
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size exceeds 5MB limit");
-      return;
-    }
-
-    setAvatarUploading(true);
-
-    try {
-      const updated = await usersApi.uploadAvatar(file);
-      setUser(updated);
-      toast.success("Avatar uploaded successfully");
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to upload avatar");
-    } finally {
-      setAvatarUploading(false);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-zinc-500">Loading profile...</div>
+      <div className="flex items-center justify-center py-12">
+        <div className="flex items-center gap-2 text-zinc-500">
+          <RefreshCw className="h-5 w-5 animate-spin" />
+          <span>{t("loading")}</span>
         </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <User className="h-12 w-12 text-zinc-400 mb-4" />
+        <h3 className="text-lg font-medium">{t("errors.noProfile.title")}</h3>
+        <p className="text-zinc-500">{t("errors.noProfile.description")}</p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Manage your account settings and preferences
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar Navigation */}
-          <Card className="lg:col-span-1">
-            <CardContent className="p-4">
-              <nav className="space-y-1">
-                <button
-                  onClick={() => setActiveTab("profile")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                    activeTab === "profile"
-                      ? "bg-zinc-100 dark:bg-zinc-800 font-medium"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                  }`}
-                >
-                  <UserIcon className="h-5 w-5" />
-                  Profile
-                </button>
-                <button
-                  onClick={() => setActiveTab("security")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                    activeTab === "security"
-                      ? "bg-zinc-100 dark:bg-zinc-800 font-medium"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                  }`}
-                >
-                  <Lock className="h-5 w-5" />
-                  Security
-                </button>
-              </nav>
-            </CardContent>
-          </Card>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
-            {activeTab === "profile" && (
-              <>
-                {/* Avatar Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profile Photo</CardTitle>
-                    <CardDescription>Update your profile picture</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("personalInfo.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-start gap-6">
+                <div className="relative">
+                  <Avatar className="h-24 w-24">
+                    {avatarPreview ? (
+                      <AvatarImage src={avatarPreview} alt={profile.first_name_en} />
+                    ) : (
+                      <AvatarFallback>
+                        {profile.first_name_en?.charAt(0)}
+                        {profile.last_name_en?.charAt(0)}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <label className="absolute bottom-0 right-0 rounded-full bg-primary p-2 text-primary-foreground shadow-md cursor-pointer">
+                    <Camera className="h-4 w-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={handleAvatarChange}
+                    />
+                  </label>
+                </div>
+                
+                <div className="flex-1 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstNameEn">{t("fields.firstNameEn")} *</Label>
                       <div className="relative">
-                        <div className="h-24 w-24 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
-                          {user?.avatar_url ? (
-                            <img
-                              src={user.avatar_url}
-                              alt="Avatar"
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <UserIcon className="h-12 w-12 text-zinc-400" />
-                          )}
-                        </div>
-                        {avatarUploading && (
-                          <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                            <div className="text-white text-sm">Uploading...</div>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <Label
-                          htmlFor="avatar-upload"
-                          className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-                        >
-                          <Camera className="h-4 w-4" />
-                          {avatarUploading ? "Uploading..." : "Change Photo"}
-                        </Label>
-                        <input
-                          id="avatar-upload"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="hidden"
-                          onChange={handleAvatarUpload}
-                          disabled={avatarUploading}
+                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                        <Input
+                          id="firstNameEn"
+                          value={profile.first_name_en || ""}
+                          onChange={(e) => handleChange("first_name_en", e.target.value)}
+                          className="pl-9"
+                          required
                         />
-                        <p className="text-sm text-zinc-500 mt-2">JPEG, PNG, or WebP. Max 5MB.</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Personal Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleProfileSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstNameEn">First Name (English) *</Label>
-                          <Input
-                            id="firstNameEn"
-                            value={profileForm.firstNameEn}
-                            onChange={(e) =>
-                              setProfileForm({ ...profileForm, firstNameEn: e.target.value })
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="firstNameAr">First Name (Arabic) *</Label>
-                          <Input
-                            id="firstNameAr"
-                            value={profileForm.firstNameAr}
-                            onChange={(e) =>
-                              setProfileForm({ ...profileForm, firstNameAr: e.target.value })
-                            }
-                            dir="rtl"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="lastNameEn">Last Name (English)</Label>
-                          <Input
-                            id="lastNameEn"
-                            value={profileForm.lastNameEn}
-                            onChange={(e) =>
-                              setProfileForm({ ...profileForm, lastNameEn: e.target.value })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastNameAr">Last Name (Arabic)</Label>
-                          <Input
-                            id="lastNameAr"
-                            value={profileForm.lastNameAr}
-                            onChange={(e) =>
-                              setProfileForm({ ...profileForm, lastNameAr: e.target.value })
-                            }
-                            dir="rtl"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email *</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                            <Input
-                              id="email"
-                              type="email"
-                              value={profileForm.email}
-                              onChange={(e) =>
-                                setProfileForm({ ...profileForm, email: e.target.value })
-                              }
-                              className="pl-9"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone</Label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                            <Input
-                              id="phone"
-                              type="tel"
-                              value={profileForm.phone}
-                              onChange={(e) =>
-                                setProfileForm({ ...profileForm, phone: e.target.value })
-                              }
-                              className="pl-9"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="language">Preferred Language</Label>
-                          <Select
-                            value={profileForm.preferredLanguage}
-                            onValueChange={(value) =>
-                              setProfileForm({ ...profileForm, preferredLanguage: value })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="en">English</SelectItem>
-                              <SelectItem value="ar">العربية</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="timezone">Timezone</Label>
-                          <Select
-                            value={profileForm.timezone}
-                            onValueChange={(value) =>
-                              setProfileForm({ ...profileForm, timezone: value })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Asia/Qatar">Qatar (GMT+3)</SelectItem>
-                              <SelectItem value="Asia/Dubai">Dubai (GMT+4)</SelectItem>
-                              <SelectItem value="Asia/Riyadh">Riyadh (GMT+3)</SelectItem>
-                              <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
-                              <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button type="submit" disabled={saving} className="gap-2">
-                          {saving ? (
-                            "Saving..."
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4" />
-                              Save Changes
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-
-            {activeTab === "security" && (
-              <>
-                {/* Change Password */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Change Password</CardTitle>
-                    <CardDescription>
-                      Ensure your account is using a strong password
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Current Password *</Label>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="firstNameAr">{t("fields.firstNameAr")} *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                         <Input
-                          id="currentPassword"
-                          type="password"
-                          value={passwordForm.currentPassword}
-                          onChange={(e) =>
-                            setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
-                          }
+                          id="firstNameAr"
+                          value={profile.first_name_ar || ""}
+                          onChange={(e) => handleChange("first_name_ar", e.target.value)}
+                          className="pl-9"
+                          dir="rtl"
                           required
                         />
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password *</Label>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="lastNameEn">{t("fields.lastNameEn")} *</Label>
+                      <Input
+                        id="lastNameEn"
+                        value={profile.last_name_en || ""}
+                        onChange={(e) => handleChange("last_name_en", e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="lastNameAr">{t("fields.lastNameAr")} *</Label>
+                      <Input
+                        id="lastNameAr"
+                        value={profile.last_name_ar || ""}
+                        onChange={(e) => handleChange("last_name_ar", e.target.value)}
+                        dir="rtl"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">{t("fields.email")} *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                         <Input
-                          id="newPassword"
-                          type="password"
-                          value={passwordForm.newPassword}
-                          onChange={(e) =>
-                            setPasswordForm({ ...passwordForm, newPassword: e.target.value })
-                          }
+                          id="email"
+                          type="email"
+                          value={profile.email || ""}
+                          onChange={(e) => handleChange("email", e.target.value)}
+                          className="pl-9"
                           required
                         />
-                        <p className="text-xs text-zinc-500">
-                          Must be at least 8 characters with uppercase, lowercase, and number
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">{t("fields.phone")}</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                        <Input
+                          id="phone"
+                          value={profile.phone || ""}
+                          onChange={(e) => handleChange("phone", e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="jobTitle">{t("fields.jobTitle")}</Label>
+                      <Input
+                        id="jobTitle"
+                        value={profile.job_title || ""}
+                        onChange={(e) => handleChange("job_title", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="department">{t("fields.department")}</Label>
+                      <Input
+                        id="department"
+                        value={profile.department || ""}
+                        onChange={(e) => handleChange("department", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio">{t("fields.bio")}</Label>
+                <Textarea
+                  id="bio"
+                  value={profile.bio || ""}
+                  onChange={(e) => handleChange("bio", e.target.value)}
+                  rows={4}
+                  placeholder={t("placeholders.bio")}
+                />
+              </div>
+
+              <Tabs defaultValue="address" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="address" className="gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {t("tabs.address")}
+                  </TabsTrigger>
+                  <TabsTrigger value="preferences" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    {t("tabs.preferences")}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="address" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="street">{t("fields.street")}</Label>
+                      <Input
+                        id="street"
+                        value={profile.address?.street || ""}
+                        onChange={(e) => handleAddressChange("street", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="city">{t("fields.city")}</Label>
+                      <Input
+                        id="city"
+                        value={profile.address?.city || ""}
+                        onChange={(e) => handleAddressChange("city", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="state">{t("fields.state")}</Label>
+                      <Input
+                        id="state"
+                        value={profile.address?.state || ""}
+                        onChange={(e) => handleAddressChange("state", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="postalCode">{t("fields.postalCode")}</Label>
+                      <Input
+                        id="postalCode"
+                        value={profile.address?.postal_code || ""}
+                        onChange={(e) => handleAddressChange("postal_code", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="country">{t("fields.country")}</Label>
+                      <Select
+                        value={profile.address?.country || "QA"}
+                        onValueChange={(value) => handleAddressChange("country", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="QA">{t("countries.qatar")}</SelectItem>
+                          <SelectItem value="SA">{t("countries.saudiArabia")}</SelectItem>
+                          <SelectItem value="AE">{t("countries.unitedArabEmirates")}</SelectItem>
+                          <SelectItem value="KW">{t("countries.kuwait")}</SelectItem>
+                          <SelectItem value="BH">{t("countries.bahrain")}</SelectItem>
+                          <SelectItem value="OM">{t("countries.oman")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="preferences" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="language">{t("fields.language")}</Label>
+                      <Select
+                        value={profile.preferences?.language || "en"}
+                        onValueChange={(value) => handlePreferencesChange("language", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">{t("languages.english")}</SelectItem>
+                          <SelectItem value="ar">{t("languages.arabic")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="timezone">{t("fields.timezone")}</Label>
+                      <Select
+                        value={profile.preferences?.timezone || "Asia/Qatar"}
+                        onValueChange={(value) => handlePreferencesChange("timezone", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Asia/Qatar">{t("timezones.qatar")}</SelectItem>
+                          <SelectItem value="Asia/Dubai">{t("timezones.dubai")}</SelectItem>
+                          <SelectItem value="Asia/Riyadh">{t("timezones.riyadh")}</SelectItem>
+                          <SelectItem value="Europe/London">{t("timezones.london")}</SelectItem>
+                          <SelectItem value="America/New_York">{t("timezones.newYork")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="theme">{t("fields.theme")}</Label>
+                      <Select
+                        value={profile.preferences?.theme || "system"}
+                        onValueChange={(value) => handlePreferencesChange("theme", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="system">{t("themes.system")}</SelectItem>
+                          <SelectItem value="light">{t("themes.light")}</SelectItem>
+                          <SelectItem value="dark">{t("themes.dark")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="notifications" className="text-base">
+                          {t("fields.notifications")}
+                        </Label>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          {t("descriptions.notifications")}
                         </p>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password *</Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
-                          }
-                          required
-                        />
+                      <Switch
+                        id="notifications"
+                        checked={profile.preferences?.notifications_enabled ?? true}
+                        onCheckedChange={(checked) => handlePreferencesChange("notifications_enabled", checked)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="emailNotifications" className="text-base">
+                          {t("fields.emailNotifications")}
+                        </Label>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          {t("descriptions.emailNotifications")}
+                        </p>
                       </div>
+                      <Switch
+                        id="emailNotifications"
+                        checked={profile.preferences?.email_notifications ?? true}
+                        onCheckedChange={(checked) => handlePreferencesChange("email_notifications", checked)}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
 
-                      <div className="flex justify-end">
-                        <Button
-                          type="submit"
-                          disabled={changingPassword}
-                          variant="default"
-                          className="gap-2"
-                        >
-                          {changingPassword ? (
-                            "Changing..."
-                          ) : (
-                            <>
-                              <Lock className="h-4 w-4" />
-                              Change Password
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-
-                {/* Security Info */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Security Requirements</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                        <span>Password must be at least 8 characters long</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                        <span>Must include uppercase and lowercase letters</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                        <span>Must include at least one number</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                        <span>Cannot match common passwords</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
-        </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={fetchUserProfile}>
+                  {t("actions.cancel")}
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      {t("actions.saving")}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      {t("actions.save")}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
   );
 }

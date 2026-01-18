@@ -1,25 +1,14 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * Expenses Page
+ * Manage business expenses with workflow and approval process
  */
+
 "use client";
 
-/**
- * Expenses Page
- * Displays expense list with summary cards, search, filtering, and CRUD operations
- */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -29,14 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -45,277 +27,437 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Plus,
   Search,
   Edit,
   Trash2,
-  FileText,
-  Package,
-  Plane,
-  Coffee,
-  Zap,
-  Building,
-  Megaphone,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  DollarSign,
-  Upload,
-  Download,
-  MoreVertical,
-  FileCheck,
+  Send,
+  Check,
   X,
+  Download,
+  Eye,
+  FileText,
+  Calendar,
+  RefreshCw,
+  DollarSign,
 } from "lucide-react";
-import {
-  expensesApi,
-  Expense,
-  ExpenseCategory,
-  ExpenseStatus,
-  CreateExpenseDto,
-  ExpenseSummary,
-} from "@/lib/api/expenses";
+import { expensesApi, Expense, ExpenseStatus } from "@/lib/api/expenses";
+import { vendorsApi } from "@/lib/api/vendors";
 import { toast } from "sonner";
-import { use } from "react";
-
-// Category icons mapping
-const categoryIcons: Record<ExpenseCategory, React.ReactNode> = {
-  supplies: <Package className="h-4 w-4" />,
-  travel: <Plane className="h-4 w-4" />,
-  meals: <Coffee className="h-4 w-4" />,
-  utilities: <Zap className="h-4 w-4" />,
-  rent: <Building className="h-4 w-4" />,
-  marketing: <Megaphone className="h-4 w-4" />,
-  other: <FileText className="h-4 w-4" />,
-};
-
-// Category colors
-const categoryColors: Record<ExpenseCategory, string> = {
-  supplies: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  travel: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  meals: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  utilities: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  rent: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  marketing: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  other: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-};
-
-// Status colors
-const statusColors: Record<ExpenseStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  approved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  paid: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-};
+import { format } from "date-fns";
+import logger from "@/lib/logger";
 
 export default function ExpensesPage() {
   const t = useTranslations("purchases.expenses");
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [summary, setSummary] = useState<ExpenseSummary | null>(null);
+  const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
-  const [editExpense, setEditExpense] = useState<Expense | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showExpenseDialog, setShowExpenseDialog] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingReceipt, setUploadingReceipt] = useState(false);
-  const [formData, setFormData] = useState({
-    date: format(new Date(), "yyyy-MM-dd"),
-    category: "other" as ExpenseCategory,
-    description: "",
-    vendorName: "",
+  const [expenseForm, setExpenseForm] = useState({
+    vendorId: "",
+    date: new Date().toISOString().split("T")[0],
     amount: "",
     currency: "QAR",
+    category: "",
+    description: "",
+    descriptionAr: "",
+    referenceNumber: "",
     notes: "",
+    status: "draft" as ExpenseStatus,
   });
 
+  // Fetch initial data
   useEffect(() => {
-    fetchData();
-  }, [categoryFilter, statusFilter]);
+    fetchExpenses();
+    fetchVendors();
+  }, [statusFilter, categoryFilter]);
 
-  const fetchData = async () => {
+  const fetchExpenses = async () => {
     try {
       setLoading(true);
       const filters: Record<string, string | number | boolean | undefined> = {};
-      if (categoryFilter !== "all") {
-        filters.category = categoryFilter;
-      }
-      if (statusFilter !== "all") {
-        filters.status = statusFilter;
-      }
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (categoryFilter && categoryFilter !== "all") filters.category = categoryFilter;
 
-      const [expensesData, summaryData] = await Promise.all([
-        expensesApi.getAll(filters),
-        expensesApi.getSummary(),
-      ]);
-
-      setExpenses(expensesData);
-      setSummary(summaryData);
+      const data = await expensesApi.getAll(filters);
+      setExpenses(data);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load expenses");
+      const message = error instanceof Error ? error.message : "Failed to load expenses";
+      toast.error(message);
+      logger.error("Failed to load expenses", error as Error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredExpenses = expenses.filter(
-    (expense) =>
-      expense.description.toLowerCase().includes(search.toLowerCase()) ||
-      expense.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
-      expense.employee_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchVendors = async () => {
+    try {
+      const data = await vendorsApi.getAll({ is_active: true });
+      setVendors(data);
+    } catch (error: unknown) {
+      logger.error("Failed to load vendors", error as Error);
+    }
+  };
 
+  // Filter expenses based on search
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(
+      (exp) =>
+        exp.expense_number.toLowerCase().includes(search.toLowerCase()) ||
+        exp.vendor?.name_en?.toLowerCase().includes(search.toLowerCase()) ||
+        exp.vendor?.name_ar?.includes(search) ||
+        exp.description_en?.toLowerCase().includes(search.toLowerCase()) ||
+        exp.description_ar?.includes(search) ||
+        exp.reference_number?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [expenses, search]);
+
+  // Get status badge
+  const getStatusBadge = (status: ExpenseStatus) => {
+    const variants: Record<ExpenseStatus, "default" | "secondary" | "outline" | "destructive"> = {
+      draft: "secondary",
+      submitted: "outline",
+      approved: "default",
+      rejected: "destructive",
+      paid: "default",
+      cancelled: "secondary",
+    };
+    
+    const labels: Record<ExpenseStatus, string> = {
+      draft: t("statuses.draft"),
+      submitted: t("statuses.submitted"),
+      approved: t("statuses.approved"),
+      rejected: t("statuses.rejected"),
+      paid: t("statuses.paid"),
+      cancelled: t("statuses.cancelled"),
+    };
+    
+    return <Badge variant={variants[status]}>{labels[status]}</Badge>;
+  };
+
+  // Get category badge
+  const getCategoryBadge = (category: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+      supplies: "default",
+      travel: "secondary",
+      meals: "outline",
+      utilities: "secondary",
+      rent: "outline",
+      marketing: "default",
+      other: "secondary",
+    };
+    
+    const labels: Record<string, string> = {
+      supplies: t("categories.supplies"),
+      travel: t("categories.travel"),
+      meals: t("categories.meals"),
+      utilities: t("categories.utilities"),
+      rent: t("categories.rent"),
+      marketing: t("categories.marketing"),
+      other: t("categories.other"),
+    };
+    
+    return <Badge variant={variants[category] || "secondary"}>{labels[category] || category}</Badge>;
+  };
+
+  // Handle create expense
   const handleCreate = () => {
-    setEditExpense(null);
-    setFormData({
-      date: format(new Date(), "yyyy-MM-dd"),
-      category: "other",
-      description: "",
-      vendorName: "",
+    setEditingExpense(null);
+    setExpenseForm({
+      vendorId: "",
+      date: new Date().toISOString().split("T")[0],
       amount: "",
       currency: "QAR",
+      category: "",
+      description: "",
+      descriptionAr: "",
+      referenceNumber: "",
       notes: "",
+      status: "draft",
     });
-    setDialogOpen(true);
+    setShowExpenseDialog(true);
   };
 
+  // Handle edit expense
   const handleEdit = (expense: Expense) => {
-    setEditExpense(expense);
-    setFormData({
-      date: format(new Date(expense.date), "yyyy-MM-dd"),
-      category: expense.category,
-      description: expense.description,
-      vendorName: expense.vendor_name || "",
-      amount: expense.amount.toString(),
-      currency: expense.currency,
-      notes: expense.notes || "",
-    });
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      const data: CreateExpenseDto = {
-        date: formData.date,
-        category: formData.category,
-        description: formData.description,
-        amount: parseFloat(formData.amount),
-        currency: formData.currency,
-        vendor_id: formData.vendorName || undefined,
-        notes: formData.notes || undefined,
-      };
-
-      if (editExpense) {
-        await expensesApi.update(editExpense.id, data);
-        toast.success("Expense updated successfully");
-      } else {
-        await expensesApi.create(data);
-        toast.success("Expense created successfully");
-      }
-
-      setDialogOpen(false);
-      await fetchData();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to save expense");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (expense: Expense) => {
-    if (expense.status !== "pending") {
-      toast.error("Only pending expenses can be deleted");
+    if (expense.status !== "draft" && expense.status !== "rejected") {
+      toast.error(t("errors.editOnlyDraftOrRejected"));
       return;
     }
+    
+    setEditingExpense(expense);
+    setExpenseForm({
+      vendorId: expense.vendor_id,
+      date: expense.date.split("T")[0],
+      amount: expense.amount.toString(),
+      currency: expense.currency,
+      category: expense.category,
+      description: expense.description_en || "",
+      descriptionAr: expense.description_ar || "",
+      referenceNumber: expense.reference_number || "",
+      notes: expense.notes || "",
+      status: expense.status,
+    });
+    setShowExpenseDialog(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete this expense?`)) {
+  // Handle delete expense
+  const handleDelete = async (expense: Expense) => {
+    if (!confirm(`${t("confirmDelete")} ${expense.expense_number}?`)) {
       return;
     }
 
     try {
       await expensesApi.delete(expense.id);
-      toast.success("Expense deleted successfully");
-      await fetchData();
+      toast.success(t("deleteSuccess"));
+      await fetchExpenses();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete expense");
+      const message = error instanceof Error ? error.message : "Failed to delete expense";
+      toast.error(message);
     }
   };
 
+  // Handle submit expense
+  const handleSubmitExpense = async (expense: Expense) => {
+    setActionLoading(expense.id);
+    try {
+      await expensesApi.submit(expense.id);
+      toast.success(t("submitSuccess"));
+      await fetchExpenses();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to submit expense";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle approve expense
   const handleApprove = async (expense: Expense) => {
+    setActionLoading(expense.id);
     try {
       await expensesApi.approve(expense.id);
-      toast.success("Expense approved successfully");
-      await fetchData();
+      toast.success(t("approveSuccess"));
+      await fetchExpenses();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to approve expense");
-    }
-  };
-
-  const handleReject = async (expense: Expense) => {
-    const reason = prompt("Please enter rejection reason (optional):");
-    if (reason === null) return; // User cancelled
-
-    try {
-      await expensesApi.reject(expense.id, reason || undefined);
-      toast.success("Expense rejected successfully");
-      await fetchData();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to reject expense");
-    }
-  };
-
-  const handleUploadReceipt = (expense: Expense) => {
-    setSelectedExpense(expense);
-    setReceiptDialogOpen(true);
-  };
-
-  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedExpense) return;
-
-    setUploadingReceipt(true);
-    try {
-      await expensesApi.uploadReceipt(selectedExpense.id, file);
-      toast.success("Receipt uploaded successfully");
-      setReceiptDialogOpen(false);
-      await fetchData();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to upload receipt");
+      const message = error instanceof Error ? error.message : "Failed to approve expense";
+      toast.error(message);
     } finally {
-      setUploadingReceipt(false);
+      setActionLoading(null);
     }
   };
 
-  const handleExport = async () => {
+  // Handle reject expense
+  const handleReject = async (expense: Expense) => {
+    if (!confirm(t("confirmReject"))) {
+      return;
+    }
+    
+    setActionLoading(expense.id);
     try {
-      const filters: Record<string, string | number | boolean | undefined> = {};
-      if (categoryFilter !== "all") filters.category = categoryFilter;
-      if (statusFilter !== "all") filters.status = statusFilter;
-
-      await expensesApi.exportToExcel(filters);
-      toast.success("Expenses exported successfully");
+      await expensesApi.reject(expense.id);
+      toast.success(t("rejectSuccess"));
+      await fetchExpenses();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to export expenses");
+      const message = error instanceof Error ? error.message : "Failed to reject expense";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
     }
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
-    return `${currency} ${amount.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Handle mark as paid
+  const handleMarkAsPaid = async (expense: Expense) => {
+    setActionLoading(expense.id);
+    try {
+      await expensesApi.markAsPaid(expense.id);
+      toast.success(t("markPaidSuccess"));
+      await fetchExpenses();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to mark as paid";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const data = {
+        vendor_id: expenseForm.vendorId,
+        date: expenseForm.date,
+        amount: parseFloat(expenseForm.amount),
+        currency: expenseForm.currency,
+        category: expenseForm.category,
+        description_en: expenseForm.description,
+        description_ar: expenseForm.descriptionAr || undefined,
+        reference_number: expenseForm.referenceNumber || undefined,
+        notes: expenseForm.notes || undefined,
+      };
+
+      if (editingExpense) {
+        await expensesApi.update(editingExpense.id, data);
+        toast.success(t("updateSuccess"));
+      } else {
+        await expensesApi.create(data);
+        toast.success(t("createSuccess"));
+      }
+
+      setShowExpenseDialog(false);
+      await fetchExpenses();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to save expense";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle export PDF
+  const handleExportPDF = async (expense: Expense) => {
+    try {
+      const blob = await expensesApi.exportToPDF(expense.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `expense-${expense.expense_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export PDF";
+      toast.error(message);
+    }
+  };
+
+  // Handle export Excel
+  const handleExportExcel = async (expense: Expense) => {
+    try {
+      const blob = await expensesApi.exportToExcel(expense.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `expense-${expense.expense_number}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportExcelSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export Excel";
+      toast.error(message);
+    }
+  };
+
+  // Get action buttons for each expense
+  const getActionButtons = (expense: Expense) => {
+    const buttons = [];
+
+    // View button (always available)
+    buttons.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: t("actions.view"),
+      onClick: () => handleView(expense),
+    });
+
+    // Edit button (draft/rejected only)
+    if (expense.status === "draft" || expense.status === "rejected") {
+      buttons.push({
+        icon: <Edit className="h-4 w-4" />,
+        label: t("actions.edit"),
+        onClick: () => handleEdit(expense),
+      });
+    }
+
+    // Submit button (draft/rejected only)
+    if (expense.status === "draft" || expense.status === "rejected") {
+      buttons.push({
+        icon: <Send className="h-4 w-4" />,
+        label: t("actions.submit"),
+        onClick: () => handleSubmitExpense(expense),
+        loading: actionLoading === expense.id,
+      });
+    }
+
+    // Approve button (submitted only)
+    if (expense.status === "submitted") {
+      buttons.push({
+        icon: <Check className="h-4 w-4" />,
+        label: t("actions.approve"),
+        onClick: () => handleApprove(expense),
+        loading: actionLoading === expense.id,
+      });
+    }
+
+    // Reject button (submitted only)
+    if (expense.status === "submitted") {
+      buttons.push({
+        icon: <X className="h-4 w-4" />,
+        label: t("actions.reject"),
+        onClick: () => handleReject(expense),
+        loading: actionLoading === expense.id,
+      });
+    }
+
+    // Mark as paid (approved only)
+    if (expense.status === "approved") {
+      buttons.push({
+        icon: <DollarSign className="h-4 w-4" />,
+        label: t("actions.markPaid"),
+        onClick: () => handleMarkAsPaid(expense),
+        loading: actionLoading === expense.id,
+      });
+    }
+
+    // Export buttons (always available)
+    buttons.push({
+      icon: <Download className="h-4 w-4" />,
+      label: t("actions.exportPDF"),
+      onClick: () => handleExportPDF(expense),
+    });
+
+    buttons.push({
+      icon: <FileText className="h-4 w-4" />,
+      label: t("actions.exportExcel"),
+      onClick: () => handleExportExcel(expense),
+    });
+
+    // Delete button (draft/rejected only)
+    if (expense.status === "draft" || expense.status === "rejected") {
+      buttons.push({
+        icon: <Trash2 className="h-4 w-4" />,
+        label: t("actions.delete"),
+        onClick: () => handleDelete(expense),
+      });
+    }
+
+    return buttons;
   };
 
   return (
     <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">{t("title")}</h1>
@@ -327,110 +469,48 @@ export default function ExpensesPage() {
           </Button>
         </div>
 
-        {/* Summary Cards */}
-        {summary && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("summary.totalThisMonth")}</CardTitle>
-                <DollarSign className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(summary.totalThisMonth, "QAR")}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("summary.pendingApproval")}
-                </CardTitle>
-                <Clock className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(summary.pendingApproval, "QAR")}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("summary.thisWeek")}</CardTitle>
-                <FileCheck className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(summary.thisWeek, "QAR")}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t("summary.byCategory")}</CardTitle>
-                <Package className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  {Object.entries(summary.byCategory)
-                    .filter(([_, amount]) => amount > 0)
-                    .sort(([, a], [, b]) => b - a)
-                    .slice(0, 3)
-                    .map(([category, amount]) => (
-                      <div key={category} className="flex items-center justify-between text-sm">
-                        <span className="capitalize">{category}</span>
-                        <span className="font-medium">{formatCurrency(amount, "QAR")}</span>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Main Card */}
+        {/* Filters Card */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <CardTitle>{t("title")}</CardTitle>
               <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Export
-                </Button>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="supplies">Supplies</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="meals">Meals</SelectItem>
-                    <SelectItem value="utilities">Utilities</SelectItem>
-                    <SelectItem value="rent">Rent</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-40">
-                    <SelectValue />
+                    <SelectValue placeholder={t("filters.allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="draft">{t("statuses.draft")}</SelectItem>
+                    <SelectItem value="submitted">{t("statuses.submitted")}</SelectItem>
+                    <SelectItem value="approved">{t("statuses.approved")}</SelectItem>
+                    <SelectItem value="rejected">{t("statuses.rejected")}</SelectItem>
+                    <SelectItem value="paid">{t("statuses.paid")}</SelectItem>
+                    <SelectItem value="cancelled">{t("statuses.cancelled")}</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder={t("filters.allCategories")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allCategories")}</SelectItem>
+                    <SelectItem value="supplies">{t("categories.supplies")}</SelectItem>
+                    <SelectItem value="travel">{t("categories.travel")}</SelectItem>
+                    <SelectItem value="meals">{t("categories.meals")}</SelectItem>
+                    <SelectItem value="utilities">{t("categories.utilities")}</SelectItem>
+                    <SelectItem value="rent">{t("categories.rent")}</SelectItem>
+                    <SelectItem value="marketing">{t("categories.marketing")}</SelectItem>
+                    <SelectItem value="other">{t("categories.other")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <Input
                     type="search"
-                    placeholder="Search expenses..."
+                    placeholder={t("filters.searchPlaceholder")}
                     className="w-64 pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -441,198 +521,166 @@ export default function ExpensesPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-8 text-center text-zinc-500">Loading expenses...</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>{t("loading")}</span>
+                </div>
+              </div>
             ) : filteredExpenses.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">
-                <Package className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-600 mb-4" />
-                <p className="font-medium">{t("empty.title")}</p>
-                <p className="text-sm">{t("empty.description")}</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <DollarSign className="h-12 w-12 text-zinc-400 mb-4" />
+                <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                <p className="text-zinc-500">{t("empty.description")}</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/${locale}/purchases/expenses/new`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("createFirst")}
+                  </Link>
+                </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("table.date")}</TableHead>
-                      <TableHead>{t("table.category")}</TableHead>
-                      <TableHead>{t("table.description")}</TableHead>
-                      <TableHead>{t("table.vendor")}</TableHead>
-                      <TableHead>{t("table.amount")}</TableHead>
-                      <TableHead>{t("table.status")}</TableHead>
-                      <TableHead>{t("table.receipt")}</TableHead>
-                      <TableHead className="text-right">{t("table.actions")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredExpenses.map((expense) => (
-                      <TableRow key={expense.id}>
-                        <TableCell>{format(new Date(expense.date), "yyyy-MM-dd")}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${categoryColors[expense.category]}`}
-                          >
-                            {categoryIcons[expense.category]}
-                            <span className="capitalize">{expense.category}</span>
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{expense.description}</div>
-                            {expense.notes && (
-                              <div className="text-sm text-zinc-500">{expense.notes}</div>
-                            )}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("table.expenseNumber")}</TableHead>
+                    <TableHead>{t("table.vendor")}</TableHead>
+                    <TableHead>{t("table.date")}</TableHead>
+                    <TableHead>{t("table.category")}</TableHead>
+                    <TableHead>{t("table.description")}</TableHead>
+                    <TableHead className="text-right">{t("table.amount")}</TableHead>
+                    <TableHead>{t("table.status")}</TableHead>
+                    <TableHead className="text-right">{t("table.actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredExpenses.map((expense) => (
+                    <TableRow key={expense.id}>
+                      <TableCell className="font-mono">{expense.expense_number}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div>{expense.vendor?.name_en}</div>
+                          <div className="text-sm text-zinc-500" dir="rtl">
+                            {expense.vendor?.name_ar}
                           </div>
-                        </TableCell>
-                        <TableCell>{expense.vendor_name || expense.employee_name || "-"}</TableCell>
-                        <TableCell className="font-medium">
-                          {formatCurrency(expense.amount, expense.currency)}
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusColors[expense.status]}`}
-                          >
-                            {t(`statuses.${expense.status}`)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {expense.receipt_url ? (
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(expense.date), "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        {getCategoryBadge(expense.category)}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div>{expense.description_en}</div>
+                          <div className="text-sm text-zinc-500" dir="rtl">
+                            {expense.description_ar}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {expense.currency} {expense.amount.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(expense.status)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {getActionButtons(expense).map((btn, idx) => (
                             <Button
+                              key={idx}
                               variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(expense.receipt_url, "_blank")}
-                              className="gap-1"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                btn.onClick();
+                              }}
+                              disabled={btn.loading}
+                              title={btn.label}
                             >
-                              <FileCheck className="h-4 w-4" />
-                              View
+                              {btn.loading ? (
+                                <span className="h-4 w-4 animate-spin">⏳</span>
+                              ) : (
+                                btn.icon
+                              )}
                             </Button>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUploadReceipt(expense)}
-                              className="gap-1"
-                            >
-                              <Upload className="h-4 w-4" />
-                              Upload
-                            </Button>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {expense.status === "pending" && (
-                                <>
-                                  <DropdownMenuItem onClick={() => handleEdit(expense)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleApprove(expense)}>
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Approve
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleReject(expense)}>
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Reject
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleDelete(expense)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                              {expense.status === "approved" && (
-                                <DropdownMenuItem onClick={() => handleApprove(expense)}>
-                                  <DollarSign className="h-4 w-4 mr-2" />
-                                  Mark as Paid
-                                </DropdownMenuItem>
-                              )}
-                              {expense.rejection_reason && (
-                                <div className="px-2 py-1 text-sm text-red-600 border-t">
-                                  Reason: {expense.rejection_reason}
-                                </div>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                          ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>
 
-        {/* Create/Edit Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+        {/* Create/Edit Expense Dialog */}
+        <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editExpense ? "Edit Expense" : "New Expense"}</DialogTitle>
+              <DialogTitle>
+                {editingExpense ? t("dialogs.editTitle") : t("dialogs.createTitle")}
+              </DialogTitle>
               <DialogDescription>
-                {editExpense ? "Update expense details" : "Record a new business expense"}
+                {editingExpense ? t("dialogs.editDescription") : t("dialogs.createDescription")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="vendor">{t("fields.vendor")} *</Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value: ExpenseCategory) =>
-                      setFormData({ ...formData, category: value })
-                    }
+                    value={expenseForm.vendorId}
+                    onValueChange={(value) => setExpenseForm({ ...expenseForm, vendorId: value })}
+                    required
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder={t("fields.selectVendor")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="supplies">Supplies</SelectItem>
-                      <SelectItem value="travel">Travel</SelectItem>
-                      <SelectItem value="meals">Meals & Entertainment</SelectItem>
-                      <SelectItem value="utilities">Utilities</SelectItem>
-                      <SelectItem value="rent">Rent</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name_en} ({vendor.name_ar})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="date">{t("fields.date")} *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={expenseForm.date}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount *</Label>
+                  <Label htmlFor="amount">{t("fields.amount")} *</Label>
                   <Input
                     id="amount"
                     type="number"
                     step="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    min="0"
+                    value={expenseForm.amount}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
                     required
                   />
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">{t("fields.currency")} *</Label>
                   <Select
-                    value={formData.currency}
-                    onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                    value={expenseForm.currency}
+                    onValueChange={(value) => setExpenseForm({ ...expenseForm, currency: value })}
+                    required
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -641,94 +689,99 @@ export default function ExpensesPage() {
                       <SelectItem value="QAR">QAR</SelectItem>
                       <SelectItem value="USD">USD</SelectItem>
                       <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="SAR">SAR</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">{t("fields.category")} *</Label>
+                  <Select
+                    value={expenseForm.category}
+                    onValueChange={(value) => setExpenseForm({ ...expenseForm, category: value })}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="supplies">{t("categories.supplies")}</SelectItem>
+                      <SelectItem value="travel">{t("categories.travel")}</SelectItem>
+                      <SelectItem value="meals">{t("categories.meals")}</SelectItem>
+                      <SelectItem value="utilities">{t("categories.utilities")}</SelectItem>
+                      <SelectItem value="rent">{t("categories.rent")}</SelectItem>
+                      <SelectItem value="marketing">{t("categories.marketing")}</SelectItem>
+                      <SelectItem value="other">{t("categories.other")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="referenceNumber">{t("fields.referenceNumber")}</Label>
+                  <Input
+                    id="referenceNumber"
+                    value={expenseForm.referenceNumber}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, referenceNumber: e.target.value })}
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="descriptionEn">{t("fields.descriptionEn")} *</Label>
                 <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  id="descriptionEn"
+                  value={expenseForm.description}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
                   required
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="vendorName">Vendor Name</Label>
+                <Label htmlFor="descriptionAr">{t("fields.descriptionAr")} *</Label>
                 <Input
-                  id="vendorName"
-                  value={formData.vendorName}
-                  onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
+                  id="descriptionAr"
+                  value={expenseForm.descriptionAr}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, descriptionAr: e.target.value })}
+                  dir="rtl"
+                  required
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <textarea
+                <Label htmlFor="notes">{t("fields.notes")}</Label>
+                <Textarea
                   id="notes"
-                  className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:focus:ring-zinc-300"
+                  value={expenseForm.notes}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
                   rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
+              
+              <div className="flex justify-end gap-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setDialogOpen(false)}
+                  onClick={() => setShowExpenseDialog(false)}
                   disabled={submitting}
                 >
-                  Cancel
+                  {t("actions.cancel")}
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? "Saving..." : "Save"}
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      {editingExpense ? t("actions.updating") : t("actions.creating")}
+                    </>
+                  ) : editingExpense ? (
+                    t("actions.update")
+                  ) : (
+                    t("actions.create")
+                  )}
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Upload Receipt Dialog */}
-        <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Upload Receipt</DialogTitle>
-              <DialogDescription>Upload a receipt for this expense</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-lg p-8">
-                <Upload className="h-12 w-12 text-zinc-400 mb-4" />
-                <Label htmlFor="receipt-upload" className="cursor-pointer">
-                  <div className="text-center">
-                    <p className="text-sm font-medium">Click to upload</p>
-                    <p className="text-xs text-zinc-500">PNG, JPG, PDF up to 10MB</p>
-                  </div>
-                </Label>
-                <Input
-                  id="receipt-upload"
-                  type="file"
-                  accept="image/*,.pdf"
-                  className="hidden"
-                  onChange={handleReceiptUpload}
-                  disabled={uploadingReceipt}
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setReceiptDialogOpen(false)}
-                  disabled={uploadingReceipt}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
           </DialogContent>
         </Dialog>
       </div>

@@ -266,15 +266,36 @@ function DashboardPageContent() {
             {t("welcome")}, {user?.user_metadata?.full_name || user?.email}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/${locale}/dashboard`}>
-              <Plus className="mr-2 h-4 w-4" />
-              {tCommon("new")}
-            </Link>
-          </Button>
-        </div>
       </div>
+
+      {/* Quick Actions - MOVED TO TOP */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href={`/${locale}/sales/invoices/new`}>
+                <FileText className="mr-2 h-4 w-4" />
+                New Invoice
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/${locale}/sales/payments/new`}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                New Payment
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/${locale}/accounting/journals/new`}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Journal
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -335,35 +356,6 @@ function DashboardPageContent() {
               No chart data available
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={`/${locale}/sales/invoices/new`}>
-                <FileText className="mr-2 h-4 w-4" />
-                New Invoice
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/${locale}/sales/payments/new`}>
-                <DollarSign className="mr-2 h-4 w-4" />
-                New Payment
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/${locale}/accounting/journals/new`}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Journal
-              </Link>
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

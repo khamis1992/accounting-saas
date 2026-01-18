@@ -1,23 +1,14 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * Depreciation Page
+ * Fixed asset depreciation management with calculation and posting
  */
+
 "use client";
 
-/**
- * Depreciation Page
- * Calculate and post depreciation entries
- */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -28,25 +19,6 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Upload, Eye, CheckCircle2, Clock } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  assetsApi,
-  DepreciationSchedule,
-  DepreciationRun,
-  JournalEntryPreview,
-} from "@/lib/api/assets";
-import logger from "@/lib/logger";
-import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -54,433 +26,478 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Download,
+  Eye,
+  Calculator,
+  Upload,
+  Calendar,
+  RefreshCw,
+  FileText,
+} from "lucide-react";
+import { depreciationApi, Depreciation, Asset } from "@/lib/api/depreciation";
+import { assetsApi } from "@/lib/api/assets";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import logger from "@/lib/logger";
 
 export default function DepreciationPage() {
-  const t = useTranslations();
+  const t = useTranslations("assets.depreciation");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [assetFilter, setAssetFilter] = useState<string>("all");
+  const [depreciations, setDepreciations] = useState<Depreciation[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showCalculateDialog, setShowCalculateDialog] = useState(false);
+  const [calculationDate, setCalculationDate] = useState("");
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
 
-  const [schedule, setSchedule] = useState<DepreciationSchedule[]>([]);
-  const [history, setHistory] = useState<DepreciationRun[]>([]);
-  const [journalPreview, setJournalPreview] = useState<JournalEntryPreview | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [posting, setPosting] = useState(false);
-
-  const [periodStart, setPeriodStart] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0]
-  );
-  const [periodEnd, setPeriodEnd] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split("T")[0]
-  );
-
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-
+  // Fetch initial data
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    fetchDepreciations();
+    fetchAssets();
+  }, [statusFilter, assetFilter]);
 
-  const fetchHistory = async () => {
+  const fetchDepreciations = async () => {
     try {
-      const data = await assetsApi.getDepreciationHistory();
-      setHistory(data);
+      setLoading(true);
+      const filters: Record<string, string | number | boolean | undefined> = {};
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (assetFilter && assetFilter !== "all") filters.asset_id = assetFilter;
+
+      const data = await depreciationApi.getAll(filters);
+      setDepreciations(data);
     } catch (error: unknown) {
-      logger.error("Failed to load history:", error);
+      const message = error instanceof Error ? error.message : "Failed to load depreciations";
+      toast.error(message);
+      logger.error("Failed to load depreciations", error as Error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const fetchAssets = async () => {
+    try {
+      const data = await assetsApi.getAll({ is_active: true });
+      setAssets(data);
+    } catch (error: unknown) {
+      logger.error("Failed to load assets", error as Error);
+    }
+  };
+
+  // Filter depreciations based on search
+  const filteredDepreciations = useMemo(() => {
+    return depreciations.filter(
+      (dep) =>
+        dep.depreciation_number.toLowerCase().includes(search.toLowerCase()) ||
+        dep.asset?.name_en?.toLowerCase().includes(search.toLowerCase()) ||
+        dep.asset?.name_ar?.includes(search) ||
+        dep.asset?.asset_code.includes(search)
+    );
+  }, [depreciations, search]);
+
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+      draft: "secondary",
+      calculated: "outline",
+      posted: "default",
+      cancelled: "destructive",
+    };
+    
+    const labels: Record<string, string> = {
+      draft: t("statuses.draft"),
+      calculated: t("statuses.calculated"),
+      posted: t("statuses.posted"),
+      cancelled: t("statuses.cancelled"),
+    };
+    
+    return <Badge variant={variants[status] || "secondary"}>{labels[status] || status}</Badge>;
+  };
+
+  // Get depreciation method badge
+  const getMethodBadge = (method: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline"> = {
+      straight_line: "default",
+      declining_balance: "secondary",
+      units_of_production: "outline",
+    };
+    
+    const labels: Record<string, string> = {
+      straight_line: t("methods.straightLine"),
+      declining_balance: t("methods.decliningBalance"),
+      units_of_production: t("methods.unitsOfProduction"),
+    };
+    
+    return <Badge variant={variants[method] || "outline"}>{labels[method] || method}</Badge>;
+  };
+
+  // Action handlers
   const handleCalculate = async () => {
-    if (!periodStart || !periodEnd) {
-      toast.error("Please select period dates");
+    if (!calculationDate) {
+      toast.error(t("errors.selectDate"));
       return;
     }
-
+    
     try {
-      setLoading(true);
-      const data = await assetsApi.calculateDepreciation(periodStart, periodEnd);
-      setSchedule(data);
-      toast.success(`Calculated depreciation for ${data.length} assets`);
+      const data = {
+        calculation_date: calculationDate,
+        asset_ids: selectedAssetIds.length > 0 ? selectedAssetIds : undefined,
+      };
+      
+      await depreciationApi.calculate(data);
+      toast.success(t("calculateSuccess"));
+      setShowCalculateDialog(false);
+      await fetchDepreciations();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to calculate depreciation";
       toast.error(message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handlePreviewJournal = async () => {
-    if (schedule.length === 0) {
-      toast.error("Please calculate depreciation first");
+  const handleView = (depreciation: Depreciation) => {
+    router.push(`/${locale}/assets/depreciation/${depreciation.id}`);
+  };
+
+  const handleDelete = async (depreciation: Depreciation) => {
+    if (!confirm(`${t("confirmDelete")} ${depreciation.depreciation_number}?`)) {
       return;
     }
 
     try {
-      setLoading(true);
-      const preview = await assetsApi.previewJournalEntries(periodStart, periodEnd);
-      setJournalPreview(preview);
-      setShowPreviewDialog(true);
+      await depreciationApi.delete(depreciation.id);
+      toast.success(t("deleteSuccess"));
+      await fetchDepreciations();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to preview journal entries";
+      const message = error instanceof Error ? error.message : "Failed to delete depreciation";
       toast.error(message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handlePostToJournal = async () => {
-    if (schedule.length === 0) {
-      toast.error("Please calculate depreciation first");
-      return;
-    }
-
-    if (
-      !confirm(
-        "Are you sure you want to post depreciation to the journal? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-
+  const handlePostToJournal = async (depreciation: Depreciation) => {
+    setActionLoading(depreciation.id);
     try {
-      setPosting(true);
-      await assetsApi.postToJournal(periodStart, periodEnd);
-      toast.success("Depreciation posted to journal successfully");
-      setSchedule([]);
-      setShowPreviewDialog(false);
-      await fetchHistory();
+      await depreciationApi.postToJournal(depreciation.id);
+      toast.success(t("postSuccess"));
+      await fetchDepreciations();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to post depreciation";
+      const message = error instanceof Error ? error.message : "Failed to post to journal";
       toast.error(message);
     } finally {
-      setPosting(false);
+      setActionLoading(null);
     }
   };
 
-  const getMethodLabel = (method: string) => {
-    const labels: Record<string, string> = {
-      "straight-line": "Straight Line",
-      "declining-balance": "Declining Balance",
-      "units-of-production": "Units of Production",
-    };
-    return labels[method] || method;
+  const handleExportPDF = async (depreciation: Depreciation) => {
+    try {
+      const blob = await depreciationApi.exportToPDF(depreciation.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `depreciation-${depreciation.depreciation_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export PDF";
+      toast.error(message);
+    }
   };
 
-  const getTotalDepreciation = () => {
-    return schedule.reduce((sum, item) => sum + item.this_period_depreciation, 0);
+  const handleExportExcel = async (depreciation: Depreciation) => {
+    try {
+      const blob = await depreciationApi.exportToExcel(depreciation.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `depreciation-${depreciation.depreciation_number}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportExcelSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export Excel";
+      toast.error(message);
+    }
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString();
+  // Get action buttons for each depreciation
+  const getActionButtons = (depreciation: Depreciation) => {
+    const buttons = [];
+
+    // View button (always available)
+    buttons.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: t("actions.view"),
+      onClick: () => handleView(depreciation),
+    });
+
+    // Export buttons (always available)
+    buttons.push({
+      icon: <Download className="h-4 w-4" />,
+      label: t("actions.exportPDF"),
+      onClick: () => handleExportPDF(depreciation),
+    });
+
+    buttons.push({
+      icon: <FileText className="h-4 w-4" />,
+      label: t("actions.exportExcel"),
+      onClick: () => handleExportExcel(depreciation),
+    });
+
+    // Post to journal button (calculated only)
+    if (depreciation.status === "calculated") {
+      buttons.push({
+        icon: <Upload className="h-4 w-4" />,
+        label: t("actions.postToJournal"),
+        onClick: () => handlePostToJournal(depreciation),
+        loading: actionLoading === depreciation.id,
+      });
+    }
+
+    // Delete button (draft only)
+    if (depreciation.status === "draft") {
+      buttons.push({
+        icon: <Trash2 className="h-4 w-4" />,
+        label: t("actions.delete"),
+        onClick: () => handleDelete(depreciation),
+      });
+    }
+
+    return buttons;
   };
 
   return (
     <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Depreciation</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Calculate and post depreciation entries
-            </p>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCalculateDialog(true)} className="gap-2">
+              <Calculator className="h-4 w-4" />
+              {t("calculateDepreciation")}
+            </Button>
           </div>
         </div>
 
-        {/* Period Selection Card */}
+        {/* Filters Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Depreciation Period</CardTitle>
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>{t("title")}</CardTitle>
+              <div className="flex items-center gap-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder={t("filters.allStatuses")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="draft">{t("statuses.draft")}</SelectItem>
+                    <SelectItem value="calculated">{t("statuses.calculated")}</SelectItem>
+                    <SelectItem value="posted">{t("statuses.posted")}</SelectItem>
+                    <SelectItem value="cancelled">{t("statuses.cancelled")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={assetFilter} onValueChange={setAssetFilter}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder={t("filters.allAssets")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allAssets")}</SelectItem>
+                    {assets.map((asset) => (
+                      <SelectItem key={asset.id} value={asset.id}>
+                        {asset.name_en} ({asset.asset_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <Input
+                    type="search"
+                    placeholder={t("filters.searchPlaceholder")}
+                    className="w-64 pl-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="period-start">Period Start</Label>
-                <Input
-                  id="period-start"
-                  type="date"
-                  value={periodStart}
-                  onChange={(e) => setPeriodStart(e.target.value)}
-                  className="w-48"
-                />
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>{t("loading")}</span>
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="period-end">Period End</Label>
-                <Input
-                  id="period-end"
-                  type="date"
-                  value={periodEnd}
-                  onChange={(e) => setPeriodEnd(e.target.value)}
-                  className="w-48"
-                />
-              </div>
-
-              <Button onClick={handleCalculate} disabled={loading} className="gap-2">
-                <Calculator className="h-4 w-4" />
-                {loading ? "Calculating..." : "Calculate Depreciation"}
-              </Button>
-
-              {schedule.length > 0 && (
-                <>
-                  <Button
-                    onClick={handlePreviewJournal}
-                    disabled={loading}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    Preview Journal
-                  </Button>
-
-                  <Button onClick={handlePostToJournal} disabled={posting} className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    {posting ? "Posting..." : "Post to Journal"}
-                  </Button>
-                </>
-              )}
-
-              <div className="ml-auto">
-                <Button
-                  onClick={() => setShowHistoryDialog(true)}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Clock className="h-4 w-4" />
-                  View History
+            ) : filteredDepreciations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-12 w-12 text-zinc-400 mb-4" />
+                <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                <p className="text-zinc-500">{t("empty.description")}</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/${locale}/assets/depreciation/calculate`}>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    {t("calculateFirst")}
+                  </Link>
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Summary Card (shown after calculation) */}
-        {schedule.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Depreciation Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Number of Assets</p>
-                  <p className="text-2xl font-bold">{schedule.length}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Total Depreciation This Period
-                  </p>
-                  <p className="text-2xl font-bold">
-                    QAR {getTotalDepreciation().toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Period</p>
-                  <p className="text-2xl font-bold">
-                    {formatDate(periodStart)} - {formatDate(periodEnd)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Depreciation Schedule Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Depreciation Schedule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {schedule.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">
-                Select a period and click "Calculate Depreciation" to begin
-              </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Asset Code</TableHead>
-                    <TableHead>Asset Name</TableHead>
-                    <TableHead className="text-right">Cost</TableHead>
-                    <TableHead className="text-right">Salvage Value</TableHead>
-                    <TableHead>Useful Life</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Annual Depreciation</TableHead>
-                    <TableHead className="text-right">This Period</TableHead>
-                    <TableHead className="text-right">Accumulated</TableHead>
-                    <TableHead className="text-right">Net Book Value</TableHead>
+                    <TableHead>{t("table.depreciationNumber")}</TableHead>
+                    <TableHead>{t("table.asset")}</TableHead>
+                    <TableHead>{t("table.calculationDate")}</TableHead>
+                    <TableHead>{t("table.method")}</TableHead>
+                    <TableHead>{t("table.status")}</TableHead>
+                    <TableHead className="text-right">{t("table.amount")}</TableHead>
+                    <TableHead className="text-right">{t("table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {schedule.map((item) => (
-                    <TableRow key={item.asset_id}>
-                      <TableCell className="font-mono text-sm">{item.asset_code}</TableCell>
-                      <TableCell className="font-medium">{item.asset_name}</TableCell>
-                      <TableCell className="text-right">QAR {item.cost.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">
-                        QAR {item.salvage_value.toLocaleString()}
-                      </TableCell>
-                      <TableCell>{item.useful_life_years} years</TableCell>
-                      <TableCell>{getMethodLabel(item.method)}</TableCell>
-                      <TableCell className="text-right">
-                        QAR {item.annual_depreciation.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        QAR {item.this_period_depreciation.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        QAR {item.accumulated_depreciation.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        QAR {item.net_book_value.toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="bg-zinc-100 dark:bg-zinc-800 font-medium">
-                    <TableCell colSpan={7} className="text-right">
-                      Total:
-                    </TableCell>
-                    <TableCell className="text-right">
-                      QAR {getTotalDepreciation().toLocaleString()}
-                    </TableCell>
-                    <TableCell></TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-      {/* Journal Preview Dialog */}
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Journal Entry Preview</DialogTitle>
-            <DialogDescription>Review the journal entries that will be created</DialogDescription>
-          </DialogHeader>
-
-          {journalPreview && (
-            <div className="space-y-4 py-4">
-              <div className="rounded-lg bg-zinc-100 dark:bg-zinc-800 p-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-zinc-600 dark:text-zinc-400">Date:</span>{" "}
-                    <span className="font-medium">{formatDate(journalPreview.date)}</span>
-                  </div>
-                  <div>
-                    <span className="text-zinc-600 dark:text-zinc-400">Description:</span>{" "}
-                    <span className="font-medium">{journalPreview.description}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Account Code</TableHead>
-                    <TableHead>Account Name</TableHead>
-                    <TableHead className="text-right">Debit</TableHead>
-                    <TableHead className="text-right">Credit</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {journalPreview.entries.map((entry, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-mono text-sm">{entry.account_code}</TableCell>
-                      <TableCell>{entry.account_name}</TableCell>
-                      <TableCell className="text-right">
-                        {entry.debit > 0 ? `QAR ${entry.debit.toLocaleString()}` : "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {entry.credit > 0 ? `QAR ${entry.credit.toLocaleString()}` : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="bg-zinc-100 dark:bg-zinc-800 font-medium">
-                    <TableCell colSpan={2} className="text-right">
-                      Total:
-                    </TableCell>
-                    <TableCell className="text-right">
-                      QAR {journalPreview.total_debit.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      QAR {journalPreview.total_credit.toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-
-              {journalPreview.total_debit === journalPreview.total_credit ? (
-                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Journal is balanced
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-                  Journal is NOT balanced
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
-              Close
-            </Button>
-            <Button onClick={handlePostToJournal} disabled={posting}>
-              {posting ? "Posting..." : "Post to Journal"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Depreciation History</DialogTitle>
-            <DialogDescription>Previous depreciation calculations and postings</DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            {history.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">No depreciation history found</div>
-            ) : (
-              <div className="space-y-4">
-                {history.map((run) => (
-                  <Card key={run.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
+                  {filteredDepreciations.map((depreciation) => (
+                    <TableRow key={depreciation.id}>
+                      <TableCell className="font-mono">{depreciation.depreciation_number}</TableCell>
+                      <TableCell>
                         <div>
-                          <CardTitle className="text-base">
-                            {formatDate(run.period_start)} - {formatDate(run.period_end)}
-                          </CardTitle>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            Created: {new Date(run.created_at).toLocaleString()}
-                          </p>
+                          <div>{depreciation.asset?.name_en}</div>
+                          <div className="text-sm text-zinc-500" dir="rtl">
+                            {depreciation.asset?.name_ar}
+                          </div>
+                          <div className="text-xs text-zinc-400">
+                            {depreciation.asset?.asset_code}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={run.status === "posted" ? "default" : "secondary"}>
-                            {run.status === "posted" ? "Posted" : "Calculated"}
-                          </Badge>
-                          <p className="text-sm font-medium">
-                            QAR {run.total_depreciation.toLocaleString()}
-                          </p>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(depreciation.calculation_date), "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        {getMethodBadge(depreciation.method)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(depreciation.status)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        QAR {depreciation.total_amount?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {getActionButtons(depreciation).map((btn, idx) => (
+                            <Button
+                              key={idx}
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                btn.onClick();
+                              }}
+                              disabled={btn.loading}
+                              title={btn.label}
+                            >
+                              {btn.loading ? (
+                                <span className="h-4 w-4 animate-spin">⏳</span>
+                              ) : (
+                                btn.icon
+                              )}
+                            </Button>
+                          ))}
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {run.entries.length} assets
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
-          </div>
+          </CardContent>
+        </Card>
 
-          <DialogFooter>
-            <Button onClick={() => setShowHistoryDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        {/* Calculate Depreciation Dialog */}
+        <Dialog open={showCalculateDialog} onOpenChange={setShowCalculateDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("dialogs.calculateTitle")}</DialogTitle>
+              <DialogDescription>{t("dialogs.calculateDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="calculationDate">{t("dialogs.calculationDate")}</Label>
+                <Input
+                  id="calculationDate"
+                  type="date"
+                  value={calculationDate}
+                  onChange={(e) => setCalculationDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>{t("dialogs.selectAssets")}</Label>
+                <div className="max-h-60 overflow-y-auto rounded-md border p-2">
+                  {assets.map((asset) => (
+                    <div key={asset.id} className="flex items-center gap-2 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">
+                      <input
+                        type="checkbox"
+                        id={`asset-${asset.id}`}
+                        checked={selectedAssetIds.includes(asset.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedAssetIds([...selectedAssetIds, asset.id]);
+                          } else {
+                            setSelectedAssetIds(selectedAssetIds.filter(id => id !== asset.id));
+                          }
+                        }}
+                      />
+                      <label htmlFor={`asset-${asset.id}`} className="flex-1">
+                        <div>{asset.name_en}</div>
+                        <div className="text-sm text-zinc-500" dir="rtl">
+                          {asset.name_ar}
+                        </div>
+                        <div className="text-xs text-zinc-400">
+                          {asset.asset_code} • {asset.category}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCalculateDialog(false)}>
+                {t("dialogs.cancel")}
+              </Button>
+              <Button onClick={handleCalculate}>
+                <Calculator className="mr-2 h-4 w-4" />
+                {t("dialogs.calculate")}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
   );
 }

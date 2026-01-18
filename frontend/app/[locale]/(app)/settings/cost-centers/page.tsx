@@ -1,26 +1,14 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * Cost Centers Page
+ * Manage cost centers for expense tracking and reporting
  */
+
 "use client";
 
-/**
- * Cost Centers Management Page
- * Create, edit, and manage cost centers for expense tracking
- */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -29,14 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -44,265 +26,350 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Building2 } from "lucide-react";
-import { costCentersApi, CostCenter, CreateCostCenterDto } from "@/lib/api/settings";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building,
+  DollarSign,
+  Eye,
+  FileText,
+  Download,
+  RefreshCw,
+} from "lucide-react";
+import { costCentersApi, CostCenter } from "@/lib/api/cost-centers";
 import { toast } from "sonner";
+import logger from "@/lib/logger";
 
 export default function CostCentersPage() {
   const t = useTranslations("settings.costCenters");
-  const tc = useTranslations("common");
-
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-  const [editCenter, setEditCenter] = useState<CostCenter | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showCostCenterDialog, setShowCostCenterDialog] = useState(false);
+  const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [costCenterForm, setCostCenterForm] = useState({
     code: "",
-    name: "",
+    nameEn: "",
     nameAr: "",
     description: "",
+    descriptionAr: "",
     parentId: "",
     isActive: true,
   });
 
-  // Fetch cost centers
+  // Fetch initial data
   useEffect(() => {
     fetchCostCenters();
-  }, []);
+  }, [statusFilter]);
 
   const fetchCostCenters = async () => {
     try {
       setLoading(true);
-      const data = await costCentersApi.getAll();
+      const filters: Record<string, string | number | boolean | undefined> = {};
+      if (statusFilter && statusFilter !== "all") filters.is_active = statusFilter === "active";
+
+      const data = await costCentersApi.getAll(filters);
       setCostCenters(data);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load cost centers");
+      const message = error instanceof Error ? error.message : "Failed to load cost centers";
+      toast.error(message);
+      logger.error("Failed to load cost centers", error as Error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Open create dialog
+  // Filter cost centers based on search
+  const filteredCostCenters = useMemo(() => {
+    return costCenters.filter(
+      (cc) =>
+        cc.code.toLowerCase().includes(search.toLowerCase()) ||
+        cc.name_en.toLowerCase().includes(search.toLowerCase()) ||
+        cc.name_ar.includes(search) ||
+        cc.description?.toLowerCase().includes(search.toLowerCase()) ||
+        cc.description_ar?.includes(search)
+    );
+  }, [costCenters, search]);
+
+  // Get status badge
+  const getStatusBadge = (isActive: boolean) => {
+    return (
+      <Badge variant={isActive ? "default" : "secondary"}>
+        {isActive ? t("statuses.active") : t("statuses.inactive")}
+      </Badge>
+    );
+  };
+
+  // Handle create cost center
   const handleCreate = () => {
-    setEditCenter(null);
-    setFormData({
+    setEditingCostCenter(null);
+    setCostCenterForm({
       code: "",
-      name: "",
+      nameEn: "",
       nameAr: "",
       description: "",
-      parentId: "none",
+      descriptionAr: "",
+      parentId: "",
       isActive: true,
     });
-    setOpen(true);
+    setShowCostCenterDialog(true);
   };
 
-  // Open edit dialog
-  const handleEdit = (center: CostCenter) => {
-    setEditCenter(center);
-    setFormData({
-      code: center.code,
-      name: center.name,
-      nameAr: center.name_ar,
-      description: center.description || "",
-      parentId: center.parent_id || "none",
-      isActive: center.is_active,
+  // Handle edit cost center
+  const handleEdit = (costCenter: CostCenter) => {
+    setEditingCostCenter(costCenter);
+    setCostCenterForm({
+      code: costCenter.code,
+      nameEn: costCenter.name_en,
+      nameAr: costCenter.name_ar,
+      description: costCenter.description || "",
+      descriptionAr: costCenter.description_ar || "",
+      parentId: costCenter.parent_id || "",
+      isActive: costCenter.is_active,
     });
-    setOpen(true);
+    setShowCostCenterDialog(true);
   };
 
-  // Handle form submit
+  // Handle delete cost center
+  const handleDelete = async (costCenter: CostCenter) => {
+    if (!confirm(`${t("confirmDelete")} ${costCenter.name_en}?`)) {
+      return;
+    }
+
+    try {
+      await costCentersApi.delete(costCenter.id);
+      toast.success(t("deleteSuccess"));
+      await fetchCostCenters();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to delete cost center";
+      toast.error(message);
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const data: CreateCostCenterDto = {
-        code: formData.code,
-        name: formData.name,
-        nameAr: formData.nameAr,
-        description: formData.description,
-        parentId: formData.parentId === "none" ? undefined : formData.parentId || undefined,
-        isActive: formData.isActive,
+      const data = {
+        code: costCenterForm.code,
+        name_en: costCenterForm.nameEn,
+        name_ar: costCenterForm.nameAr,
+        description: costCenterForm.description || undefined,
+        description_ar: costCenterForm.descriptionAr || undefined,
+        parent_id: costCenterForm.parentId || undefined,
+        is_active: costCenterForm.isActive,
       };
 
-      if (editCenter) {
-        await costCentersApi.update(editCenter.id, data);
-        toast.success("Cost center updated successfully");
+      if (editingCostCenter) {
+        await costCentersApi.update(editingCostCenter.id, data);
+        toast.success(t("updateSuccess"));
       } else {
         await costCentersApi.create(data);
-        toast.success("Cost center created successfully");
+        toast.success(t("createSuccess"));
       }
 
-      setOpen(false);
+      setShowCostCenterDialog(false);
       await fetchCostCenters();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to save cost center");
+      const message = error instanceof Error ? error.message : "Failed to save cost center";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Handle delete
-  const handleDelete = async (center: CostCenter) => {
-    if (center.account_count > 0) {
-      toast.error("Cannot delete cost center with assigned accounts");
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to delete cost center ${center.name}?`)) {
-      return;
-    }
-
+  // Handle export PDF
+  const handleExportPDF = async (costCenter: CostCenter) => {
     try {
-      await costCentersApi.delete(center.id);
-      toast.success("Cost center deleted successfully");
-      await fetchCostCenters();
+      const blob = await costCentersApi.exportToPDF(costCenter.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cost-center-${costCenter.code}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportSuccess"));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete cost center");
+      const message = error instanceof Error ? error.message : "Failed to export PDF";
+      toast.error(message);
     }
   };
 
-  // Handle toggle active
-  const handleToggleActive = async (center: CostCenter) => {
-    try {
-      await costCentersApi.toggleActive(center.id);
-      toast.success("Cost center status updated");
-      await fetchCostCenters();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to update cost center");
-    }
-  };
+  // Get action buttons for each cost center
+  const getActionButtons = (costCenter: CostCenter) => {
+    const buttons = [];
 
-  // Get parent cost center name
-  const getParentName = (parentId: string) => {
-    const parent = costCenters.find((c) => c.id === parentId);
-    return parent ? parent.name : "-";
+    // View button (always available)
+    buttons.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: t("actions.view"),
+      onClick: () => handleView(costCenter),
+    });
+
+    // Edit button (always available)
+    buttons.push({
+      icon: <Edit className="h-4 w-4" />,
+      label: t("actions.edit"),
+      onClick: () => handleEdit(costCenter),
+    });
+
+    // Export button (always available)
+    buttons.push({
+      icon: <Download className="h-4 w-4" />,
+      label: t("actions.exportPDF"),
+      onClick: () => handleExportPDF(costCenter),
+    });
+
+    // Delete button (always available)
+    buttons.push({
+      icon: <Trash2 className="h-4 w-4" />,
+      label: t("actions.delete"),
+      onClick: () => handleDelete(costCenter),
+    });
+
+    return buttons;
   };
 
   return (
     <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-zinc-500" />
-            <div>
-              <h1 className="text-3xl font-bold">{t("title")}</h1>
-              <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
           </div>
           <Button onClick={handleCreate} className="gap-2">
             <Plus className="h-4 w-4" />
-            {t("createCostCenter")}
+            {t("newCostCenter")}
           </Button>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-zinc-500">
-                {t("totalCostCenters")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{costCenters.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-zinc-500">
-                {t("activeCostCenters")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {costCenters.filter((c) => c.is_active).length}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-zinc-500">
-                {t("totalAccounts")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {costCenters.reduce((sum, c) => sum + c.account_count, 0)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Cost Centers Table */}
+        {/* Filters Card */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("allCostCenters")}</CardTitle>
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>{t("title")}</CardTitle>
+              <div className="flex items-center gap-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder={t("filters.allStatuses")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="active">{t("statuses.active")}</SelectItem>
+                    <SelectItem value="inactive">{t("statuses.inactive")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <Input
+                    type="search"
+                    placeholder={t("filters.searchPlaceholder")}
+                    className="w-64 pl-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-8 text-center text-zinc-500">Loading cost centers...</div>
-            ) : costCenters.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">
-                No cost centers found. Create your first cost center.
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>{t("loading")}</span>
+                </div>
+              </div>
+            ) : filteredCostCenters.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Building className="h-12 w-12 text-zinc-400 mb-4" />
+                <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                <p className="text-zinc-500">{t("empty.description")}</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/${locale}/settings/cost-centers/new`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("createFirst")}
+                  </Link>
+                </Button>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("code")}</TableHead>
-                    <TableHead>{t("name")}</TableHead>
-                    <TableHead>{t("parent")}</TableHead>
-                    <TableHead>{t("accounts")}</TableHead>
-                    <TableHead>{t("status")}</TableHead>
-                    <TableHead className="text-right">{tc("actions")}</TableHead>
+                    <TableHead>{t("table.code")}</TableHead>
+                    <TableHead>{t("table.name")}</TableHead>
+                    <TableHead>{t("table.description")}</TableHead>
+                    <TableHead>{t("table.parent")}</TableHead>
+                    <TableHead>{t("table.status")}</TableHead>
+                    <TableHead className="text-right">{t("table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {costCenters.map((center) => (
-                    <TableRow key={center.id}>
-                      <TableCell className="font-mono">{center.code}</TableCell>
+                  {filteredCostCenters.map((costCenter) => (
+                    <TableRow key={costCenter.id}>
+                      <TableCell className="font-mono">{costCenter.code}</TableCell>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{center.name}</div>
-                          <div className="text-sm text-zinc-500">{center.name_ar}</div>
+                        <div className="font-medium">{costCenter.name_en}</div>
+                        <div className="text-sm text-zinc-500" dir="rtl">
+                          {costCenter.name_ar}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {center.parent_id ? getParentName(center.parent_id) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{center.account_count}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={center.is_active ? "default" : "secondary"}>
-                            {center.is_active ? tc("active") : tc("inactive")}
-                          </Badge>
-                          <Switch
-                            checked={center.is_active}
-                            onCheckedChange={() => handleToggleActive(center)}
-                          />
+                        <div>{costCenter.description}</div>
+                        <div className="text-sm text-zinc-500" dir="rtl">
+                          {costCenter.description_ar}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {costCenter.parent?.name_en ? (
+                          <div>
+                            <div>{costCenter.parent.name_en}</div>
+                            <div className="text-sm text-zinc-500" dir="rtl">
+                              {costCenter.parent.name_ar}
+                            </div>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(costCenter.is_active)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(center)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(center)}
-                            disabled={center.account_count > 0}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex justify-end gap-1">
+                          {getActionButtons(costCenter).map((btn, idx) => (
+                            <Button
+                              key={idx}
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                btn.onClick();
+                              }}
+                              title={btn.label}
+                            >
+                              {btn.icon}
+                            </Button>
+                          ))}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -313,106 +380,124 @@ export default function CostCentersPage() {
           </CardContent>
         </Card>
 
-        {/* Create/Edit Dialog */}
-        <Dialog open={open} onOpenChange={setOpen}>
+        {/* Create/Edit Cost Center Dialog */}
+        <Dialog open={showCostCenterDialog} onOpenChange={setShowCostCenterDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editCenter ? t("editCostCenter") : t("createCostCenter")}</DialogTitle>
+              <DialogTitle>
+                {editingCostCenter ? t("dialogs.editTitle") : t("dialogs.createTitle")}
+              </DialogTitle>
               <DialogDescription>
-                {editCenter
-                  ? "Update cost center details"
-                  : "Create a new cost center for expense tracking"}
+                {editingCostCenter ? t("dialogs.editDescription") : t("dialogs.createDescription")}
               </DialogDescription>
             </DialogHeader>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="code">{t("code")}</Label>
+                <Label htmlFor="code">{t("fields.code")} *</Label>
                 <Input
                   id="code"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="e.g., CC001"
+                  value={costCenterForm.code}
+                  onChange={(e) => setCostCenterForm({ ...costCenterForm, code: e.target.value })}
                   required
-                  disabled={!!editCenter}
+                  disabled={!!editingCostCenter}
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="name">{t("name")}</Label>
+                <Label htmlFor="nameEn">{t("fields.nameEn")} *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Marketing Department"
+                  id="nameEn"
+                  value={costCenterForm.nameEn}
+                  onChange={(e) => setCostCenterForm({ ...costCenterForm, nameEn: e.target.value })}
                   required
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="nameAr">{t("nameArabic")}</Label>
+                <Label htmlFor="nameAr">{t("fields.nameAr")} *</Label>
                 <Input
                   id="nameAr"
-                  value={formData.nameAr}
-                  onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                  value={costCenterForm.nameAr}
+                  onChange={(e) => setCostCenterForm({ ...costCenterForm, nameAr: e.target.value })}
                   dir="rtl"
-                  placeholder="مثال: قسم التسويق"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">{t("description")}</Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Cost center description"
-                />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="descriptionEn">{t("fields.descriptionEn")}</Label>
+                  <Input
+                    id="descriptionEn"
+                    value={costCenterForm.description}
+                    onChange={(e) => setCostCenterForm({ ...costCenterForm, description: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="descriptionAr">{t("fields.descriptionAr")}</Label>
+                  <Input
+                    id="descriptionAr"
+                    value={costCenterForm.descriptionAr}
+                    onChange={(e) => setCostCenterForm({ ...costCenterForm, descriptionAr: e.target.value })}
+                    dir="rtl"
+                  />
+                </div>
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="parentId">{t("parentCostCenter")}</Label>
+                <Label htmlFor="parentId">{t("fields.parent")}</Label>
                 <Select
-                  value={formData.parentId}
-                  onValueChange={(value) => setFormData({ ...formData, parentId: value })}
+                  value={costCenterForm.parentId}
+                  onValueChange={(value) => setCostCenterForm({ ...costCenterForm, parentId: value })}
                 >
-                  <SelectTrigger id="parentId">
-                    <SelectValue placeholder={t("selectParent")} />
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("fields.selectParent")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">{t("noParent")}</SelectItem>
+                    <SelectItem value="">{t("fields.noParent")}</SelectItem>
                     {costCenters
-                      .filter((c) => c.id !== editCenter?.id)
-                      .map((center) => (
-                        <SelectItem key={center.id} value={center.id}>
-                          {center.code} - {center.name}
+                      .filter(cc => cc.id !== editingCostCenter?.id) // Exclude self to prevent circular reference
+                      .map((cc) => (
+                        <SelectItem key={cc.id} value={cc.id}>
+                          {cc.name_en} ({cc.name_ar})
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="isActive">{tc("active")}</Label>
-                <Switch
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
                   id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  checked={costCenterForm.isActive}
+                  onCheckedChange={(checked) => setCostCenterForm({ ...costCenterForm, isActive: Boolean(checked) })}
                 />
+                <Label htmlFor="isActive" className="cursor-pointer">
+                  {t("fields.isActive")}
+                </Label>
               </div>
-
-              <div className="flex justify-end gap-2">
+              
+              <div className="flex justify-end gap-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => setShowCostCenterDialog(false)}
                   disabled={submitting}
                 >
-                  {tc("cancel")}
+                  {t("actions.cancel")}
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? t("saving") : tc("save")}
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      {editingCostCenter ? t("actions.updating") : t("actions.creating")}
+                    </>
+                  ) : editingCostCenter ? (
+                    t("actions.update")
+                  ) : (
+                    t("actions.create")
+                  )}
                 </Button>
               </div>
             </form>

@@ -1,21 +1,11 @@
 /**
- * page Page
- *
- * Route page component for /
- *
- * @fileoverview page page component
- * @author Frontend Team
- * @created 2026-01-17
- * @updated 2026-01-17
+ * VAT Returns Page
+ * VAT return preparation and filing functionality
  */
+
 "use client";
 
-/**
- * VAT Returns Page
- * Generate and file VAT returns
- */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +18,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -37,261 +35,325 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Plus,
   Search,
-  Eye,
-  FileText,
+  Edit,
+  Trash2,
   Download,
-  CheckCircle,
-  Calendar,
+  Eye,
   Calculator,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
+  FileText,
+  Upload,
+  Calendar,
+  RefreshCw,
 } from "lucide-react";
-import { vatApi, VatReturn, VatReturnStatus, VatReturnBreakdown } from "@/lib/api/vat";
+import { vatReturnsApi, VatReturn, VatRate } from "@/lib/api/vat-returns";
+import { vatApi } from "@/lib/api/vat";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import logger from "@/lib/logger";
 
 export default function VatReturnsPage() {
-  const t = useTranslations("vatReturns");
+  const t = useTranslations("tax.vatReturns");
   const [search, setSearch] = useState("");
-  const [yearFilter, setYearFilter] = useState<string>(new Date().getFullYear().toString());
-  const [returns, setReturns] = useState<VatReturn[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [periodFilter, setPeriodFilter] = useState<string>("all");
+  const [vatReturns, setVatReturns] = useState<VatReturn[]>([]);
+  const [vatRates, setVatRates] = useState<VatRate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openCalculate, setOpenCalculate] = useState(false);
-  const [openBreakdown, setOpenBreakdown] = useState(false);
-  const [openFile, setOpenFile] = useState(false);
-  const [openPayment, setOpenPayment] = useState(false);
-  const [selectedReturn, setSelectedReturn] = useState<VatReturn | null>(null);
-  const [breakdown, setBreakdown] = useState<VatReturnBreakdown | null>(null);
-  const [calculating, setCalculating] = useState(false);
-  const [filing, setFiling] = useState(false);
-  const [recordingPayment, setRecordingPayment] = useState(false);
-  const [periodData, setPeriodData] = useState({
-    periodStart: "",
-    periodEnd: "",
-  });
-  const [paymentData, setPaymentData] = useState({
-    paymentDate: format(new Date(), "yyyy-MM-dd"),
-    reference: "",
-  });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showCalculateDialog, setShowCalculateDialog] = useState(false);
+  const [calculationStartDate, setCalculationStartDate] = useState("");
+  const [calculationEndDate, setCalculationEndDate] = useState("");
 
-  // Fetch VAT returns
+  // Fetch initial data
   useEffect(() => {
-    fetchReturns();
-  }, [yearFilter]);
+    fetchVatReturns();
+    fetchVatRates();
+  }, [statusFilter, periodFilter]);
 
-  const fetchReturns = async () => {
+  const fetchVatReturns = async () => {
     try {
       setLoading(true);
-      const data = await vatApi.getReturns({
-        year: parseInt(yearFilter),
-      });
-      setReturns(data);
+      const filters: Record<string, string | number | boolean | undefined> = {};
+      if (statusFilter && statusFilter !== "all") filters.status = statusFilter;
+      if (periodFilter && periodFilter !== "all") filters.period = periodFilter;
+
+      const data = await vatReturnsApi.getAll(filters);
+      setVatReturns(data);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load VAT returns");
+      const message = error instanceof Error ? error.message : "Failed to load VAT returns";
+      toast.error(message);
+      logger.error("Failed to load VAT returns", error as Error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter returns
-  const filteredReturns = returns.filter(
-    (ret) => ret.period_start.includes(search) || ret.period_end.includes(search)
-  );
-
-  // Calculate summary statistics
-  const totalOutputVat = returns.reduce((sum, r) => sum + r.output_vat, 0);
-  const totalInputVat = returns.reduce((sum, r) => sum + r.input_vat, 0);
-  const netVat = returns.reduce((sum, r) => sum + r.net_vat, 0);
-
-  // Handle calculate return
-  const handleCalculate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCalculating(true);
-
+  const fetchVatRates = async () => {
     try {
-      const result = await vatApi.calculateReturn(periodData.periodStart, periodData.periodEnd);
-      toast.success("VAT return calculated successfully");
-      setOpenCalculate(false);
-      await fetchReturns();
+      const data = await vatApi.getAll();
+      setVatRates(data);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to calculate VAT return");
-    } finally {
-      setCalculating(false);
+      logger.error("Failed to load VAT rates", error as Error);
     }
   };
 
-  // Handle view breakdown
-  const handleViewBreakdown = async (vatReturn: VatReturn) => {
-    try {
-      setSelectedReturn(vatReturn);
-      const data = await vatApi.getReturnBreakdown(vatReturn.id);
-      setBreakdown(data);
-      setOpenBreakdown(true);
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to load breakdown");
-    }
-  };
+  // Filter VAT returns based on search
+  const filteredVatReturns = useMemo(() => {
+    return vatReturns.filter(
+      (vr) =>
+        vr.return_number.toLowerCase().includes(search.toLowerCase()) ||
+        vr.period.toLowerCase().includes(search.toLowerCase()) ||
+        vr.status.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [vatReturns, search]);
 
-  // Handle file return
-  const handleFile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedReturn) return;
-
-    setFiling(true);
-
-    try {
-      await vatApi.markAsFiled(selectedReturn.id, format(new Date(), "yyyy-MM-dd"));
-      toast.success("VAT return filed successfully");
-      setOpenFile(false);
-      await fetchReturns();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to file VAT return");
-    } finally {
-      setFiling(false);
-    }
-  };
-
-  // Handle record payment
-  const handleRecordPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedReturn) return;
-
-    setRecordingPayment(true);
-
-    try {
-      await vatApi.recordPayment(selectedReturn.id, paymentData.paymentDate, paymentData.reference);
-      toast.success("Payment recorded successfully");
-      setOpenPayment(false);
-      await fetchReturns();
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to record payment");
-    } finally {
-      setRecordingPayment(false);
-    }
-  };
-
-  // Handle export to PDF
-  const handleExport = async (vatReturn: VatReturn) => {
-    try {
-      await vatApi.exportToPDF(vatReturn.id);
-      toast.success("PDF exported successfully");
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to export PDF");
-    }
-  };
-
-  const getStatusLabel = (status: VatReturnStatus) => {
-    const labels: Record<VatReturnStatus, string> = {
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+      draft: "secondary",
+      calculated: "outline",
+      filed: "default",
+      paid: "default",
+      cancelled: "destructive",
+    };
+    
+    const labels: Record<string, string> = {
       draft: t("statuses.draft"),
       calculated: t("statuses.calculated"),
       filed: t("statuses.filed"),
       paid: t("statuses.paid"),
+      cancelled: t("statuses.cancelled"),
     };
-    return labels[status];
+    
+    return <Badge variant={variants[status] || "secondary"}>{labels[status] || status}</Badge>;
   };
 
-  const getStatusBadgeColor = (status: VatReturnStatus) => {
-    const colors: Record<VatReturnStatus, string> = {
-      draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-      calculated: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      filed: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-      paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    };
-    return colors[status];
+  // Action handlers
+  const handleCalculate = async () => {
+    if (!calculationStartDate || !calculationEndDate) {
+      toast.error(t("errors.selectBothDates"));
+      return;
+    }
+    
+    try {
+      const data = {
+        start_date: calculationStartDate,
+        end_date: calculationEndDate,
+      };
+      
+      await vatReturnsApi.calculate(data);
+      toast.success(t("calculateSuccess"));
+      setShowCalculateDialog(false);
+      await fetchVatReturns();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to calculate VAT return";
+      toast.error(message);
+    }
+  };
+
+  const handleView = (vatReturn: VatReturn) => {
+    router.push(`/${locale}/tax/vat-returns/${vatReturn.id}`);
+  };
+
+  const handleDelete = async (vatReturn: VatReturn) => {
+    if (!confirm(`${t("confirmDelete")} ${vatReturn.return_number}?`)) {
+      return;
+    }
+
+    try {
+      await vatReturnsApi.delete(vatReturn.id);
+      toast.success(t("deleteSuccess"));
+      await fetchVatReturns();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to delete VAT return";
+      toast.error(message);
+    }
+  };
+
+  const handleFileReturn = async (vatReturn: VatReturn) => {
+    setActionLoading(vatReturn.id);
+    try {
+      await vatReturnsApi.file(vatReturn.id);
+      toast.success(t("fileSuccess"));
+      await fetchVatReturns();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to file VAT return";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleMarkAsPaid = async (vatReturn: VatReturn) => {
+    setActionLoading(vatReturn.id);
+    try {
+      await vatReturnsApi.markAsPaid(vatReturn.id);
+      toast.success(t("markPaidSuccess"));
+      await fetchVatReturns();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to mark as paid";
+      toast.error(message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleExportPDF = async (vatReturn: VatReturn) => {
+    try {
+      const blob = await vatReturnsApi.exportToPDF(vatReturn.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vat-return-${vatReturn.return_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export PDF";
+      toast.error(message);
+    }
+  };
+
+  const handleExportExcel = async (vatReturn: VatReturn) => {
+    try {
+      const blob = await vatReturnsApi.exportToExcel(vatReturn.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vat-return-${vatReturn.return_number}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(t("exportExcelSuccess"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to export Excel";
+      toast.error(message);
+    }
+  };
+
+  // Get action buttons for each VAT return
+  const getActionButtons = (vatReturn: VatReturn) => {
+    const buttons = [];
+
+    // View button (always available)
+    buttons.push({
+      icon: <Eye className="h-4 w-4" />,
+      label: t("actions.view"),
+      onClick: () => handleView(vatReturn),
+    });
+
+    // Export buttons (always available)
+    buttons.push({
+      icon: <Download className="h-4 w-4" />,
+      label: t("actions.exportPDF"),
+      onClick: () => handleExportPDF(vatReturn),
+    });
+
+    buttons.push({
+      icon: <FileText className="h-4 w-4" />,
+      label: t("actions.exportExcel"),
+      onClick: () => handleExportExcel(vatReturn),
+    });
+
+    // File return button (calculated only)
+    if (vatReturn.status === "calculated") {
+      buttons.push({
+        icon: <Upload className="h-4 w-4" />,
+        label: t("actions.fileReturn"),
+        onClick: () => handleFileReturn(vatReturn),
+        loading: actionLoading === vatReturn.id,
+      });
+    }
+
+    // Mark as paid button (filed only)
+    if (vatReturn.status === "filed") {
+      buttons.push({
+        icon: <Check className="h-4 w-4" />,
+        label: t("actions.markAsPaid"),
+        onClick: () => handleMarkAsPaid(vatReturn),
+        loading: actionLoading === vatReturn.id,
+      });
+    }
+
+    // Delete button (draft only)
+    if (vatReturn.status === "draft") {
+      buttons.push({
+        icon: <Trash2 className="h-4 w-4" />,
+        label: t("actions.delete"),
+        onClick: () => handleDelete(vatReturn),
+      });
+    }
+
+    return buttons;
   };
 
   return (
     <div className="space-y-6">
-        {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("summary.totalOutput")}</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{totalOutputVat.toFixed(2)}</div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">{t("summary.outputVat")}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("summary.totalInput")}</CardTitle>
-              <TrendingDown className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{totalInputVat.toFixed(2)}</div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">{t("summary.inputVat")}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t("summary.netPayable")}</CardTitle>
-              <DollarSign className="h-4 w-4 text-zinc-600" />
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`text-2xl font-bold ${netVat >= 0 ? "text-green-600" : "text-red-600"}`}
-              >
-                {netVat >= 0 ? "+" : ""}
-                {netVat.toFixed(2)}
-              </div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                {netVat >= 0 ? t("summary.payable") : t("summary.refundable")}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{t("title")}</h2>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
             <p className="text-zinc-600 dark:text-zinc-400">{t("description")}</p>
           </div>
-          <Button onClick={() => setOpenCalculate(true)} className="gap-2">
-            <Calculator className="h-4 w-4" />
-            {t("calculateReturn")}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCalculateDialog(true)} className="gap-2">
+              <Calculator className="h-4 w-4" />
+              {t("calculateReturn")}
+            </Button>
+          </div>
         </div>
 
+        {/* Filters Card */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>{t("returnsList")}</CardTitle>
-              <div className="flex gap-2">
-                <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>{t("title")}</CardTitle>
+              <div className="flex items-center gap-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder={t("filters.allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 5 }, (_, i) => {
-                      const year = new Date().getFullYear() - i;
-                      return (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      );
-                    })}
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+                    <SelectItem value="draft">{t("statuses.draft")}</SelectItem>
+                    <SelectItem value="calculated">{t("statuses.calculated")}</SelectItem>
+                    <SelectItem value="filed">{t("statuses.filed")}</SelectItem>
+                    <SelectItem value="paid">{t("statuses.paid")}</SelectItem>
+                    <SelectItem value="cancelled">{t("statuses.cancelled")}</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder={t("filters.allPeriods")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allPeriods")}</SelectItem>
+                    <SelectItem value="january">{t("periods.january")}</SelectItem>
+                    <SelectItem value="february">{t("periods.february")}</SelectItem>
+                    <SelectItem value="march">{t("periods.march")}</SelectItem>
+                    <SelectItem value="april">{t("periods.april")}</SelectItem>
+                    <SelectItem value="may">{t("periods.may")}</SelectItem>
+                    <SelectItem value="june">{t("periods.june")}</SelectItem>
+                    <SelectItem value="july">{t("periods.july")}</SelectItem>
+                    <SelectItem value="august">{t("periods.august")}</SelectItem>
+                    <SelectItem value="september">{t("periods.september")}</SelectItem>
+                    <SelectItem value="october">{t("periods.october")}</SelectItem>
+                    <SelectItem value="november">{t("periods.november")}</SelectItem>
+                    <SelectItem value="december">{t("periods.december")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                   <Input
                     type="search"
-                    placeholder={t("search")}
+                    placeholder={t("filters.searchPlaceholder")}
                     className="w-64 pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -302,100 +364,72 @@ export default function VatReturnsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-8 text-center text-zinc-500">{t("loading")}</div>
-            ) : filteredReturns.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">{t("noReturns")}</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span>{t("loading")}</span>
+                </div>
+              </div>
+            ) : filteredVatReturns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-12 w-12 text-zinc-400 mb-4" />
+                <h3 className="text-lg font-medium">{t("empty.title")}</h3>
+                <p className="text-zinc-500">{t("empty.description")}</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/${locale}/tax/vat-returns/calculate`}>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    {t("calculateFirst")}
+                  </Link>
+                </Button>
+              </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("period")}</TableHead>
-                    <TableHead>{t("startDate")}</TableHead>
-                    <TableHead>{t("endDate")}</TableHead>
-                    <TableHead>{t("status")}</TableHead>
-                    <TableHead className="text-right">{t("outputVat")}</TableHead>
-                    <TableHead className="text-right">{t("inputVat")}</TableHead>
-                    <TableHead className="text-right">{t("netVat")}</TableHead>
-                    <TableHead className="text-right">{t("actions")}</TableHead>
+                    <TableHead>{t("table.returnNumber")}</TableHead>
+                    <TableHead>{t("table.period")}</TableHead>
+                    <TableHead>{t("table.dueDate")}</TableHead>
+                    <TableHead>{t("table.status")}</TableHead>
+                    <TableHead className="text-right">{t("table.netVat")}</TableHead>
+                    <TableHead className="text-right">{t("table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReturns.map((vatReturn) => (
+                  {filteredVatReturns.map((vatReturn) => (
                     <TableRow key={vatReturn.id}>
-                      <TableCell className="font-medium">
-                        {format(new Date(vatReturn.period_start), "MMM yyyy")}
+                      <TableCell className="font-mono">{vatReturn.return_number}</TableCell>
+                      <TableCell>{vatReturn.period}</TableCell>
+                      <TableCell>
+                        {vatReturn.due_date ? format(new Date(vatReturn.due_date), "dd/MM/yyyy") : "-"}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(vatReturn.period_start), "dd/MM/yyyy")}
+                        {getStatusBadge(vatReturn.status)}
                       </TableCell>
-                      <TableCell>{format(new Date(vatReturn.period_end), "dd/MM/yyyy")}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
-                            vatReturn.status
-                          )}`}
-                        >
-                          {getStatusLabel(vatReturn.status)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-green-600">
-                        {vatReturn.output_vat.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-blue-600">
-                        {vatReturn.input_vat.toFixed(2)}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right font-bold ${
-                          vatReturn.net_vat >= 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {vatReturn.net_vat >= 0 ? "+" : ""}
-                        {vatReturn.net_vat.toFixed(2)}
+                      <TableCell className="text-right font-medium">
+                        {vatReturn.net_vat > 0 ? "QAR " : "-QAR "}
+                        {Math.abs(vatReturn.net_vat)?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewBreakdown(vatReturn)}
-                            title={t("viewBreakdown")}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {vatReturn.status === "calculated" && (
+                        <div className="flex justify-end gap-1">
+                          {getActionButtons(vatReturn).map((btn, idx) => (
                             <Button
+                              key={idx}
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                setSelectedReturn(vatReturn);
-                                setOpenFile(true);
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                btn.onClick();
                               }}
-                              title={t("markAsFiled")}
+                              disabled={btn.loading}
+                              title={btn.label}
                             >
-                              <CheckCircle className="h-4 w-4" />
+                              {btn.loading ? (
+                                <span className="h-4 w-4 animate-spin">⏳</span>
+                              ) : (
+                                btn.icon
+                              )}
                             </Button>
-                          )}
-                          {(vatReturn.status === "filed" || vatReturn.status === "paid") && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedReturn(vatReturn);
-                                setOpenPayment(true);
-                              }}
-                              title={t("recordPayment")}
-                            >
-                              <DollarSign className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleExport(vatReturn)}
-                            title={t("exportPdf")}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          ))}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -406,205 +440,46 @@ export default function VatReturnsPage() {
           </CardContent>
         </Card>
 
-        {/* Calculate Dialog */}
-        <Dialog open={openCalculate} onOpenChange={setOpenCalculate}>
+        {/* Calculate VAT Return Dialog */}
+        <Dialog open={showCalculateDialog} onOpenChange={setShowCalculateDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("calculateReturn")}</DialogTitle>
-              <DialogDescription>{t("calculateDescription")}</DialogDescription>
+              <DialogTitle>{t("dialogs.calculateTitle")}</DialogTitle>
+              <DialogDescription>{t("dialogs.calculateDescription")}</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCalculate} className="space-y-4">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="periodStart">{t("startDate")}</Label>
+                <Label htmlFor="startDate">{t("dialogs.startDate")}</Label>
                 <Input
-                  id="periodStart"
+                  id="startDate"
                   type="date"
-                  value={periodData.periodStart}
-                  onChange={(e) =>
-                    setPeriodData({
-                      ...periodData,
-                      periodStart: e.target.value,
-                    })
-                  }
-                  required
+                  value={calculationStartDate}
+                  onChange={(e) => setCalculationStartDate(e.target.value)}
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="periodEnd">{t("endDate")}</Label>
+                <Label htmlFor="endDate">{t("dialogs.endDate")}</Label>
                 <Input
-                  id="periodEnd"
+                  id="endDate"
                   type="date"
-                  value={periodData.periodEnd}
-                  onChange={(e) => setPeriodData({ ...periodData, periodEnd: e.target.value })}
-                  required
+                  value={calculationEndDate}
+                  onChange={(e) => setCalculationEndDate(e.target.value)}
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpenCalculate(false)}
-                  disabled={calculating}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" disabled={calculating}>
-                  {calculating ? t("calculating") : t("calculate")}
-                </Button>
-              </div>
-            </form>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCalculateDialog(false)}>
+                {t("dialogs.cancel")}
+              </Button>
+              <Button onClick={handleCalculate}>
+                <Calculator className="mr-2 h-4 w-4" />
+                {t("dialogs.calculate")}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
-
-        {/* Breakdown Dialog */}
-        <Dialog open={openBreakdown} onOpenChange={setOpenBreakdown}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{t("breakdownTitle")}</DialogTitle>
-              <DialogDescription>
-                {selectedReturn &&
-                  `${format(new Date(selectedReturn.period_start), "MMM dd, yyyy")} - ${format(new Date(selectedReturn.period_end), "MMM dd, yyyy")}`}
-              </DialogDescription>
-            </DialogHeader>
-            {breakdown && (
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm font-medium">{t("sales")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-zinc-600">{t("totalSales")}</span>
-                        <span className="font-semibold">
-                          {breakdown.sales.total_sales.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-zinc-600">{t("vatOnSales")}</span>
-                        <span className="font-semibold text-green-600">
-                          {breakdown.sales.vat_on_sales.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-xs text-zinc-500">{t("byRate")}</span>
-                        {breakdown.sales.by_rate.map((item) => (
-                          <div key={item.rate} className="flex justify-between text-sm">
-                            <span>{item.rate}%</span>
-                            <span>{item.amount.toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm font-medium">{t("purchases")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-zinc-600">{t("totalPurchases")}</span>
-                        <span className="font-semibold">
-                          {breakdown.purchases.total_purchases.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-zinc-600">{t("vatOnPurchases")}</span>
-                        <span className="font-semibold text-blue-600">
-                          {breakdown.purchases.vat_on_purchases.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-xs text-zinc-500">{t("byRate")}</span>
-                        {breakdown.purchases.by_rate.map((item) => (
-                          <div key={item.rate} className="flex justify-between text-sm">
-                            <span>{item.rate}%</span>
-                            <span>{item.amount.toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* File Dialog */}
-        <Dialog open={openFile} onOpenChange={setOpenFile}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("markAsFiled")}</DialogTitle>
-              <DialogDescription>{t("fileDescription")}</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleFile} className="space-y-4">
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpenFile(false)}
-                  disabled={filing}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" disabled={filing}>
-                  {filing ? t("filing") : t("confirm")}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Payment Dialog */}
-        <Dialog open={openPayment} onOpenChange={setOpenPayment}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("recordPayment")}</DialogTitle>
-              <DialogDescription>{t("paymentDescription")}</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleRecordPayment} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="paymentDate">{t("paymentDate")}</Label>
-                <Input
-                  id="paymentDate"
-                  type="date"
-                  value={paymentData.paymentDate}
-                  onChange={(e) => setPaymentData({ ...paymentData, paymentDate: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reference">{t("paymentReference")}</Label>
-                <Input
-                  id="reference"
-                  value={paymentData.reference}
-                  onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })}
-                  required
-                  placeholder="e.g., Bank transaction #12345"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpenPayment(false)}
-                  disabled={recordingPayment}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" disabled={recordingPayment}>
-                  {recordingPayment ? t("recording") : t("confirm")}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-    </div>
+      </div>
   );
 }

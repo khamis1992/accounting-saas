@@ -1,0 +1,179 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - link "Skip to main content" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e5]:
+      - link "Al-Muhasib" [ref=e7] [cursor=pointer]:
+        - /url: /en/dashboard
+        - generic [ref=e8]: Al-Muhasib
+      - navigation [ref=e9]:
+        - button "Dashboard" [ref=e10]:
+          - img [ref=e11]
+          - text: Dashboard
+        - button "Accounting" [ref=e17]:
+          - generic [ref=e18]:
+            - img [ref=e19]
+            - text: Accounting
+          - img [ref=e25]
+        - button "Sales" [ref=e28]:
+          - generic [ref=e29]:
+            - img [ref=e30]
+            - text: Sales
+          - img [ref=e35]
+        - button "Purchases" [ref=e38]:
+          - generic [ref=e39]:
+            - img [ref=e40]
+            - text: Purchases
+          - img [ref=e45]
+        - button "Banking" [ref=e48]:
+          - generic [ref=e49]:
+            - img [ref=e50]
+            - text: Banking
+          - img [ref=e56]
+        - button "Assets" [ref=e59]:
+          - generic [ref=e60]:
+            - img [ref=e61]
+            - text: Assets
+          - img [ref=e64]
+        - button "Tax" [ref=e67]:
+          - generic [ref=e68]:
+            - img [ref=e69]
+            - text: Tax
+          - img [ref=e74]
+        - button "Reports" [ref=e76]:
+          - img [ref=e77]
+          - text: Reports
+        - button "Settings" [ref=e84]:
+          - generic [ref=e85]:
+            - img [ref=e86]
+            - text: Settings
+          - img [ref=e89]
+      - button "A admin@admin.com admin@admin.com" [ref=e92]:
+        - generic [ref=e94]: A
+        - generic [ref=e95]:
+          - generic [ref=e96]: admin@admin.com
+          - generic [ref=e97]: admin@admin.com
+        - img
+    - generic [ref=e98]:
+      - banner [ref=e99]:
+        - button "Search...... Ctrl+K" [ref=e101]:
+          - img
+          - generic [ref=e102]: Search......
+          - generic: Ctrl+K
+        - generic [ref=e103]:
+          - button "Change language" [ref=e104]:
+            - img
+            - generic [ref=e105]: Change language
+          - button "Notifications" [ref=e106]:
+            - img
+            - generic [ref=e107]: Notifications
+      - main [active] [ref=e108]:
+        - generic [ref=e109]:
+          - navigation "Breadcrumb" [ref=e110]:
+            - list [ref=e111]:
+              - listitem [ref=e112]:
+                - link "Home" [ref=e113] [cursor=pointer]:
+                  - /url: /en
+                  - img [ref=e114]
+                  - generic [ref=e117]: Home
+              - listitem [ref=e118]:
+                - img [ref=e119]
+                - generic [ref=e121]: Dashboard
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - heading "Dashboard" [level=1] [ref=e126]
+                - paragraph [ref=e127]: Welcome back, admin@admin.com
+              - link "New" [ref=e129] [cursor=pointer]:
+                - /url: /en/dashboard
+                - img
+                - text: New
+            - generic [ref=e130]:
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - generic [ref=e133]: Total Revenue
+                  - img [ref=e134]
+                - generic [ref=e137]:
+                  - generic [ref=e138]: QAR 0.00
+                  - paragraph [ref=e139]:
+                    - img [ref=e140]
+                    - text: 0% from last month
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - generic [ref=e145]: Total Expenses
+                  - img [ref=e146]
+                - generic [ref=e149]:
+                  - generic [ref=e150]: QAR 0.00
+                  - paragraph [ref=e151]:
+                    - img [ref=e152]
+                    - text: 0% from last month
+              - generic [ref=e155]:
+                - generic [ref=e156]:
+                  - generic [ref=e157]: Net Profit
+                  - img [ref=e158]
+                - generic [ref=e161]:
+                  - generic [ref=e162]: QAR 0.00
+                  - paragraph [ref=e163]:
+                    - img [ref=e164]
+                    - text: 0% from last month
+              - generic [ref=e167]:
+                - generic [ref=e168]:
+                  - generic [ref=e169]: Cash Balance
+                  - img [ref=e170]
+                - generic [ref=e173]:
+                  - generic [ref=e174]: QAR 0.00
+                  - paragraph [ref=e175]:
+                    - img [ref=e176]
+                    - text: 0% from last month
+            - generic [ref=e179]:
+              - generic [ref=e181]: Overview
+              - generic [ref=e183]: No chart data available
+            - generic [ref=e184]:
+              - generic [ref=e186]: Quick Actions
+              - generic [ref=e188]:
+                - link "New Invoice" [ref=e189] [cursor=pointer]:
+                  - /url: /en/sales/invoices/new
+                  - img
+                  - text: New Invoice
+                - link "New Payment" [ref=e190] [cursor=pointer]:
+                  - /url: /en/sales/payments/new
+                  - img
+                  - text: New Payment
+                - link "New Journal" [ref=e191] [cursor=pointer]:
+                  - /url: /en/accounting/journals/new
+                  - img
+                  - text: New Journal
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Recent Invoices
+                  - link "View All" [ref=e196] [cursor=pointer]:
+                    - /url: /en/sales/invoices
+                - generic [ref=e198]:
+                  - img [ref=e199]
+                  - paragraph [ref=e205]: No recent invoices
+                  - link "Create your first invoice" [ref=e206] [cursor=pointer]:
+                    - /url: /en/sales/invoices/new
+              - generic [ref=e207]:
+                - generic [ref=e208]:
+                  - generic [ref=e209]: Recent Payments
+                  - link "View All" [ref=e210] [cursor=pointer]:
+                    - /url: /en/sales/payments
+                - generic [ref=e212]:
+                  - img [ref=e213]
+                  - paragraph [ref=e216]: No recent payments
+                  - link "Record your first payment" [ref=e217] [cursor=pointer]:
+                    - /url: /en/sales/payments/new
+    - generic [ref=e218]:
+      - heading "Command Palette" [level=2] [ref=e219]
+      - paragraph [ref=e220]: Search for a command to run...
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e221]:
+        - img [ref=e223]
+        - generic [ref=e226]: Failed to load dashboard data
+  - alert [ref=e227]: Dashboard - Accounting SaaS
+```
