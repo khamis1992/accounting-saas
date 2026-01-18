@@ -34,6 +34,7 @@
     "reject": "Reject",
     "archive": "Archive",
     "restore": "Restore",
+    "remove": "Remove",
     "status": "Status",
     "date": "Date",
     "description": "Description",

@@ -16,6 +16,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { AssetsModule } from './assets/assets.module';
 import { VatModule } from './vat/vat.module';
 import { ReportsModule } from './reports/reports.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditModule } from './audit/audit.module';
 import { QueuesModule } from './queues/queues.module';
 import { PdfModule } from './pdf/pdf.module';
@@ -46,6 +47,7 @@ import { SecurityMiddleware, RequestLoggingMiddleware } from './common/middlewar
     AssetsModule,
     VatModule,
     ReportsModule,
+    DashboardModule,
     AuditModule,
     QueuesModule,
     PdfModule,

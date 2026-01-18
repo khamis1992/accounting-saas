@@ -70,3 +70,4 @@ temp/
 .parcel-cache/
 .vercel/
 .netlify/
+.vercel
