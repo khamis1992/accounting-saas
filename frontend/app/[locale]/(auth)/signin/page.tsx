@@ -10,7 +10,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -29,10 +29,10 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
-  // Set page title
-  useState(() => {
+  // Set page title - using useEffect to avoid SSR issues
+  useEffect(() => {
     setPageTitle(t("signIn"));
-  });
+  }, [t("signIn")]);
 
   // If user is already authenticated, redirect to dashboard
   if (user) {
