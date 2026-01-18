@@ -103,6 +103,13 @@ export default function UsersPage() {
     }
   }, [canViewUsers, permLoading, router]);
 
+  // Fetch users when status filter changes
+  useEffect(() => {
+    if (!permLoading && canViewUsers) {
+      fetchUsers();
+    }
+  }, [statusFilter, permLoading, canViewUsers]);
+
   // Show loading state while checking permissions
   if (permLoading) {
     return (
@@ -111,10 +118,6 @@ export default function UsersPage() {
         </div>
     );
   }
-
-  useEffect(() => {
-    fetchUsers();
-  }, [statusFilter]);
 
   const fetchUsers = async () => {
     try {

@@ -64,7 +64,9 @@
     "english": "English",
     "arabic": "العربية",
     "notifications": "الإشعارات",
-    "searchPlaceholder": "بحث..."
+    "searchPlaceholder": "بحث...",
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب"
   },
   "commandPalette": {
     "searchPlaceholder": "البحث في الصفحات... (مثال: دليل، فاتورة، مورد)",
