@@ -53,6 +53,7 @@ interface NavItem {
 export function Sidebar() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth");
   const tCommandPalette = useTranslations("commandPalette");
   const locale = useLocale();
   const pathname = usePathname();
@@ -310,7 +311,7 @@ export function Sidebar() {
                 className="text-red-600 dark:text-red-400"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                {t("auth.signOut")}
+                {tAuth("signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

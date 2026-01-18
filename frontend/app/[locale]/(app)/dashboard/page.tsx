@@ -191,6 +191,7 @@ const ChartLoader = () => (
 
 function DashboardPageContent() {
   const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const { user } = useAuth();
 
@@ -269,7 +270,7 @@ function DashboardPageContent() {
           <Button asChild variant="outline">
             <Link href={`/${locale}/dashboard`}>
               <Plus className="mr-2 h-4 w-4" />
-              {t("common.new")}
+              {tCommon("new")}
             </Link>
           </Button>
         </div>
