@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards, HttpStatus } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { TenantContextGuard } from '../common/guards/tenant-context.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
-import { Permissions } from '../common/decorators/permissions.decorator';
+import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import { TenantContext } from '../common/decorators/tenant-context.decorator';
 
 /**
@@ -19,7 +19,7 @@ export class DashboardController {
    * GET /api/dashboard
    */
   @Get()
-  @Permissions('dashboard:read')
+  @RequirePermissions({ module: 'dashboard', action: 'read' })
   async getDashboardData(@TenantContext() tenantContext: { tenantId: string }) {
     try {
       const data = await this.dashboardService.getDashboardData(tenantContext.tenantId);
@@ -40,7 +40,7 @@ export class DashboardController {
    * GET /api/dashboard/stats
    */
   @Get('stats')
-  @Permissions('dashboard:read')
+  @RequirePermissions({ module: 'dashboard', action: 'read' })
   async getStats(@TenantContext() tenantContext: { tenantId: string }) {
     try {
       const stats = await this.dashboardService.getStats(tenantContext.tenantId);
@@ -61,7 +61,7 @@ export class DashboardController {
    * GET /api/dashboard/chart
    */
   @Get('chart')
-  @Permissions('dashboard:read')
+  @RequirePermissions({ module: 'dashboard', action: 'read' })
   async getChartData(@TenantContext() tenantContext: { tenantId: string }) {
     try {
       const chartData = await this.dashboardService.getChartData(tenantContext.tenantId);
@@ -82,7 +82,7 @@ export class DashboardController {
    * GET /api/dashboard/invoices?limit=5
    */
   @Get('invoices')
-  @Permissions('dashboard:read')
+  @RequirePermissions({ module: 'dashboard', action: 'read' })
   async getRecentInvoices(
     @TenantContext() tenantContext: { tenantId: string },
     @Query('limit') limit?: string,
@@ -109,7 +109,7 @@ export class DashboardController {
    * GET /api/dashboard/payments?limit=5
    */
   @Get('payments')
-  @Permissions('dashboard:read')
+  @RequirePermissions({ module: 'dashboard', action: 'read' })
   async getRecentPayments(
     @TenantContext() tenantContext: { tenantId: string },
     @Query('limit') limit?: string,

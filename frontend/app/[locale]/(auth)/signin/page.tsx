@@ -34,11 +34,17 @@ export default function SignInPage() {
   // Set page title - using useEffect to avoid SSR issues
   useEffect(() => {
     setPageTitle(t("signIn"));
-  }, [t("signIn")]);
+  }, [t]);
 
   // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      router.push(`/${locale}/dashboard`);
+    }
+  }, [user, locale, router]);
+
+  // Show loading while checking auth or redirecting
   if (user) {
-    router.push(`/${locale}/dashboard`);
     return null;
   }
 
@@ -99,6 +105,7 @@ export default function SignInPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="your@email.com"
+                autoComplete="email"
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedby}
                 disabled={loading}
@@ -115,6 +122,7 @@ export default function SignInPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
+                autoComplete="current-password"
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedby}
                 disabled={loading}

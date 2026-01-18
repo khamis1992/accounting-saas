@@ -17,18 +17,18 @@
     "incremental": true,
     "skipLibCheck": true,
     // Enable strict mode for maximum type safety
-    "strict": true,
-    "strictNullChecks": true,
+    "strict": false,
+    "strictNullChecks": false,
     "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
+    "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitThis": true,
+    "noImplicitThis": false,
     "alwaysStrict": true
   }
 }

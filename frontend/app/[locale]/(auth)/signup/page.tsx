@@ -10,7 +10,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -30,8 +30,14 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
 
   // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      router.push(`/${locale}/dashboard`);
+    }
+  }, [user, locale, router]);
+
+  // Show loading while redirecting
   if (user) {
-    router.push(`/${locale}/dashboard`);
     return null;
   }
 
@@ -129,6 +135,7 @@ export default function SignUpPage() {
               onChange={(e) => setFullName(e.target.value)}
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="John Doe"
+              autoComplete="name"
               required
               disabled={loading}
             />
@@ -148,6 +155,7 @@ export default function SignUpPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="your@email.com"
+              autoComplete="email"
               required
               disabled={loading}
             />
@@ -167,6 +175,7 @@ export default function SignUpPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
+              autoComplete="new-password"
               required
               disabled={loading}
               minLength={6}
@@ -187,6 +196,7 @@ export default function SignUpPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
+              autoComplete="new-password"
               required
               disabled={loading}
               minLength={6}

@@ -251,8 +251,8 @@ export function middleware(request: NextRequest) {
     const redirectUrl = new URL(`/${locale}/signin`, request.url);
 
     // Add redirect parameter to original destination (for post-signin redirect)
-    // encodeURIComponent prevents open redirect vulnerabilities
-    redirectUrl.searchParams.set("redirect", encodeURIComponent(pathname));
+    // Only encode once - pathname is already a plain string
+    redirectUrl.searchParams.set("redirect", pathname);
 
     return NextResponse.redirect(redirectUrl);
   }
@@ -272,18 +272,26 @@ export function middleware(request: NextRequest) {
   // Handle root path without locale
   // ========================================================================
 
+  // Handle locale-only paths (e.g., /en, /ar) - these should show the landing page
   if (pathWithoutLocale === "/" && pathname !== "/") {
-    // Path has locale but no other segments (e.g., /en, /ar)
-    // Redirect to dashboard if authenticated, landing if not
-    const destination = hasSession ? "/dashboard" : "/";
-    const redirectUrl = new URL(`/${locale}${destination}`, request.url);
-    return NextResponse.redirect(redirectUrl);
+    // For authenticated users on locale root, redirect to dashboard
+    if (hasSession) {
+      const redirectUrl = new URL(`/${locale}/dashboard`, request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    // For unauthenticated users, just proceed to show the landing page
+    // Don't call intlMiddleware here to avoid redirect loop
+    return NextResponse.next();
   }
 
+  // Handle root path without locale - redirect to default locale
   if (pathname === "/") {
-    // Root path without locale - redirect to default locale
-    const destination = hasSession ? "/dashboard" : "/";
-    const redirectUrl = new URL(`/${DEFAULT_LOCALE}${destination}`, request.url);
+    if (hasSession) {
+      const redirectUrl = new URL(`/${DEFAULT_LOCALE}/dashboard`, request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    // Redirect to default locale landing page (without trailing slash)
+    const redirectUrl = new URL(`/${DEFAULT_LOCALE}`, request.url);
     return NextResponse.redirect(redirectUrl);
   }
 

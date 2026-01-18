@@ -154,7 +154,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
               "img-src 'self' data: blob: https://*.supabase.co https://*.railway.app;",
               "font-src 'self' data:;",
-              "connect-src 'self' https://*.supabase.co https://*.railway.app ws://localhost:* ws://*.railway.app;",
+              "connect-src 'self' http://localhost:* https://*.supabase.co https://*.railway.app ws://localhost:* ws://*.railway.app;",
               "frame-ancestors 'none';",
               "base-uri 'self';",
               "form-action 'self';",
