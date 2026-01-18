@@ -50,6 +50,9 @@ export interface CreatePurchaseOrderDto {
   notes?: string;
 }
 
+// Alias for backward compatibility
+export type PurchaseOrderCreateDto = CreatePurchaseOrderDto;
+
 export interface UpdatePurchaseOrderDto {
   vendor_id?: string;
   date?: Date | string;

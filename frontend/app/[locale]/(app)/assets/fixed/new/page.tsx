@@ -32,7 +32,7 @@ export default function NewFixedAssetPage() {
     cost: "",
     salvageValue: "",
     usefulLife: "",
-    depreciationMethod: "straight_line" as "straight_line" | "declining_balance" | "units_of_production",
+    depreciationMethod: "straight-line" as "straight-line" | "declining-balance" | "units-of-production",
     location: "",
     notes: "",
   });
@@ -46,12 +46,12 @@ export default function NewFixedAssetPage() {
         asset_code: formData.assetCode,
         asset_name: formData.assetName,
         category: formData.category,
-        acquisition_date: formData.acquisitionDate,
         purchase_date: formData.purchaseDate,
         purchase_cost: parseFloat(formData.cost) || 0,
         salvage_value: parseFloat(formData.salvageValue) || 0,
         useful_life_years: parseInt(formData.usefulLife) || 0,
         depreciation_method: formData.depreciationMethod,
+        status: "active",
         location: formData.location || undefined,
         notes: formData.notes || undefined,
       };
@@ -201,16 +201,16 @@ export default function NewFixedAssetPage() {
                     <Label htmlFor="depreciationMethod">Depreciation Method *</Label>
                     <Select
                       value={formData.depreciationMethod}
-                      onValueChange={(value: "straight_line" | "declining_balance" | "units_of_production") => setFormData({ ...formData, depreciationMethod: value })}
+                      onValueChange={(value: "straight-line" | "declining-balance" | "units-of-production") => setFormData({ ...formData, depreciationMethod: value })}
                       required
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="straight_line">Straight Line</SelectItem>
-                        <SelectItem value="declining_balance">Declining Balance</SelectItem>
-                        <SelectItem value="units_of_production">Units of Production</SelectItem>
+                        <SelectItem value="straight-line">Straight Line</SelectItem>
+                        <SelectItem value="declining-balance">Declining Balance</SelectItem>
+                        <SelectItem value="units-of-production">Units of Production</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -233,7 +233,7 @@ export default function NewFixedAssetPage() {
                   <Textarea
                     id="notes"
                     value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Additional notes about the asset"
                     rows={12}
                   />

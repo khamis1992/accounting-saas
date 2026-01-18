@@ -30,10 +30,12 @@ export interface FixedAsset {
   net_book_value: number;
   status: AssetStatus;
   disposal_date?: string;
-  disposal_amount?: number;
+  disposal_amount?: string;
   location?: string;
   notes?: string;
 }
+
+export type FixedAssetCreateDto = Omit<FixedAsset, "id" | "accumulated_depreciation" | "net_book_value">;
 
 export interface DepreciationSchedule {
   asset_id: string;

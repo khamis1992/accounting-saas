@@ -58,10 +58,10 @@ export default function NewExpensePage() {
 
     try {
       const data: ExpenseCreateDto = {
-        expense_date: formData.expenseDate,
+        date: formData.expenseDate,
         category: formData.category,
         description: formData.description,
-        vendor: formData.vendor || undefined,
+        vendor_id: formData.vendor || undefined,
         amount: parseFloat(formData.amount) || 0,
         notes: formData.notes || undefined,
       };

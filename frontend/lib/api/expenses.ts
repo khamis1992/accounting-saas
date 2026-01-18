@@ -49,6 +49,9 @@ export interface CreateExpenseDto {
   notes?: string;
 }
 
+// Alias for backward compatibility
+export type ExpenseCreateDto = CreateExpenseDto;
+
 export interface UpdateExpenseDto {
   date?: Date | string;
   category?: ExpenseCategory;

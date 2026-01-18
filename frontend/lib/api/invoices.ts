@@ -91,6 +91,9 @@ export interface CreateInvoiceDto {
   }>;
 }
 
+// Alias for backward compatibility
+export type InvoiceCreateDto = CreateInvoiceDto;
+
 export interface UpdateInvoiceDto {
   invoice_date?: Date | string;
   due_date?: Date | string;

@@ -43,6 +43,9 @@ export interface CreateCustomerDto {
   notes?: string;
 }
 
+// Alias for backward compatibility
+export type CustomerCreateDto = CreateCustomerDto;
+
 export interface UpdateCustomerDto {
   name_en?: string;
   name_ar?: string;

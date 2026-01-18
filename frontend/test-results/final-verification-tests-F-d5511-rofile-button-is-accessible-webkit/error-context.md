@@ -1,0 +1,208 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - generic:
+      - link:
+        - /url: "#main-content"
+        - text: Skip to main content
+      - generic:
+        - generic:
+          - link:
+            - /url: /en/dashboard
+            - generic: Al-Muhasib
+        - navigation:
+          - button:
+            - img
+            - text: Dashboard
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Accounting
+              - img
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Sales
+              - img
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Purchases
+              - img
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Banking
+              - img
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Assets
+              - img
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Tax
+              - img
+          - button:
+            - img
+            - text: Reports
+          - generic:
+            - button:
+              - generic:
+                - img
+                - text: Settings
+              - img
+        - generic:
+          - button [expanded]:
+            - generic:
+              - generic: A
+            - generic:
+              - generic: admin@admin.com
+              - generic: admin@admin.com
+            - img
+      - generic:
+        - banner:
+          - generic:
+            - button:
+              - img
+              - generic: Search......
+              - generic: Ctrl+K
+          - generic:
+            - button:
+              - img
+              - generic: Change language
+            - button:
+              - img
+              - generic: Notifications
+        - main:
+          - generic:
+            - navigation:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /en
+                    - img
+                    - generic: Home
+                - listitem:
+                  - img
+                  - generic: Dashboard
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - heading [level=1]: Dashboard
+                    - paragraph: Welcome back, admin@admin.com
+                  - generic:
+                    - link:
+                      - /url: /en/dashboard
+                      - img
+                      - text: New
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Total Revenue
+                      - img
+                    - generic:
+                      - generic: QAR 0.00
+                      - paragraph:
+                        - img
+                        - text: 0% from last month
+                  - generic:
+                    - generic:
+                      - generic: Total Expenses
+                      - img
+                    - generic:
+                      - generic: QAR 0.00
+                      - paragraph:
+                        - img
+                        - text: 0% from last month
+                  - generic:
+                    - generic:
+                      - generic: Net Profit
+                      - img
+                    - generic:
+                      - generic: QAR 0.00
+                      - paragraph:
+                        - img
+                        - text: 0% from last month
+                  - generic:
+                    - generic:
+                      - generic: Cash Balance
+                      - img
+                    - generic:
+                      - generic: QAR 0.00
+                      - paragraph:
+                        - img
+                        - text: 0% from last month
+                - generic:
+                  - generic:
+                    - generic: Overview
+                  - generic:
+                    - generic: No chart data available
+                - generic:
+                  - generic:
+                    - generic: Quick Actions
+                  - generic:
+                    - generic:
+                      - link:
+                        - /url: /en/sales/invoices/new
+                        - img
+                        - text: New Invoice
+                      - link:
+                        - /url: /en/sales/payments/new
+                        - img
+                        - text: New Payment
+                      - link:
+                        - /url: /en/accounting/journals/new
+                        - img
+                        - text: New Journal
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Recent Invoices
+                      - link:
+                        - /url: /en/sales/invoices
+                        - text: View All
+                    - generic:
+                      - generic:
+                        - img
+                        - paragraph: No recent invoices
+                        - link:
+                          - /url: /en/sales/invoices/new
+                          - text: Create your first invoice
+                  - generic:
+                    - generic:
+                      - generic: Recent Payments
+                      - link:
+                        - /url: /en/sales/payments
+                        - text: View All
+                    - generic:
+                      - generic:
+                        - img
+                        - paragraph: No recent payments
+                        - link:
+                          - /url: /en/sales/payments/new
+                          - text: Record your first payment
+      - generic:
+        - heading [level=2]: Command Palette
+        - paragraph: Search for a command to run...
+  - region "Notifications alt+T"
+  - alert: Dashboard - Accounting SaaS
+  - menu "A admin@admin.com admin@admin.com" [active] [ref=e1]:
+    - generic [ref=e2]: admin@admin.com
+    - separator [ref=e3]
+    - menuitem "Profile" [ref=e4]
+    - separator [ref=e5]
+    - menuitem "Sign Out" [ref=e6]:
+      - img
+      - text: Sign Out
+```

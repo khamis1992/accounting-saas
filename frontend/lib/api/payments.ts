@@ -76,6 +76,9 @@ export interface CreatePaymentDto {
   }>;
 }
 
+// Alias for backward compatibility
+export type PaymentCreateDto = CreatePaymentDto;
+
 export interface UpdatePaymentDto {
   payment_date?: Date | string;
   currency?: string;

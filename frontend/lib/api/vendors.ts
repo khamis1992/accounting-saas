@@ -51,6 +51,9 @@ export interface CreateVendorDto {
   notes?: string;
 }
 
+// Alias for backward compatibility
+export type VendorCreateDto = CreateVendorDto;
+
 export interface UpdateVendorDto {
   name_en?: string;
   name_ar?: string;

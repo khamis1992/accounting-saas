@@ -66,7 +66,9 @@
     "notifications": "الإشعارات",
     "searchPlaceholder": "بحث...",
     "signIn": "تسجيل الدخول",
-    "signUp": "إنشاء حساب"
+    "signUp": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف"
   },
   "commandPalette": {
     "searchPlaceholder": "البحث في الصفحات... (مثال: دليل، فاتورة، مورد)",
@@ -675,6 +677,7 @@
   },
   "journals": {
     "title": "القيود المحاسبية",
+    "search": "بحث في القيود...",
     "journalNumber": "رقم القيد",
     "entryDate": "تاريخ القيد",
     "reference": "المرجع",
@@ -1170,8 +1173,43 @@
   },
   "settings": {
     "title": "الإعدادات",
+    "description": "إدارة إعدادات الشركة والمستخدمين والأدوار",
     "company": {
-      "title": "إعدادات الشركة"
+      "title": "إعدادات الشركة",
+      "description": "إدارة معلومات الشركة والإعدادات المالية",
+      "companyInformation": "معلومات الشركة",
+      "companyName": "اسم الشركة",
+      "companyNameArabic": "اسم الشركة بالعربية",
+      "legalName": "الاسم القانوني",
+      "taxNumber": "الرقم الضريبي",
+      "taxRegistrationNumber": "رقم التسجيل الضريبي",
+      "vatNumber": "رقم ضريبة القيمة المضافة",
+      "crNumber": "رقم السجل التجاري",
+      "address": "العنوان",
+      "city": "المدينة",
+      "country": "الدولة",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "website": "الموقع الإلكتروني",
+      "logo": "الشعار",
+      "companyLogo": "شعار الشركة",
+      "logoRequirements": "الحد الأقصى 2 ميغابايت، PNG أو JPG",
+      "settings": "الإعدادات",
+      "currencies": "العملات",
+      "defaultCurrency": "العملة الافتراضية",
+      "currencyAndTax": "إعدادات العملة والضريبة",
+      "baseCurrency": "العملة الأساسية",
+      "taxYearStart": "بداية السنة الضريبية",
+      "taxYearEnd": "نهاية السنة الضريبية",
+      "financialSettings": "الإعدادات المالية",
+      "decimalPlaces": "المنازل العشرية",
+      "rounding": "التقريب",
+      "roundingNearest": "تقريب لأقرب رقم",
+      "roundingUp": "تقريب للأعلى دائماً",
+      "roundingDown": "تقريب للأسفل دائماً",
+      "saveSettings": "حفظ الإعدادات",
+      "saving": "جاري الحفظ...",
+      "settingsSaved": "تم حفظ الإعدادات بنجاح"
     },
     "roles": {
       "title": "الأدوار والصلاحيات",

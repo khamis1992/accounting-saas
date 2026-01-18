@@ -68,6 +68,9 @@ export interface CreateQuotationDto {
   notes?: string;
 }
 
+// Alias for backward compatibility
+export type QuotationCreateDto = CreateQuotationDto;
+
 export interface UpdateQuotationDto {
   date?: Date | string;
   valid_until?: Date | string;

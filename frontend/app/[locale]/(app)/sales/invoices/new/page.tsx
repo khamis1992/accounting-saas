@@ -165,7 +165,8 @@ export default function NewInvoicePage() {
         currency: formData.currency,
         exchange_rate: parseFloat(formData.exchangeRate) || 1,
         notes: formData.notes || undefined,
-        lines: lines.map((line) => ({
+        lines: lines.map((line, index) => ({
+          line_number: index + 1,
           description_en: line.descriptionEn || undefined,
           description_ar: line.descriptionAr || undefined,
           quantity: parseFloat(line.quantity) || 0,
