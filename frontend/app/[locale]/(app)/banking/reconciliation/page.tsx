@@ -7,6 +7,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,6 +57,8 @@ import logger from "@/lib/logger";
 
 export default function ReconciliationPage() {
   const t = useTranslations("banking.reconciliation");
+  const router = useRouter();
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [accountFilter, setAccountFilter] = useState<string>("all");

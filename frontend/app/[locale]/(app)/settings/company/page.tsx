@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { companySettingsApi, CompanySettings } from "@/lib/api/company-settings";
 import { toast } from "sonner";
-import { Save, Building2, Globe, CreditCard, Shield, Users } from "lucide-react";
+import { Save, Building2, Globe, CreditCard, Shield, Users, DollarSign, RefreshCw } from "lucide-react";
 import logger from "@/lib/logger";
 
 export default function CompanySettingsPage() {

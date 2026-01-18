@@ -107,4 +107,22 @@ export const reconciliationApi = {
 
     return response.blob();
   },
+
+  async exportToExcel(id: string): Promise<Blob> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/banking/reconciliations/${id}/export/excel`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiClient.getAccessToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to export Excel");
+    }
+
+    return response.blob();
+  },
 };
