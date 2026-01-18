@@ -20,6 +20,7 @@ import { setPageTitle } from "@/lib/accessibility";
 
 export default function SignInPage() {
   const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
   const { signIn, loading, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,7 +74,7 @@ export default function SignInPage() {
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{t("signIn")}</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
-            Welcome back to {t("common.appName")}
+            Welcome back to {tCommon("appName")}
           </p>
         </div>
 
@@ -144,7 +145,7 @@ export default function SignInPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? t("loading") : t("signIn")}
+            {loading ? tCommon("loading") : t("signIn")}
           </button>
         </form>
 
