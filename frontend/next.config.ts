@@ -22,28 +22,23 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const nextConfig: NextConfig = {
   /* config options here */
   env: {
-    // Require all environment variables to be set - no fallbacks to prevent accidents
-    NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL ||
-      (() => {
-        throw new Error(
-          "NEXT_PUBLIC_API_URL is required. Set it in .env.local or your deployment environment."
-        );
-      })(),
-    NEXT_PUBLIC_APP_URL:
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (() => {
-        throw new Error(
-          "NEXT_PUBLIC_APP_URL is required. Set it in .env.local or your deployment environment."
-        );
-      })(),
+    // Environment variables - use fallbacks for build time, actual values are injected by Vercel
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "",
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "",
   },
   // Add trailing slash handling for consistent URLs
   trailingSlash: false,
 
   // Optimize images
   images: {
-    domains: ["gbbmicjucestjpxtkjyp.supabase.co"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "gbbmicjucestjpxtkjyp.supabase.co",
+        port: "",
+        pathname: "/**",
+      },
+    ],
     unoptimized: false,
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -66,6 +61,12 @@ const nextConfig: NextConfig = {
             exclude: ["error", "warn"],
           }
         : false,
+  },
+
+  // Turbopack configuration
+  turbopack: {
+    // Set root directory to avoid lockfile detection issues
+    root: __dirname,
   },
 
   // Experimental features for performance
@@ -152,9 +153,9 @@ const nextConfig: NextConfig = {
               "default-src 'self';",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline';",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
-              "img-src 'self' data: blob: https://*.supabase.co https://*.railway.app;",
-              "font-src 'self' data:;",
-              "connect-src 'self' http://localhost:* https://*.supabase.co https://*.railway.app ws://localhost:* ws://*.railway.app;",
+              "img-src 'self' data: blob: https://*.supabase.co https://*.railway.app https://*.vercel.app;",
+              "font-src 'self' data: https://fonts.gstatic.com;",
+              "connect-src 'self' http://localhost:* https://*.supabase.co https://*.railway.app https://*.vercel.app wss://*.supabase.co ws://localhost:*;",
               "frame-ancestors 'none';",
               "base-uri 'self';",
               "form-action 'self';",
