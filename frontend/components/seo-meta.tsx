@@ -122,6 +122,3 @@ export function createArticleMetadata(
     twitterCard: 'summary_large_image',
   });
 }
-
-// Export types for convenience
-export type { Metadata };
