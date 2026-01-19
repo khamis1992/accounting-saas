@@ -123,7 +123,20 @@ export class ConfigService {
       return ['*'];
     }
 
-    return origins.split(',').map(origin => origin.trim());
+    // Parse comma-separated origins and add frontend URL if not included
+    const parsedOrigins = origins.split(',').map(origin => origin.trim()).filter(Boolean);
+    
+    // Always include frontend URL if available
+    try {
+      const frontendUrl = this.frontendUrl;
+      if (frontendUrl && !parsedOrigins.includes(frontendUrl)) {
+        parsedOrigins.push(frontendUrl);
+      }
+    } catch {
+      // frontendUrl not configured, skip
+    }
+
+    return parsedOrigins;
   }
 
   /**
