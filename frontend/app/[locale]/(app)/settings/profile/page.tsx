@@ -42,6 +42,7 @@ import {
   Moon,
   Sun,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import { userProfileApi, UserProfile } from "@/lib/api/user-profile";
 import { useAuth } from "@/contexts/auth-context";

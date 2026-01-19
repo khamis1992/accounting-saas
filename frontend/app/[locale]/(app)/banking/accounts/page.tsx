@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { bankingApi, BankAccount, AccountType } from "@/lib/api/banking";
@@ -56,6 +56,7 @@ import logger from "@/lib/logger";
 export default function BankAccountsPage() {
   const t = useTranslations("banking.accounts");
   const common = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
 
   // State
@@ -148,7 +149,7 @@ export default function BankAccountsPage() {
             <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => router.push(`/${locale}/banking/accounts/new`)}>
               <Plus className="mr-2 h-4 w-4" />
               {t("newAccount")}
             </Button>
@@ -287,7 +288,7 @@ export default function BankAccountsPage() {
                 <p className="mb-4 text-center text-sm text-muted-foreground">
                   {t("empty.description")}
                 </p>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => router.push(`/${locale}/banking/accounts/new`)}>
                   <Plus className="mr-2 h-4 w-4" />
                   {t("newAccount")}
                 </Button>

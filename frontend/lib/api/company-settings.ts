@@ -12,6 +12,9 @@ export interface CompanySettings {
   company_name_ar: string;
   legal_name?: string;
   business_type: string;
+  industry?: string;
+  registration_number?: string;
+  description?: string;
   tax_number?: string;
   cr_number?: string;
   email?: string;
@@ -27,15 +30,20 @@ export interface CompanySettings {
   };
   tax_settings: {
     vat_enabled: boolean;
+    is_tax_enabled?: boolean;
     vat_rate: number;
+    default_tax_rate?: number;
+    tax_calculation_method?: string;
     vat_number?: string;
     tax_year_start?: string;
   };
   currency_settings: {
     base_currency: string;
     decimal_places: number;
-    thousand_separator: string;
+    thousand_separator?: string;
+    thousands_separator?: string;
     decimal_separator: string;
+    symbol_position?: string;
   };
   created_at: string;
   updated_at: string;

@@ -47,8 +47,8 @@ import {
   RefreshCw,
   FileText,
 } from "lucide-react";
-import { rolesApi, Role, Permission } from "@/lib/api/roles";
-import { permissionsApi } from "@/lib/api/permissions";
+import { rolesApi, Role } from "@/lib/api/roles";
+import { permissionsApi, Permission } from "@/lib/api/permissions";
 import { toast } from "sonner";
 import logger from "@/lib/logger";
 
@@ -231,7 +231,7 @@ export default function RolesPage() {
     });
 
     // Delete button (for non-system roles)
-    if (!role.is_system_role) {
+    if (!role.is_system) {
       buttons.push({
         icon: <Trash2 className="h-4 w-4" />,
         label: t("actions.delete"),
@@ -336,7 +336,7 @@ export default function RolesPage() {
                             ?.slice(0, 3)
                             .map((rp) => (
                               <Badge key={rp.permission_id} variant="outline" className="text-xs">
-                                {rp.permission?.name}
+                                {rp.permission_id}
                               </Badge>
                             ))}
                           {role.role_permissions && role.role_permissions.length > 3 && (

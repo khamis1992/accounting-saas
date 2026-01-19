@@ -19,6 +19,7 @@ export interface VatReturn {
   period: string;
   start_date: string;
   end_date: string;
+  due_date?: string;
   total_sales: number;
   total_purchases: number;
   output_vat: number;
@@ -99,6 +100,24 @@ export const vatReturnsApi = {
 
     if (!response.ok) {
       throw new Error("Failed to export PDF");
+    }
+
+    return response.blob();
+  },
+
+  async exportToExcel(id: string): Promise<Blob> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tax/vat-returns/${id}/export/excel`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiClient.getAccessToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to export Excel");
     }
 
     return response.blob();

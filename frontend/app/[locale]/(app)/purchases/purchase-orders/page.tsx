@@ -6,9 +6,12 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -57,6 +60,8 @@ import logger from "@/lib/logger";
 
 export default function PurchaseOrdersPage() {
   const t = useTranslations("purchases.purchaseOrders");
+  const locale = useLocale();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [vendorFilter, setVendorFilter] = useState<string>("all");
@@ -125,9 +130,7 @@ export default function PurchaseOrdersPage() {
     return purchaseOrders.filter(
       (po) =>
         po.po_number.toLowerCase().includes(search.toLowerCase()) ||
-        po.vendor?.name_en?.toLowerCase().includes(search.toLowerCase()) ||
-        po.vendor?.name_ar?.includes(search) ||
-        po.reference_number?.toLowerCase().includes(search.toLowerCase())
+        po.vendor_name?.toLowerCase().includes(search.toLowerCase())
     );
   }, [purchaseOrders, search]);
 
@@ -138,21 +141,19 @@ export default function PurchaseOrdersPage() {
       sent: "outline",
       accepted: "default",
       rejected: "destructive",
-      partially_received: "outline",
       received: "default",
       closed: "secondary",
     };
-    
+
     const labels: Record<PurchaseOrderStatus, string> = {
       draft: t("statuses.draft"),
       sent: t("statuses.sent"),
       accepted: t("statuses.accepted"),
       rejected: t("statuses.rejected"),
-      partially_received: t("statuses.partiallyReceived"),
       received: t("statuses.received"),
       closed: t("statuses.closed"),
     };
-    
+
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
@@ -193,20 +194,20 @@ export default function PurchaseOrdersPage() {
       vendorId: purchaseOrder.vendor_id,
       date: purchaseOrder.date.split("T")[0],
       expectedDeliveryDate: purchaseOrder.expected_delivery_date?.split("T")[0] || "",
-      referenceNumber: purchaseOrder.reference_number || "",
+      referenceNumber: "",
       notes: purchaseOrder.notes || "",
       status: purchaseOrder.status,
     });
-    
+
     setLines(
       purchaseOrder.items?.map((item, idx) => ({
         id: idx + 1,
-        description: item.description_en || "",
+        description: item.description || "",
         descriptionAr: item.description_ar || "",
         quantity: item.quantity,
         unitPrice: item.unit_price,
         taxRate: item.tax_rate,
-        discount: item.discount_percent,
+        discount: item.discount,
       })) || [
         {
           id: 1,
@@ -243,7 +244,7 @@ export default function PurchaseOrdersPage() {
   const handleSend = async (purchaseOrder: PurchaseOrder) => {
     setActionLoading(purchaseOrder.id);
     try {
-      await purchaseOrdersApi.send(purchaseOrder.id);
+      await purchaseOrdersApi.update(purchaseOrder.id, { status: "sent" });
       toast.success(t("sendSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
@@ -258,7 +259,7 @@ export default function PurchaseOrdersPage() {
   const handleAccept = async (purchaseOrder: PurchaseOrder) => {
     setActionLoading(purchaseOrder.id);
     try {
-      await purchaseOrdersApi.accept(purchaseOrder.id);
+      await purchaseOrdersApi.update(purchaseOrder.id, { status: "accepted" });
       toast.success(t("acceptSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
@@ -274,10 +275,10 @@ export default function PurchaseOrdersPage() {
     if (!confirm(t("confirmReject"))) {
       return;
     }
-    
+
     setActionLoading(purchaseOrder.id);
     try {
-      await purchaseOrdersApi.reject(purchaseOrder.id);
+      await purchaseOrdersApi.update(purchaseOrder.id, { status: "rejected" });
       toast.success(t("rejectSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
@@ -292,7 +293,7 @@ export default function PurchaseOrdersPage() {
   const handleMarkAsReceived = async (purchaseOrder: PurchaseOrder) => {
     setActionLoading(purchaseOrder.id);
     try {
-      await purchaseOrdersApi.markAsReceived(purchaseOrder.id);
+      await purchaseOrdersApi.update(purchaseOrder.id, { status: "received" });
       toast.success(t("receiveSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
@@ -308,10 +309,10 @@ export default function PurchaseOrdersPage() {
     if (!confirm(t("confirmClose"))) {
       return;
     }
-    
+
     setActionLoading(purchaseOrder.id);
     try {
-      await purchaseOrdersApi.close(purchaseOrder.id);
+      await purchaseOrdersApi.update(purchaseOrder.id, { status: "closed" });
       toast.success(t("closeSuccess"));
       await fetchPurchaseOrders();
     } catch (error: unknown) {
@@ -335,12 +336,12 @@ export default function PurchaseOrdersPage() {
         reference_number: purchaseOrderForm.referenceNumber || undefined,
         notes: purchaseOrderForm.notes || undefined,
         items: lines.map((line) => ({
-          description_en: line.description,
+          description: line.description,
           description_ar: line.descriptionAr || undefined,
           quantity: line.quantity,
           unit_price: line.unitPrice,
           tax_rate: line.taxRate,
-          discount_percent: line.discount,
+          discount: line.discount,
         })),
       };
 
@@ -383,21 +384,7 @@ export default function PurchaseOrdersPage() {
 
   // Handle export Excel
   const handleExportExcel = async (purchaseOrder: PurchaseOrder) => {
-    try {
-      const blob = await purchaseOrdersApi.exportToExcel(purchaseOrder.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `purchase-order-${purchaseOrder.po_number}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success(t("exportExcelSuccess"));
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to export Excel";
-      toast.error(message);
-    }
+    toast.error("Excel export not implemented yet");
   };
 
   // Add a new line item
@@ -467,6 +454,11 @@ export default function PurchaseOrdersPage() {
   };
 
   const totals = calculateTotals();
+
+  // Handle view purchase order
+  const handleView = (purchaseOrder: PurchaseOrder) => {
+    router.push(`/${locale}/purchases/purchase-orders/${purchaseOrder.id}`);
+  };
 
   // Get action buttons for each purchase order
   const getActionButtons = (purchaseOrder: PurchaseOrder) => {
@@ -593,7 +585,6 @@ export default function PurchaseOrdersPage() {
                     <SelectItem value="sent">{t("statuses.sent")}</SelectItem>
                     <SelectItem value="accepted">{t("statuses.accepted")}</SelectItem>
                     <SelectItem value="rejected">{t("statuses.rejected")}</SelectItem>
-                    <SelectItem value="partially_received">{t("statuses.partiallyReceived")}</SelectItem>
                     <SelectItem value="received">{t("statuses.received")}</SelectItem>
                     <SelectItem value="closed">{t("statuses.closed")}</SelectItem>
                   </SelectContent>
@@ -664,12 +655,7 @@ export default function PurchaseOrdersPage() {
                     <TableRow key={po.id}>
                       <TableCell className="font-mono">{po.po_number}</TableCell>
                       <TableCell>
-                        <div>
-                          <div>{po.vendor?.name_en}</div>
-                          <div className="text-sm text-zinc-500" dir="rtl">
-                            {po.vendor?.name_ar}
-                          </div>
-                        </div>
+                        <div>{po.vendor_name}</div>
                       </TableCell>
                       <TableCell>
                         {format(new Date(po.date), "dd/MM/yyyy")}
@@ -681,7 +667,7 @@ export default function PurchaseOrdersPage() {
                         {getStatusBadge(po.status)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        QAR {po.total_amount?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                        QAR {po.total?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -716,7 +702,7 @@ export default function PurchaseOrdersPage() {
 
         {/* Create/Edit Purchase Order Dialog */}
         <Dialog open={showPurchaseOrderDialog} onOpenChange={setShowPurchaseOrderDialog}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPurchaseOrder ? t("dialogs.editTitle") : t("dialogs.createTitle")}

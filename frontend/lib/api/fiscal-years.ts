@@ -91,4 +91,22 @@ export const fiscalYearsApi = {
     const response = await apiClient.post<FiscalYear>(`/settings/fiscal-years/${id}/set-current`);
     return response.data as FiscalYear;
   },
+
+  async exportToPDF(id: string): Promise<Blob> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/settings/fiscal-years/${id}/export/pdf`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiClient.getAccessToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to export PDF");
+    }
+
+    return response.blob();
+  },
 };

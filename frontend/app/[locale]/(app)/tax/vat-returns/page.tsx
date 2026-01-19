@@ -8,6 +8,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,15 +48,18 @@ import {
   Upload,
   Calendar,
   RefreshCw,
+  Check,
 } from "lucide-react";
-import { vatReturnsApi, VatReturn, VatRate } from "@/lib/api/vat-returns";
-import { vatApi } from "@/lib/api/vat";
+import { vatReturnsApi, VatReturn } from "@/lib/api/vat-returns";
+import { vatApi, VatRate } from "@/lib/api/vat";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import logger from "@/lib/logger";
 
 export default function VatReturnsPage() {
   const t = useTranslations("tax.vatReturns");
+  const router = useRouter();
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<string>("all");
@@ -93,7 +97,7 @@ export default function VatReturnsPage() {
 
   const fetchVatRates = async () => {
     try {
-      const data = await vatApi.getAll();
+      const data = await vatApi.getRates();
       setVatRates(data);
     } catch (error: unknown) {
       logger.error("Failed to load VAT rates", error as Error);

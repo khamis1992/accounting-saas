@@ -5,7 +5,7 @@
 
 import { apiClient } from "./client";
 
-export type QuotationStatus = "draft" | "sent" | "accepted" | "rejected" | "expired";
+export type QuotationStatus = "draft" | "sent" | "accepted" | "rejected" | "expired" | "converted";
 
 export interface QuotationItem {
   id?: string;
@@ -41,7 +41,9 @@ export interface Quotation {
   discount_amount: number;
   tax_amount: number;
   total: number;
+  total_amount?: number;
   notes?: string;
+  reference_number?: string;
   converted_to_invoice?: boolean;
   invoice_id?: string;
   created_by: string;

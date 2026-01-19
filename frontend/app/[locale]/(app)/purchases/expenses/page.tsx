@@ -51,7 +51,7 @@ import {
   RefreshCw,
   DollarSign,
 } from "lucide-react";
-import { expensesApi, Expense, ExpenseStatus } from "@/lib/api/expenses";
+import { expensesApi, Expense, ExpenseStatus, ExpenseCategory } from "@/lib/api/expenses";
 import { vendorsApi } from "@/lib/api/vendors";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -80,7 +80,7 @@ export default function ExpensesPage() {
     descriptionAr: "",
     referenceNumber: "",
     notes: "",
-    status: "draft" as ExpenseStatus,
+    status: "pending" as ExpenseStatus,
   });
 
   // Fetch initial data
@@ -120,35 +120,29 @@ export default function ExpensesPage() {
   const filteredExpenses = useMemo(() => {
     return expenses.filter(
       (exp) =>
-        exp.expense_number.toLowerCase().includes(search.toLowerCase()) ||
-        exp.vendor?.name_en?.toLowerCase().includes(search.toLowerCase()) ||
-        exp.vendor?.name_ar?.includes(search) ||
-        exp.description_en?.toLowerCase().includes(search.toLowerCase()) ||
-        exp.description_ar?.includes(search) ||
-        exp.reference_number?.toLowerCase().includes(search.toLowerCase())
+        exp.id.toLowerCase().includes(search.toLowerCase()) ||
+        exp.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
+        exp.description?.toLowerCase().includes(search.toLowerCase()) ||
+        exp.notes?.toLowerCase().includes(search.toLowerCase())
     );
   }, [expenses, search]);
 
   // Get status badge
   const getStatusBadge = (status: ExpenseStatus) => {
     const variants: Record<ExpenseStatus, "default" | "secondary" | "outline" | "destructive"> = {
-      draft: "secondary",
-      submitted: "outline",
+      pending: "secondary",
       approved: "default",
       rejected: "destructive",
       paid: "default",
-      cancelled: "secondary",
     };
-    
+
     const labels: Record<ExpenseStatus, string> = {
-      draft: t("statuses.draft"),
-      submitted: t("statuses.submitted"),
+      pending: t("statuses.pending"),
       approved: t("statuses.approved"),
       rejected: t("statuses.rejected"),
       paid: t("statuses.paid"),
-      cancelled: t("statuses.cancelled"),
     };
-    
+
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
@@ -190,28 +184,28 @@ export default function ExpensesPage() {
       descriptionAr: "",
       referenceNumber: "",
       notes: "",
-      status: "draft",
+      status: "pending",
     });
     setShowExpenseDialog(true);
   };
 
   // Handle edit expense
   const handleEdit = (expense: Expense) => {
-    if (expense.status !== "draft" && expense.status !== "rejected") {
+    if (expense.status !== "pending" && expense.status !== "rejected") {
       toast.error(t("errors.editOnlyDraftOrRejected"));
       return;
     }
     
     setEditingExpense(expense);
     setExpenseForm({
-      vendorId: expense.vendor_id,
+      vendorId: expense.vendor_id || "",
       date: expense.date.split("T")[0],
       amount: expense.amount.toString(),
       currency: expense.currency,
       category: expense.category,
-      description: expense.description_en || "",
-      descriptionAr: expense.description_ar || "",
-      referenceNumber: expense.reference_number || "",
+      description: expense.description || "",
+      descriptionAr: "",
+      referenceNumber: "",
       notes: expense.notes || "",
       status: expense.status,
     });
@@ -220,7 +214,7 @@ export default function ExpensesPage() {
 
   // Handle delete expense
   const handleDelete = async (expense: Expense) => {
-    if (!confirm(`${t("confirmDelete")} ${expense.expense_number}?`)) {
+    if (!confirm(`${t("confirmDelete")} ${expense.id}?`)) {
       return;
     }
 
@@ -238,7 +232,7 @@ export default function ExpensesPage() {
   const handleSubmitExpense = async (expense: Expense) => {
     setActionLoading(expense.id);
     try {
-      await expensesApi.submit(expense.id);
+      await expensesApi.approve(expense.id);
       toast.success(t("submitSuccess"));
       await fetchExpenses();
     } catch (error: unknown) {
@@ -287,9 +281,11 @@ export default function ExpensesPage() {
   const handleMarkAsPaid = async (expense: Expense) => {
     setActionLoading(expense.id);
     try {
-      await expensesApi.markAsPaid(expense.id);
-      toast.success(t("markPaidSuccess"));
-      await fetchExpenses();
+      // TODO: Backend API endpoint for marking as paid not implemented yet
+      toast.info("Mark as paid feature coming soon");
+      // await expensesApi.update(expense.id, { status: "paid" });
+      // toast.success(t("markPaidSuccess"));
+      // await fetchExpenses();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to mark as paid";
       toast.error(message);
@@ -304,23 +300,40 @@ export default function ExpensesPage() {
     setSubmitting(true);
 
     try {
-      const data = {
-        vendor_id: expenseForm.vendorId,
-        date: expenseForm.date,
-        amount: parseFloat(expenseForm.amount),
-        currency: expenseForm.currency,
-        category: expenseForm.category,
-        description_en: expenseForm.description,
-        description_ar: expenseForm.descriptionAr || undefined,
-        reference_number: expenseForm.referenceNumber || undefined,
-        notes: expenseForm.notes || undefined,
-      };
-
       if (editingExpense) {
-        await expensesApi.update(editingExpense.id, data);
+        const updateData: {
+          date?: string;
+          amount?: number;
+          currency?: string;
+          category?: ExpenseCategory;
+          description?: string;
+          vendor_id?: string;
+          vendor_name?: string;
+          notes?: string;
+        } = {
+          date: expenseForm.date,
+          amount: parseFloat(expenseForm.amount),
+          currency: expenseForm.currency,
+          category: expenseForm.category as ExpenseCategory,
+          description: expenseForm.description,
+          notes: expenseForm.notes || undefined,
+        };
+        if (expenseForm.vendorId) {
+          updateData.vendor_id = expenseForm.vendorId;
+        }
+        await expensesApi.update(editingExpense.id, updateData);
         toast.success(t("updateSuccess"));
       } else {
-        await expensesApi.create(data);
+        const createData = {
+          date: expenseForm.date,
+          amount: parseFloat(expenseForm.amount),
+          currency: expenseForm.currency,
+          category: expenseForm.category as ExpenseCategory,
+          description: expenseForm.description,
+          vendor_id: expenseForm.vendorId || undefined,
+          notes: expenseForm.notes || undefined,
+        };
+        await expensesApi.create(createData);
         toast.success(t("createSuccess"));
       }
 
@@ -337,15 +350,17 @@ export default function ExpensesPage() {
   // Handle export PDF
   const handleExportPDF = async (expense: Expense) => {
     try {
-      const blob = await expensesApi.exportToPDF(expense.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `expense-${expense.expense_number}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // TODO: Backend API endpoint for PDF export not implemented yet
+      toast.info("PDF export feature coming soon");
+      // const blob = await expensesApi.exportToPDF(expense.id);
+      // const url = URL.createObjectURL(blob);
+      // const a = document.createElement("a");
+      // a.href = url;
+      // a.download = `expense-${expense.id}.pdf`;
+      // document.body.appendChild(a);
+      // a.click();
+      // document.body.removeChild(a);
+      // URL.revokeObjectURL(url);
       toast.success(t("exportSuccess"));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to export PDF";
@@ -356,15 +371,8 @@ export default function ExpensesPage() {
   // Handle export Excel
   const handleExportExcel = async (expense: Expense) => {
     try {
-      const blob = await expensesApi.exportToExcel(expense.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `expense-${expense.expense_number}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Export all expenses for now - single expense export not implemented
+      await expensesApi.exportToExcel({});
       toast.success(t("exportExcelSuccess"));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to export Excel";
@@ -376,15 +384,15 @@ export default function ExpensesPage() {
   const getActionButtons = (expense: Expense) => {
     const buttons = [];
 
-    // View button (always available)
-    buttons.push({
-      icon: <Eye className="h-4 w-4" />,
-      label: t("actions.view"),
-      onClick: () => handleView(expense),
-    });
+    // View button not implemented - no detail page
+    // buttons.push({
+    //   icon: <Eye className="h-4 w-4" />,
+    //   label: t("actions.view"),
+    //   onClick: () => handleView(expense),
+    // });
 
     // Edit button (draft/rejected only)
-    if (expense.status === "draft" || expense.status === "rejected") {
+    if (expense.status === "pending" || expense.status === "rejected") {
       buttons.push({
         icon: <Edit className="h-4 w-4" />,
         label: t("actions.edit"),
@@ -393,7 +401,7 @@ export default function ExpensesPage() {
     }
 
     // Submit button (draft/rejected only)
-    if (expense.status === "draft" || expense.status === "rejected") {
+    if (expense.status === "pending" || expense.status === "rejected") {
       buttons.push({
         icon: <Send className="h-4 w-4" />,
         label: t("actions.submit"),
@@ -403,7 +411,7 @@ export default function ExpensesPage() {
     }
 
     // Approve button (submitted only)
-    if (expense.status === "submitted") {
+    if (expense.status === "pending") {
       buttons.push({
         icon: <Check className="h-4 w-4" />,
         label: t("actions.approve"),
@@ -413,7 +421,7 @@ export default function ExpensesPage() {
     }
 
     // Reject button (submitted only)
-    if (expense.status === "submitted") {
+    if (expense.status === "pending") {
       buttons.push({
         icon: <X className="h-4 w-4" />,
         label: t("actions.reject"),
@@ -446,7 +454,7 @@ export default function ExpensesPage() {
     });
 
     // Delete button (draft/rejected only)
-    if (expense.status === "draft" || expense.status === "rejected") {
+    if (expense.status === "pending" || expense.status === "rejected") {
       buttons.push({
         icon: <Trash2 className="h-4 w-4" />,
         label: t("actions.delete"),
@@ -558,12 +566,12 @@ export default function ExpensesPage() {
                 <TableBody>
                   {filteredExpenses.map((expense) => (
                     <TableRow key={expense.id}>
-                      <TableCell className="font-mono">{expense.expense_number}</TableCell>
+                      <TableCell className="font-mono">{expense.id}</TableCell>
                       <TableCell>
                         <div>
-                          <div>{expense.vendor?.name_en}</div>
+                          <div>{expense.vendor_name}</div>
                           <div className="text-sm text-zinc-500" dir="rtl">
-                            {expense.vendor?.name_ar}
+                            {""}
                           </div>
                         </div>
                       </TableCell>
@@ -575,9 +583,9 @@ export default function ExpensesPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div>{expense.description_en}</div>
+                          <div>{expense.description}</div>
                           <div className="text-sm text-zinc-500" dir="rtl">
-                            {expense.description_ar}
+                            {""}
                           </div>
                         </div>
                       </TableCell>

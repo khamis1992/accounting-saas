@@ -12,6 +12,14 @@ export interface RolePermission {
   is_granted: boolean;
 }
 
+export interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  description?: string;
+}
+
 export interface Role {
   id: string;
   tenant_id: string;
@@ -48,28 +56,28 @@ export const rolesApi = {
 
     const query = params.toString();
     const response = await apiClient.get<Role[]>(
-      query ? `/settings/roles?${query}` : "/settings/roles"
+      query ? `/roles?${query}` : "/roles"
     );
     return response.data || [];
   },
 
   async getById(id: string): Promise<Role> {
-    const response = await apiClient.get<Role>(`/settings/roles/${id}`);
+    const response = await apiClient.get<Role>(`/roles/${id}`);
     return response.data as Role;
   },
 
   async create(data: CreateRoleDto): Promise<Role> {
-    const response = await apiClient.post<Role>("/settings/roles", data);
+    const response = await apiClient.post<Role>("/roles", data);
     return response.data as Role;
   },
 
   async update(id: string, data: Partial<CreateRoleDto>): Promise<Role> {
-    const response = await apiClient.patch<Role>(`/settings/roles/${id}`, data);
+    const response = await apiClient.patch<Role>(`/roles/${id}`, data);
     return response.data as Role;
   },
 
   async delete(id: string): Promise<{ success: boolean }> {
-    const response = await apiClient.delete<{ success: boolean }>(`/settings/roles/${id}`);
+    const response = await apiClient.delete<{ success: boolean }>(`/roles/${id}`);
     return response.data as { success: boolean };
   },
 };

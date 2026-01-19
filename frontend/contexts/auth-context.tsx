@@ -31,6 +31,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   createTenantWithAdmin: (data: CreateTenantWithAdminParams) => Promise<void>;
+  updateUser: (data: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -132,10 +133,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(sessionData.session.user);
         }
 
+        // CRITICAL FIX: Wait a moment for session to be fully established
+        // This prevents race condition where dashboard loads before token is available
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         // Redirect to dashboard after successful login with current locale
         const locale = getCurrentLocale();
         router.push(`/${locale}/dashboard`);
-        router.refresh(); // Force refresh to update the UI
+        // REMOVED: router.refresh() - this was causing the redirect loop
+        // The session state change will trigger a re-render automatically
       } else {
         throw new Error("No session returned from server");
       }
@@ -201,10 +207,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(sessionData.session.user);
         }
 
+        // CRITICAL FIX: Wait a moment for session to be fully established
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         // Redirect to dashboard after successful tenant creation with current locale
         const locale = getCurrentLocale();
         router.push(`/${locale}/dashboard`);
-        router.refresh();
+        // REMOVED: router.refresh()
       }
 
       return result;
@@ -223,6 +232,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push(`/${locale}/signin`);
   };
 
+  const updateUser = async (data: any) => {
+    // Stub implementation - update user profile
+    console.log("Update user profile:", data);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -233,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         createTenantWithAdmin,
+        updateUser,
       }}
     >
       {children}

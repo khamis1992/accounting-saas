@@ -17,6 +17,8 @@ export interface PurchaseOrderItem {
   id?: string;
   product_id?: string;
   description: string;
+  description_ar?: string;
+  description_en?: string;
   quantity: number;
   unit_price: number;
   discount: number;
@@ -46,6 +48,7 @@ export interface CreatePurchaseOrderDto {
   vendor_id: string;
   date: Date | string;
   expected_delivery_date?: Date | string;
+  reference_number?: string;
   items: Omit<PurchaseOrderItem, "id" | "total">[];
   notes?: string;
 }
@@ -57,8 +60,10 @@ export interface UpdatePurchaseOrderDto {
   vendor_id?: string;
   date?: Date | string;
   expected_delivery_date?: Date | string;
+  reference_number?: string;
   items?: Omit<PurchaseOrderItem, "id" | "total">[];
   notes?: string;
+  status?: PurchaseOrderStatus;
 }
 
 export interface PurchaseOrderFilters {
@@ -108,6 +113,7 @@ export const purchaseOrdersApi = {
       vendor_id: data.vendor_id,
       date: typeof data.date === 'string' ? data.date : data.date.toISOString(),
       expected_delivery_date: data.expected_delivery_date ? (typeof data.expected_delivery_date === 'string' ? data.expected_delivery_date : data.expected_delivery_date.toISOString()) : undefined,
+      reference_number: data.reference_number,
       items: data.items,
       notes: data.notes,
     });
@@ -122,8 +128,10 @@ export const purchaseOrdersApi = {
       vendor_id: data.vendor_id,
       date: data.date ? (typeof data.date === 'string' ? data.date : data.date.toISOString()) : undefined,
       expected_delivery_date: data.expected_delivery_date ? (typeof data.expected_delivery_date === 'string' ? data.expected_delivery_date : data.expected_delivery_date.toISOString()) : undefined,
+      reference_number: data.reference_number,
       items: data.items,
       notes: data.notes,
+      status: data.status,
     });
     return response.data as PurchaseOrder;
   },

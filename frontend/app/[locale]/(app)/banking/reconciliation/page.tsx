@@ -381,7 +381,7 @@ export default function ReconciliationPage() {
                         QAR {reconciliation.statement_balance?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        QAR {reconciliation.book_balance?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                        QAR {reconciliation.reconciled_balance?.toLocaleString("en-QA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {reconciliation.difference !== 0 ? (
