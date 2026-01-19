@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -53,6 +53,7 @@ import { toast } from "sonner";
 import logger from "@/lib/logger";
 
 export default function RolesPage() {
+  const locale = useLocale();
   const t = useTranslations("settings.roles");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -298,11 +299,9 @@ export default function RolesPage() {
                 <Shield className="h-12 w-12 text-zinc-400 mb-4" />
                 <h3 className="text-lg font-medium">{t("empty.title")}</h3>
                 <p className="text-zinc-500">{t("empty.description")}</p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link href={`/${locale}/settings/roles/new`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t("createFirst")}
-                  </Link>
+                <Button onClick={handleCreate} variant="outline" className="mt-4 gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("empty.createFirst")}
                 </Button>
               </div>
             ) : (

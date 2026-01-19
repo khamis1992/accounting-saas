@@ -24,6 +24,7 @@ import { EmailModule } from './email/email.module';
 import { AppConfigModule } from './config/config.module';
 import { SecurityModule } from './security/security.module';
 import { HealthModule } from './health/health.module';
+import { SettingsModule } from './settings/settings.module';
 import { SecurityMiddleware, RequestLoggingMiddleware } from './common/middleware';
 
 @Module({
@@ -53,6 +54,7 @@ import { SecurityMiddleware, RequestLoggingMiddleware } from './common/middlewar
     PdfModule,
     EmailModule,
     HealthModule,
+    SettingsModule,
   ],
   controllers: [],
   providers: [

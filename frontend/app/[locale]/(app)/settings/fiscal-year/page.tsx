@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -53,6 +53,7 @@ import { format } from "date-fns";
 import logger from "@/lib/logger";
 
 export default function FiscalYearPage() {
+  const locale = useLocale();
   const t = useTranslations("settings.fiscalYear");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -238,6 +239,13 @@ export default function FiscalYearPage() {
     }
   };
 
+  // Handle view fiscal year
+  const handleView = (fiscalYear: FiscalYear) => {
+    // Navigate to fiscal year detail page or open a dialog
+    // For now, just log - implement as needed
+    console.log("View fiscal year:", fiscalYear);
+  };
+
   // Get action buttons for each fiscal year
   const getActionButtons = (fiscalYear: FiscalYear) => {
     const buttons = [];
@@ -351,11 +359,9 @@ export default function FiscalYearPage() {
                 <Calendar className="h-12 w-12 text-zinc-400 mb-4" />
                 <h3 className="text-lg font-medium">{t("empty.title")}</h3>
                 <p className="text-zinc-500">{t("empty.description")}</p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link href={`/${locale}/settings/fiscal-year/new`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t("createFirst")}
-                  </Link>
+                <Button onClick={handleCreate} variant="outline" className="mt-4 gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("empty.createFirst")}
                 </Button>
               </div>
             ) : (

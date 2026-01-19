@@ -390,7 +390,8 @@
       "empty": {
         "title": "No quotations found",
         "description": "Create your first quotation to get started"
-      }
+      },
+      "createFirst": "Create Quotation"
     }
   },
   "purchases": {
@@ -401,6 +402,7 @@
       "description": "Create and manage purchase orders",
       "newPurchaseOrder": "New Purchase Order",
       "loading": "Loading purchase orders...",
+      "createFirst": "Create Purchase Order",
       "converting": "Converting to bill...",
       "converted": "Successfully converted to bill",
       "exporting": "Exporting to PDF...",
@@ -408,15 +410,21 @@
       "sendSuccess": "Purchase order sent successfully",
       "receiveSuccess": "Purchase order marked as received",
       "closeSuccess": "Purchase order closed successfully",
+      "acceptSuccess": "Purchase order accepted successfully",
+      "rejectSuccess": "Purchase order rejected successfully",
+      "exportExcelSuccess": "Excel exported successfully",
       "createSuccess": "Purchase order created successfully",
       "updateSuccess": "Purchase order updated successfully",
       "deleteSuccess": "Purchase order deleted successfully",
       "confirmDelete": "Are you sure you want to delete purchase order",
+      "confirmReject": "Are you sure you want to reject this purchase order?",
+      "confirmClose": "Are you sure you want to close this purchase order?",
       "confirmConvert": "Convert {{poNumber}} to a bill? This will create a bill from the purchase order.",
       "errors": {
         "fetchFailed": "Failed to load purchase orders",
         "convertFailed": "Failed to convert to bill",
         "editOnlyDraft": "Can only edit draft purchase orders",
+        "editOnlyDraftOrRejected": "Can only edit draft or rejected purchase orders",
         "deleteFailed": "Failed to delete purchase order",
         "saveFailed": "Failed to save purchase order",
         "sendFailed": "Failed to send purchase order",
@@ -433,7 +441,7 @@
         "poNumber": "PO #",
         "vendor": "Vendor",
         "date": "Date",
-        "expectedDelivery": "Expected Delivery",
+        "deliveryDate": "Expected Delivery",
         "status": "Status",
         "total": "Total",
         "actions": "Actions"
@@ -443,43 +451,55 @@
         "sent": "Sent",
         "accepted": "Accepted",
         "rejected": "Rejected",
+        "partiallyReceived": "Partially Received",
         "received": "Received",
         "closed": "Closed"
       },
       "actions": {
+        "view": "View",
         "edit": "Edit",
         "delete": "Delete",
         "send": "Send",
+        "accept": "Accept",
+        "reject": "Reject",
         "markReceived": "Mark Received",
         "close": "Close",
         "convertToBill": "Convert to Bill",
-        "export": "Export PDF",
-        "refresh": "Refresh"
+        "exportPDF": "Export PDF",
+        "exportExcel": "Export Excel",
+        "refresh": "Refresh",
+        "cancel": "Cancel",
+        "create": "Create",
+        "creating": "Creating...",
+        "update": "Update",
+        "updating": "Updating..."
       },
-      "dialog": {
+      "dialogs": {
         "createTitle": "New Purchase Order",
         "createDescription": "Create a new purchase order",
         "editTitle": "Edit Purchase Order",
         "editDescription": "Update purchase order details"
       },
-      "form": {
+      "fields": {
         "vendor": "Vendor",
         "selectVendor": "Select vendor",
-        "orderDate": "Order Date",
-        "expectedDeliveryDate": "Expected Delivery Date",
+        "date": "Date",
+        "deliveryDate": "Expected Delivery Date",
+        "referenceNumber": "Reference Number",
         "lineItems": "Line Items",
         "addLine": "Add Line",
-        "description": "Description",
+        "descriptionEn": "Description (EN)",
+        "descriptionAr": "Description (AR)",
         "quantity": "Quantity",
         "unitPrice": "Unit Price",
         "tax": "Tax %",
         "discount": "Discount %",
         "total": "Total",
         "subtotal": "Subtotal",
-        "notes": "Notes",
-        "cancel": "Cancel",
-        "save": "Save",
-        "saving": "Saving..."
+        "totalDiscount": "Total Discount",
+        "totalTax": "Total Tax",
+        "totalAmount": "Total Amount",
+        "notes": "Notes"
       },
       "empty": {
         "title": "No purchase orders found",
@@ -565,12 +585,21 @@
       "title": "Bank Accounts",
       "description": "View and manage all bank accounts",
       "newAccount": "New Account",
+      "createDescription": "Create a new bank account for your business",
+      "fields": {
+        "accountName": "Account Name",
+        "accountType": "Account Type",
+        "bankName": "Bank Name",
+        "accountNumber": "Account Number",
+        "currency": "Currency",
+        "initialBalance": "Initial Balance"
+      },
       "summary": {
         "totalBalance": "Total Balance",
         "thisMonthChanges": "This Month's Changes",
         "activeAccounts": "Active Accounts",
         "accounts": "accounts",
-        "acrossAccounts": "across {{count}} accounts",
+        "acrossAccounts": "across {count} accounts",
         "netChange": "net change"
       },
       "filters": {
@@ -605,6 +634,30 @@
     "reconciliation": {
       "title": "Bank Reconciliation",
       "description": "Match bank statements with book transactions",
+      "startReconciliation": "Start New Reconciliation",
+      "loading": "Loading reconciliations...",
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allAccounts": "All Accounts",
+        "searchPlaceholder": "Search by account or statement date..."
+      },
+      "statuses": {
+        "draft": "Draft",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "dialogs": {
+        "startTitle": "Start New Reconciliation",
+        "startDescription": "Enter statement details to begin reconciliation",
+        "account": "Bank Account",
+        "selectAccount": "Select account",
+        "startDate": "Statement Date",
+        "endDate": "End Date",
+        "statementBalance": "Statement Balance",
+        "cancel": "Cancel",
+        "start": "Start Reconciliation"
+      },
       "new": {
         "title": "Start New Reconciliation",
         "account": "Bank Account",
@@ -660,7 +713,12 @@
       },
       "errors": {
         "differenceNotZero": "Difference must be zero to complete reconciliation"
-      }
+      },
+      "empty": {
+        "title": "No reconciliations found",
+        "description": "Start your first bank reconciliation to get started"
+      },
+      "createFirst": "Start Reconciliation"
     }
   },
   "assets": {
@@ -669,7 +727,78 @@
   },
   "tax": {
     "title": "Tax",
-    "description": "Manage VAT and tax returns"
+    "description": "Manage VAT and tax returns",
+    "vatReturns": {
+      "title": "VAT Returns",
+      "description": "Manage VAT return preparation and filing",
+      "calculateReturn": "Calculate VAT Return",
+      "loading": "Loading VAT returns...",
+      "calculateSuccess": "VAT return calculated successfully",
+      "deleteSuccess": "VAT return deleted successfully",
+      "fileSuccess": "VAT return filed successfully",
+      "markPaidSuccess": "VAT return marked as paid",
+      "exportSuccess": "PDF exported successfully",
+      "exportExcelSuccess": "Excel exported successfully",
+      "confirmDelete": "Are you sure you want to delete VAT return",
+      "calculateFirst": "Calculate your first VAT return",
+      "errors": {
+        "selectBothDates": "Please select both start and end dates"
+      },
+      "statuses": {
+        "draft": "Draft",
+        "calculated": "Calculated",
+        "filed": "Filed",
+        "paid": "Paid",
+        "cancelled": "Cancelled"
+      },
+      "periods": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allPeriods": "All Periods",
+        "searchPlaceholder": "Search by return number, period, or status..."
+      },
+      "table": {
+        "returnNumber": "Return Number",
+        "period": "Period",
+        "dueDate": "Due Date",
+        "status": "Status",
+        "netVat": "Net VAT",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View",
+        "exportPDF": "Export PDF",
+        "exportExcel": "Export Excel",
+        "fileReturn": "File Return",
+        "markAsPaid": "Mark as Paid",
+        "delete": "Delete"
+      },
+      "dialogs": {
+        "calculateTitle": "Calculate VAT Return",
+        "calculateDescription": "Select the period for which you want to calculate VAT",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "cancel": "Cancel",
+        "calculate": "Calculate"
+      },
+      "empty": {
+        "title": "No VAT Returns Found",
+        "description": "You haven't created any VAT returns yet. Click the button below to calculate your first VAT return."
+      }
+    }
   },
   "reports": {
     "title": "Reports",
@@ -849,21 +978,6 @@
     "purchases": "Purchases",
     "payments": "Payments"
   },
-  "banking": {
-    "title": "Banking",
-    "bankAccounts": "Bank Accounts",
-    "accountNumber": "Account Number",
-    "accountName": "Account Name",
-    "bankName": "Bank Name",
-    "currency": "Currency",
-    "balance": "Balance",
-    "transactions": "Transactions",
-    "reconciliation": "Reconciliation",
-    "reconcile": "Reconcile",
-    "addAccount": "Add Account",
-    "editAccount": "Edit Account",
-    "deleteAccount": "Delete Account"
-  },
   "expenses": {
     "title": "Expenses",
     "expenseNumber": "Expense Number",
@@ -923,6 +1037,7 @@
     "depreciation": {
       "title": "Depreciation",
       "description": "Calculate and post depreciation entries",
+      "calculateDepreciation": "Calculate Depreciation",
       "periodStart": "Period Start",
       "periodEnd": "Period End",
       "calculate": "Calculate Depreciation",
@@ -943,7 +1058,62 @@
       "history": "Depreciation History",
       "noHistory": "No depreciation history found",
       "statusCalculated": "Calculated",
-      "statusPosted": "Posted"
+      "statusPosted": "Posted",
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allAssets": "All Assets",
+        "searchPlaceholder": "Search depreciations..."
+      },
+      "statuses": {
+        "draft": "Draft",
+        "calculated": "Calculated",
+        "posted": "Posted",
+        "cancelled": "Cancelled"
+      },
+      "methods": {
+        "straightLine": "Straight Line",
+        "decliningBalance": "Declining Balance",
+        "unitsOfProduction": "Units of Production"
+      },
+      "table": {
+        "depreciationNumber": "Depreciation Number",
+        "asset": "Asset",
+        "calculationDate": "Calculation Date",
+        "method": "Method",
+        "status": "Status",
+        "amount": "Amount",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View",
+        "delete": "Delete",
+        "postToJournal": "Post to Journal",
+        "exportPDF": "Export PDF",
+        "exportExcel": "Export Excel"
+      },
+      "dialogs": {
+        "calculateTitle": "Calculate Depreciation",
+        "calculateDescription": "Select assets and calculate depreciation for the specified period",
+        "calculationDate": "Calculation Date",
+        "selectAssets": "Select Assets to Depreciate",
+        "cancel": "Cancel",
+        "calculate": "Calculate"
+      },
+      "empty": {
+        "title": "No Depreciation Records",
+        "description": "Calculate depreciation for your assets to get started",
+        "calculateFirst": "Calculate Your First Depreciation"
+      },
+      "loading": "Loading...",
+      "errors": {
+        "selectDate": "Please select a calculation date"
+      },
+      "calculateSuccess": "Depreciation calculated successfully",
+      "deleteSuccess": "Depreciation deleted successfully",
+      "postSuccess": "Depreciation posted to journal successfully",
+      "exportSuccess": "PDF exported successfully",
+      "exportExcelSuccess": "Excel exported successfully",
+      "confirmDelete": "Are you sure you want to delete"
     },
     "depreciationMethods": {
       "straight_line": "Straight Line",
@@ -952,6 +1122,7 @@
     },
     "statuses": {
       "active": "Active",
+      "fully-depreciated": "Fully Depreciated",
       "fullydepreciated": "Fully Depreciated",
       "disposed": "Disposed",
       "sold": "Sold"
@@ -1257,11 +1428,93 @@
       "roundingDown": "Always round down",
       "saveSettings": "Save Settings",
       "saving": "Saving...",
-      "settingsSaved": "Settings saved successfully"
+      "settingsSaved": "Settings saved successfully",
+      "loading": "Loading company settings...",
+      "updateSuccess": "Company settings updated successfully",
+      "tabs": {
+        "company": "Company",
+        "address": "Address",
+        "tax": "Tax",
+        "currency": "Currency"
+      },
+      "fields": {
+        "companyNameEn": "Company Name (English)",
+        "companyNameAr": "Company Name (Arabic)",
+        "legalName": "Legal Name",
+        "businessType": "Business Type",
+        "taxNumber": "Tax Number",
+        "registrationNumber": "Registration Number",
+        "industry": "Industry",
+        "description": "Description",
+        "street": "Street",
+        "city": "City",
+        "state": "State",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "vatNumber": "VAT Number",
+        "taxRate": "Default Tax Rate (%)",
+        "enableTax": "Enable Tax Calculation",
+        "taxCalculation": "Tax Calculation Method",
+        "baseCurrency": "Base Currency",
+        "decimalPlaces": "Decimal Places",
+        "thousandsSeparator": "Thousands Separator",
+        "symbolPosition": "Currency Symbol Position"
+      },
+      "businessTypes": {
+        "soleProprietorship": "Sole Proprietorship",
+        "partnership": "Partnership",
+        "limitedCompany": "Limited Company",
+        "nonProfit": "Non-Profit",
+        "other": "Other"
+      },
+      "industries": {
+        "retail": "Retail",
+        "wholesale": "Wholesale",
+        "manufacturing": "Manufacturing",
+        "services": "Services",
+        "construction": "Construction",
+        "technology": "Technology",
+        "healthcare": "Healthcare",
+        "education": "Education",
+        "hospitality": "Hospitality",
+        "other": "Other"
+      },
+      "countries": {
+        "qatar": "Qatar",
+        "saudiArabia": "Saudi Arabia",
+        "unitedArabEmirates": "United Arab Emirates",
+        "kuwait": "Kuwait",
+        "bahrain": "Bahrain",
+        "oman": "Oman"
+      },
+      "taxCalculation": {
+        "exclusive": "Exclusive (tax added to price)",
+        "inclusive": "Inclusive (tax included in price)"
+      },
+      "thousandsSeparators": {
+        "none": "None"
+      },
+      "actions": {
+        "save": "Save Settings",
+        "saving": "Saving...",
+        "cancel": "Cancel"
+      },
+      "error": {
+        "noSettings": {
+          "title": "No Company Settings Found",
+          "description": "Please create company settings to get started"
+        }
+      }
     },
     "roles": {
       "title": "Roles & Permissions",
       "description": "Manage user roles and their permissions",
+      "newRole": "New Role",
+      "loading": "Loading roles...",
+      "confirmDelete": "Are you sure you want to delete",
+      "deleteSuccess": "Role deleted successfully",
+      "updateSuccess": "Role updated successfully",
+      "createSuccess": "Role created successfully",
       "createRole": "Create Role",
       "allRoles": "All Roles",
       "roleName": "Role Name",
@@ -1277,7 +1530,53 @@
       "reports": "Reports",
       "system": "System",
       "custom": "Custom",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "searchPlaceholder": "Search roles..."
+      },
+      "table": {
+        "name": "Name",
+        "description": "Description",
+        "permissions": "Permissions",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "fields": {
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "descriptionEn": "Description (English)",
+        "descriptionAr": "Description (Arabic)",
+        "isActive": "Active"
+      },
+      "permissions": {
+        "title": "Permissions",
+        "description": "Select the permissions for this role"
+      },
+      "dialogs": {
+        "createTitle": "Create Role",
+        "editTitle": "Edit Role",
+        "createDescription": "Create a new role with permissions",
+        "editDescription": "Edit role and its permissions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "updating": "Updating...",
+        "create": "Create",
+        "update": "Update"
+      },
+      "empty": {
+        "title": "No Roles Found",
+        "description": "Create your first role to get started",
+        "createFirst": "Create Role"
+      }
     },
     "fiscal": {
       "title": "Fiscal Year",
@@ -1301,26 +1600,126 @@
         "adjusting": "Adjusting"
       }
     },
+    "fiscalYear": {
+      "title": "Fiscal Year",
+      "description": "Manage fiscal years and accounting periods",
+      "newFiscalYear": "New Fiscal Year",
+      "loading": "Loading fiscal years...",
+      "empty": {
+        "title": "No Fiscal Years Found",
+        "description": "Create your first fiscal year to get started",
+        "createFirst": "Create Fiscal Year"
+      },
+      "confirmDelete": "Are you sure you want to delete",
+      "deleteSuccess": "Fiscal year deleted successfully",
+      "lockSuccess": "Fiscal year locked successfully",
+      "unlockSuccess": "Fiscal year unlocked successfully",
+      "updateSuccess": "Fiscal year updated successfully",
+      "createSuccess": "Fiscal year created successfully",
+      "exportSuccess": "PDF exported successfully",
+      "statuses": {
+        "open": "Open",
+        "locked": "Locked"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "searchPlaceholder": "Search fiscal years..."
+      },
+      "table": {
+        "name": "Name",
+        "year": "Year",
+        "period": "Period",
+        "description": "Description",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Name",
+        "year": "Year",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "description": "Description"
+      },
+      "dialogs": {
+        "createTitle": "Create Fiscal Year",
+        "editTitle": "Edit Fiscal Year",
+        "createDescription": "Create a new fiscal year for your organization",
+        "editDescription": "Edit fiscal year details"
+      },
+      "actions": {
+        "view": "View",
+        "edit": "Edit",
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "exportPDF": "Export PDF",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "updating": "Updating...",
+        "create": "Create",
+        "update": "Update"
+      }
+    },
     "costCenters": {
       "title": "Cost Centers",
       "description": "Manage cost centers for expense tracking",
-      "code": "Code",
-      "name": "Name",
-      "nameArabic": "Arabic Name",
-      "parent": "Parent",
-      "parentCostCenter": "Parent Cost Center",
-      "selectParent": "Select parent cost center",
-      "noParent": "No Parent",
-      "description": "Description",
-      "accounts": "Accounts",
-      "status": "Status",
-      "createCostCenter": "Create Cost Center",
-      "editCostCenter": "Edit Cost Center",
-      "allCostCenters": "All Cost Centers",
-      "totalCostCenters": "Total Cost Centers",
-      "activeCostCenters": "Active Cost Centers",
-      "totalAccounts": "Total Accounts",
-      "saving": "Saving..."
+      "newCostCenter": "New Cost Center",
+      "loading": "Loading cost centers...",
+      "confirmDelete": "Are you sure you want to delete",
+      "deleteSuccess": "Cost center deleted successfully",
+      "updateSuccess": "Cost center updated successfully",
+      "createSuccess": "Cost center created successfully",
+      "exportSuccess": "PDF exported successfully",
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "searchPlaceholder": "Search cost centers..."
+      },
+      "table": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "parent": "Parent",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "fields": {
+        "code": "Code",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
+        "descriptionEn": "Description (English)",
+        "descriptionAr": "Description (Arabic)",
+        "parent": "Parent",
+        "selectParent": "Select parent cost center",
+        "noParent": "No Parent",
+        "isActive": "Active"
+      },
+      "dialogs": {
+        "createTitle": "Create Cost Center",
+        "editTitle": "Edit Cost Center",
+        "createDescription": "Create a new cost center for expense tracking",
+        "editDescription": "Edit cost center details"
+      },
+      "actions": {
+        "view": "View",
+        "edit": "Edit",
+        "exportPDF": "Export PDF",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "updating": "Updating...",
+        "create": "Create",
+        "update": "Update"
+      },
+      "empty": {
+        "title": "No Cost Centers Found",
+        "description": "Create your first cost center to get started",
+        "createFirst": "Create Cost Center"
+      }
     }
   },
   "validation": {
@@ -1372,9 +1771,13 @@
     "newPurchaseOrder": "New Purchase Order",
     "expenses": "Expenses",
     "newExpense": "New Expense",
+    "accounts": "Bank Accounts",
     "bankAccounts": "Bank Accounts",
+    "newAccount": "New Account",
+    "bankReconciliation": "Bank Reconciliation",
     "reconciliation": "Bank Reconciliation",
     "fixedAssets": "Fixed Assets",
+    "fixed": "Fixed Assets",
     "depreciation": "Depreciation",
     "vat": "VAT",
     "vatReturns": "VAT Returns",
