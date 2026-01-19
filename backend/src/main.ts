@@ -21,15 +21,57 @@ async function bootstrap() {
 
   // ============================================================================
   // SECURITY MIDDLEWARE ORDER (important!)
-  // 1. Security headers (Helmet + custom)
-  // 2. CORS configuration
-  // 3. Body parsing limits
-  // 4. XSS protection
-  // 5. Compression
-  // 6. Custom middleware
+  // 1. CORS configuration (MUST be first to handle preflight)
+  // 2. Security headers (Helmet)
+  // 3. XSS protection
+  // 4. Compression
+  // 5. Custom middleware
   // ============================================================================
 
-  // 1. Helmet: Security headers
+  // 1. CORS Configuration - MUST be before other middleware
+  const corsOrigins = configService.corsOrigins;
+  logger.log(`Configuring CORS for origins: ${JSON.stringify(corsOrigins)}`);
+  
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      // Allow all origins if wildcard is set
+      if (corsOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      
+      // Check if origin is in the allowed list
+      if (corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Log rejected origins for debugging
+      logger.warn(`CORS rejected origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Access-Control-Request-Method',
+      'Access-Control-Request-Headers',
+      'X-CSRF-Token',
+    ],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
+  // 2. Helmet: Security headers
   app.use(
     helmet({
       // Content Security Policy
@@ -40,7 +82,7 @@ async function bootstrap() {
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'https:'],
           fontSrc: ["'self'"],
-          connectSrc: ["'self'"],
+          connectSrc: ["'self'", ...corsOrigins.filter(o => o !== '*')],
           frameSrc: ["'none'"],
           objectSrc: ["'none'"],
           mediaSrc: ["'self'"],
@@ -49,7 +91,8 @@ async function bootstrap() {
       },
       // Disable COEP for compatibility with Next.js frontend
       crossOriginEmbedderPolicy: false,
-      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginOpenerPolicy: false, // Disable to allow cross-origin requests
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin resource sharing
       // HSTS (only in production)
       hsts: configService.isProduction
         ? {
@@ -63,34 +106,6 @@ async function bootstrap() {
       xssFilter: true,
       // Hide X-Powered-By header
       hidePoweredBy: true,
-    })
-  );
-
-  // 2. CORS Configuration
-  const corsOrigins = configService.corsOrigins;
-  app.enableCors({
-    origin: corsOrigins.includes('*') ? '*' : corsOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'Accept',
-      'Origin',
-      'Access-Control-Request-Method',
-      'Access-Control-Request-Headers',
-    ],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
-    maxAge: 86400, // 24 hours
-  });
-
-  // 3. Request size limits
-  app.use(
-    helmet.contentSecurityPolicy({
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      },
     })
   );
 
