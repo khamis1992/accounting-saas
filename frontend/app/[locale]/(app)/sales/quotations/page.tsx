@@ -59,11 +59,15 @@ export default function QuotationsPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - customers only load once
   useEffect(() => {
     fetchQuotations();
-    fetchCustomers();
   }, [statusFilter, customerFilter]);
+
+  // Customers rarely change - load once on mount
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const fetchQuotations = async () => {
     try {

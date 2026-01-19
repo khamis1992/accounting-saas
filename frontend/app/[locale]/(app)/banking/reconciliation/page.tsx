@@ -73,11 +73,15 @@ export default function ReconciliationPage() {
   const [statementBalance, setStatementBalance] = useState("");
   const [selectedAccountId, setSelectedAccountId] = useState("");
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - bank accounts only load once
   useEffect(() => {
     fetchReconciliations();
-    fetchBankAccounts();
   }, [statusFilter, accountFilter]);
+
+  // Bank accounts rarely change - load once on mount
+  useEffect(() => {
+    fetchBankAccounts();
+  }, []);
 
   const fetchReconciliations = async () => {
     try {

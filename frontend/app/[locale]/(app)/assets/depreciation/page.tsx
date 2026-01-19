@@ -71,11 +71,15 @@ export default function DepreciationPage() {
   const [calculationDate, setCalculationDate] = useState("");
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - assets only load once
   useEffect(() => {
     fetchDepreciations();
-    fetchAssets();
   }, [statusFilter, assetFilter]);
+
+  // Assets rarely change - load once on mount
+  useEffect(() => {
+    fetchAssets();
+  }, []);
 
   const fetchDepreciations = async () => {
     try {

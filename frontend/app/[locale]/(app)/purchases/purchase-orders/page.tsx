@@ -92,11 +92,15 @@ export default function PurchaseOrdersPage() {
     }
   ]);
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - vendors only load once
   useEffect(() => {
     fetchPurchaseOrders();
-    fetchVendors();
   }, [statusFilter, vendorFilter]);
+
+  // Vendors rarely change - load once on mount
+  useEffect(() => {
+    fetchVendors();
+  }, []);
 
   const fetchPurchaseOrders = async () => {
     try {

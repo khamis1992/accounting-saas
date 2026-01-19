@@ -20,6 +20,7 @@ export class InvoicesService {
   async findAll(tenantId: string, filters?: { invoiceType?: string; status?: string; partyType?: string }) {
     const supabase = this.supabaseService.getClient();
 
+    // PERFORMANCE: Fetch invoices first, then batch load party info
     let query = supabase
       .from('invoices')
       .select('*')
@@ -36,13 +37,50 @@ export class InvoicesService {
       query = query.eq('party_type', filters.partyType);
     }
 
-    const { data, error } = await query;
+    const { data: invoices, error } = await query;
 
     if (error) {
       throw error;
     }
 
-    return data;
+    if (!invoices || invoices.length === 0) {
+      return [];
+    }
+
+    // PERFORMANCE: Batch load all customers and vendors in 2 queries instead of N queries
+    const customerIds = [...new Set(
+      invoices.filter(inv => inv.party_type === 'customer').map(inv => inv.party_id)
+    )];
+    const vendorIds = [...new Set(
+      invoices.filter(inv => inv.party_type === 'vendor').map(inv => inv.party_id)
+    )];
+
+    const [customersResult, vendorsResult] = await Promise.all([
+      customerIds.length > 0
+        ? supabase.from('customers').select('id, name_en, name_ar').in('id', customerIds)
+        : Promise.resolve({ data: [] }),
+      vendorIds.length > 0
+        ? supabase.from('vendors').select('id, name_en, name_ar').in('id', vendorIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    // Create lookup maps for O(1) access
+    const customerMap = new Map(
+      (customersResult.data || []).map(c => [c.id, c])
+    );
+    const vendorMap = new Map(
+      (vendorsResult.data || []).map(v => [v.id, v])
+    );
+
+    // Attach party info to each invoice
+    const invoicesWithParty = invoices.map(invoice => ({
+      ...invoice,
+      party: invoice.party_type === 'customer'
+        ? customerMap.get(invoice.party_id) || { name_en: 'Unknown', name_ar: 'غير معروف' }
+        : vendorMap.get(invoice.party_id) || { name_en: 'Unknown', name_ar: 'غير معروف' },
+    }));
+
+    return invoicesWithParty;
   }
 
   async findOne(id: string, tenantId: string) {
@@ -737,96 +775,82 @@ export class InvoicesService {
 
   /**
    * Get default accounts for invoice posting
-   * For now, we'll fetch from tenant_settings or use a simple lookup
-   * TODO: Implement a proper tenant settings system for default accounts
+   * PERFORMANCE OPTIMIZED: Single query with filtering in code instead of 8 queries
    */
   private async getDefaultAccounts(tenantId: string, invoiceType: string) {
     const supabase = this.supabaseService.getClient();
 
-    // Try to get default accounts from chart_of_accounts by code or name
-    // This is a simplified approach - in production, use a tenant_settings table
-
-    // Get Accounts Receivable account (asset)
-    const { data: arAccount } = await supabase
+    // PERFORMANCE: Single query to get all relevant accounts
+    const { data: accounts, error } = await supabase
       .from('chart_of_accounts')
-      .select('id')
+      .select('id, name_en, type')
       .eq('tenant_id', tenantId)
-      .eq('type', 'asset')
-      .ilike('name_en', '%receivable%')
-      .limit(1)
-      .single();
+      .eq('is_active', true)
+      .in('type', ['asset', 'liability', 'revenue', 'expense']);
 
-    // Get Accounts Payable account (liability)
-    const { data: apAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('type', 'liability')
-      .ilike('name_en', '%payable%')
-      .limit(1)
-      .single();
+    if (error) {
+      throw error;
+    }
 
-    // Get Tax Payable account (liability)
-    const { data: taxPayableAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('type', 'liability')
-      .ilike('name_en', '%tax%payable%')
-      .limit(1)
-      .single();
+    const accountList = accounts || [];
+    const nameLower = (name: string) => (name || '').toLowerCase();
 
-    // Get Tax Recoverable account (asset)
-    const { data: taxRecoverableAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('type', 'asset')
-      .or('name_en.ilike.%tax%recoverable%,name_en.ilike.%input%tax%')
-      .limit(1)
-      .single();
+    // Find accounts by pattern matching in code (O(n) single pass)
+    let arAccount: { id: string } | undefined;
+    let apAccount: { id: string } | undefined;
+    let taxPayableAccount: { id: string } | undefined;
+    let taxRecoverableAccount: { id: string } | undefined;
+    let revenueAccount: { id: string } | undefined;
+    let expenseAccount: { id: string } | undefined;
+    let salesReturnsAccount: { id: string } | undefined;
+    let purchaseReturnsAccount: { id: string } | undefined;
 
-    // Get Sales Revenue account (revenue)
-    const { data: revenueAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('type', 'revenue')
-      .ilike('name_en', '%sales%')
-      .limit(1)
-      .single();
+    for (const acc of accountList) {
+      const name = nameLower(acc.name_en);
+      
+      // Accounts Receivable (asset with "receivable")
+      if (!arAccount && acc.type === 'asset' && name.includes('receivable')) {
+        arAccount = acc;
+      }
+      
+      // Accounts Payable (liability with "payable")
+      if (!apAccount && acc.type === 'liability' && name.includes('payable') && !name.includes('tax')) {
+        apAccount = acc;
+      }
+      
+      // Tax Payable (liability with "tax" and "payable")
+      if (!taxPayableAccount && acc.type === 'liability' && name.includes('tax') && name.includes('payable')) {
+        taxPayableAccount = acc;
+      }
+      
+      // Tax Recoverable (asset with "tax" and "recoverable" or "input")
+      if (!taxRecoverableAccount && acc.type === 'asset' && 
+          (name.includes('tax') && (name.includes('recoverable') || name.includes('input')))) {
+        taxRecoverableAccount = acc;
+      }
+      
+      // Sales Revenue (revenue with "sales")
+      if (!revenueAccount && acc.type === 'revenue' && name.includes('sales') && !name.includes('return')) {
+        revenueAccount = acc;
+      }
+      
+      // Purchase/Expense (expense with "purchase")
+      if (!expenseAccount && acc.type === 'expense' && name.includes('purchase') && !name.includes('return')) {
+        expenseAccount = acc;
+      }
+      
+      // Sales Returns
+      if (!salesReturnsAccount && name.includes('sales') && name.includes('return')) {
+        salesReturnsAccount = acc;
+      }
+      
+      // Purchase Returns
+      if (!purchaseReturnsAccount && name.includes('purchase') && name.includes('return')) {
+        purchaseReturnsAccount = acc;
+      }
+    }
 
-    // Get Purchase/Expense account (expense)
-    const { data: expenseAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('type', 'expense')
-      .ilike('name_en', '%purchase%')
-      .limit(1)
-      .single();
-
-    // Get Sales Returns account (expense/contra-revenue)
-    const { data: salesReturnsAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .or('type.eq.expense,type.eq.revenue')
-      .ilike('name_en', '%sales%return%')
-      .limit(1)
-      .single();
-
-    // Get Purchase Returns account (revenue/contra-expense)
-    const { data: purchaseReturnsAccount } = await supabase
-      .from('chart_of_accounts')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .or('type.eq.revenue,type.eq.expense')
-      .ilike('name_en', '%purchase%return%')
-      .limit(1)
-      .single();
-
-    // If accounts don't exist, throw an error
+    // Validation
     if (!arAccount?.id) {
       throw new BadRequestException('Accounts Receivable account not found. Please create an asset account with "receivable" in the name.');
     }
@@ -837,8 +861,8 @@ export class InvoicesService {
     return {
       receivable_account_id: arAccount.id,
       payable_account_id: apAccount.id,
-      tax_payable_account_id: taxPayableAccount?.id || arAccount.id, // Fallback to AR
-      tax_recoverable_account_id: taxRecoverableAccount?.id || apAccount.id, // Fallback to AP
+      tax_payable_account_id: taxPayableAccount?.id || arAccount.id,
+      tax_recoverable_account_id: taxRecoverableAccount?.id || apAccount.id,
       revenue_account_id: revenueAccount?.id,
       expense_account_id: expenseAccount?.id,
       sales_returns_account_id: salesReturnsAccount?.id,

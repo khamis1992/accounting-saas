@@ -18,6 +18,7 @@ export class PaymentsService {
   async findAll(tenantId: string, filters?: { paymentType?: string; status?: string; partyType?: string }) {
     const supabase = this.supabaseService.getClient();
 
+    // PERFORMANCE: Fetch payments first, then batch load party info
     let query = supabase
       .from('payments')
       .select('*')
@@ -34,13 +35,50 @@ export class PaymentsService {
       query = query.eq('party_type', filters.partyType);
     }
 
-    const { data, error } = await query;
+    const { data: payments, error } = await query;
 
     if (error) {
       throw error;
     }
 
-    return data;
+    if (!payments || payments.length === 0) {
+      return [];
+    }
+
+    // PERFORMANCE: Batch load all customers and vendors in 2 queries instead of N queries
+    const customerIds = [...new Set(
+      payments.filter(pay => pay.party_type === 'customer').map(pay => pay.party_id)
+    )];
+    const vendorIds = [...new Set(
+      payments.filter(pay => pay.party_type === 'vendor').map(pay => pay.party_id)
+    )];
+
+    const [customersResult, vendorsResult] = await Promise.all([
+      customerIds.length > 0
+        ? supabase.from('customers').select('id, name_en, name_ar').in('id', customerIds)
+        : Promise.resolve({ data: [] }),
+      vendorIds.length > 0
+        ? supabase.from('vendors').select('id, name_en, name_ar').in('id', vendorIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    // Create lookup maps for O(1) access
+    const customerMap = new Map(
+      (customersResult.data || []).map(c => [c.id, c])
+    );
+    const vendorMap = new Map(
+      (vendorsResult.data || []).map(v => [v.id, v])
+    );
+
+    // Attach party info to each payment
+    const paymentsWithParty = payments.map(payment => ({
+      ...payment,
+      party: payment.party_type === 'customer'
+        ? customerMap.get(payment.party_id) || { name_en: 'Unknown', name_ar: 'غير معروف' }
+        : vendorMap.get(payment.party_id) || { name_en: 'Unknown', name_ar: 'غير معروف' },
+    }));
+
+    return paymentsWithParty;
   }
 
   async findOne(id: string, tenantId: string) {

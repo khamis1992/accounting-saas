@@ -61,11 +61,15 @@ export default function GeneralLedgerPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [showFilters, setShowFilters] = useState(true);
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - accounts only load once
   useEffect(() => {
     fetchGeneralLedger();
-    fetchAccounts();
   }, [startDate, endDate, accountId, accountType]);
+
+  // Chart of accounts rarely changes - load once on mount
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
 
   const fetchGeneralLedger = async () => {
     try {

@@ -83,11 +83,15 @@ export default function ExpensesPage() {
     status: "pending" as ExpenseStatus,
   });
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - vendors only load once
   useEffect(() => {
     fetchExpenses();
-    fetchVendors();
   }, [statusFilter, categoryFilter]);
+
+  // Vendors rarely change - load once on mount
+  useEffect(() => {
+    fetchVendors();
+  }, []);
 
   const fetchExpenses = async () => {
     try {

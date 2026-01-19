@@ -71,11 +71,15 @@ export default function VatReturnsPage() {
   const [calculationStartDate, setCalculationStartDate] = useState("");
   const [calculationEndDate, setCalculationEndDate] = useState("");
 
-  // Fetch initial data
+  // PERFORMANCE FIX: Separate effects - VAT rates only load once
   useEffect(() => {
     fetchVatReturns();
-    fetchVatRates();
   }, [statusFilter, periodFilter]);
+
+  // VAT rates rarely change - load once on mount
+  useEffect(() => {
+    fetchVatRates();
+  }, []);
 
   const fetchVatReturns = async () => {
     try {

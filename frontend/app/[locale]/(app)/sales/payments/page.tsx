@@ -102,11 +102,17 @@ export default function PaymentsPage() {
   });
   const [allocations, setAllocations] = useState<PaymentAllocationForm[]>([]);
 
+  // PERFORMANCE FIX: Separate effects - customers/vendors only load once
+  // Payments reload when filters change
   useEffect(() => {
     fetchPayments();
+  }, [typeFilter, statusFilter, partyTypeFilter]);
+
+  // Customers and vendors rarely change - load once on mount
+  useEffect(() => {
     fetchCustomers();
     fetchVendors();
-  }, [typeFilter, statusFilter, partyTypeFilter]);
+  }, []);
 
   const fetchPayments = async () => {
     try {

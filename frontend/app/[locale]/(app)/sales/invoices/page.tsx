@@ -112,11 +112,17 @@ export default function InvoicesPage() {
     },
   ]);
 
+  // PERFORMANCE FIX: Separate effects - customers/vendors only load once
+  // Invoices reload when filters change
   useEffect(() => {
     fetchInvoices();
+  }, [typeFilter, statusFilter, partyTypeFilter]);
+
+  // Customers and vendors rarely change - load once on mount
+  useEffect(() => {
     fetchCustomers();
     fetchVendors();
-  }, [typeFilter, statusFilter, partyTypeFilter]);
+  }, []);
 
   const fetchInvoices = async () => {
     try {
